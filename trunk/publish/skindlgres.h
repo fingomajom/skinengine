@@ -1,3 +1,13 @@
+/********************************************************************
+* CreatedOn: 2007-12-17   17:07
+* FileName: skindlgres.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 
 #pragma once
 
