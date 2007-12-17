@@ -2,6 +2,7 @@
 #pragma once
 
 #include "StringTableResource.h"
+#include "skinimageedit.h"
 
 
 class CResDocument
@@ -31,15 +32,20 @@ public:
     }
     
     CStringTableResource* GetStringTableResource();
-    std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& GetStringTableList();
+
+    skinimageedit& getskinimageedit()
+    {
+        return m_skinimageedit;
+    }
+
 private:
     
     CXmlDocumentWrapper*  m_pxmlDocument;
     CStringTableResource* m_pStringTable;
 
-    BOOL m_bChanged ;
+    skinimageedit m_skinimageedit;
 
-    std::vector<CStringTableResource::STRINGTABLE_ITEMINFO> m_vtItemList;
+    BOOL m_bChanged ;
     
     KSE::CString m_strFileName;
 };

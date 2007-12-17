@@ -13,6 +13,7 @@
 
 #include <atlbase.h>
 #include <atlapp.h>
+#include <skinapp.h>
 #include <atlstr.h>
 #include <atlframe.h>
 #include <atlsplit.h>
@@ -21,8 +22,9 @@
 #include <atlctrlw.h>
 #include <atlctrlx.h>
 
+using namespace KSE;
 
-extern CAppModule _Module;
+extern CSkinAppModule _Module;
 
 #include <atlwin.h>
 

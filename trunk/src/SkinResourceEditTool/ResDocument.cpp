@@ -71,10 +71,7 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     }
     
     m_pStringTable->AttachXmlNode(strnode);
-
-    //m_pStringTable->SaveString(_T("IDS_ABC11"), _T("1231313"));
-    
-    m_pStringTable->GetStringTableList(m_vtItemList);
+    m_pStringTable->LoadStringTableList();
 
     return bResult;
 }
@@ -90,27 +87,24 @@ CStringTableResource* CResDocument::GetStringTableResource()
     return m_pStringTable;
 }
 
-std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& CResDocument::GetStringTableList()
-{
-    return m_vtItemList;
-}
-
 
 void CResDocument::Save()
 {
     CXmlNodeWrapper root = m_pxmlDocument->AsNode();
     if (!root.IsValid())
-        return;
+    {
+        LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSE></KSE>");
+        
+        m_pxmlDocument->LoadXML(pszXML);
+        
+        root = m_pxmlDocument->AsNode();
 
-    CXmlNodeWrapper strnode = root.FindNode(KSE::skinstrresbase::GetResKeyName());
+        if (!root.IsValid())
+            return;
+    }
 
-    root.RemoveNode(strnode.Interface());
+    m_pStringTable->SaveToDocument(root);
 
-    strnode = root.AppendNode(KSE::skinstrresbase::GetResKeyName());
-
-    m_pStringTable->AttachXmlNode(strnode);
-    m_pStringTable->SetStringTableList(m_vtItemList);
-    
     m_pxmlDocument->Save(m_strFileName);
 
     m_bChanged = FALSE;

@@ -31,9 +31,10 @@ BOOL CStringTableResource::SaveString(LPCTSTR pszIDName, LPCTSTR strValue)
     }
     
     return FALSE;
-}
+} 
 
-BOOL CStringTableResource::GetStringTableList(std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& vtItemList)
+
+BOOL CStringTableResource::LoadStringTableList()
 {
     CXmlNodeListWrapper nodelist = m_xmlResNode.GetChildNodes();
 
@@ -53,7 +54,7 @@ BOOL CStringTableResource::GetStringTableList(std::vector<CStringTableResource::
 
         node.Name(itemInfo.strIDName);
         node.GetValue(skinstrresbase::GetValueAttName(), itemInfo.strValue);
-        vtItemList.push_back(itemInfo);
+        m_vtItemList.push_back(itemInfo);
 
         node = nodelist.Next();
 
@@ -63,12 +64,37 @@ BOOL CStringTableResource::GetStringTableList(std::vector<CStringTableResource::
 }
 
 
-BOOL CStringTableResource::SetStringTableList(const std::vector<STRINGTABLE_ITEMINFO>& vtItemList)
+//BOOL CStringTableResource::SetStringTableList(const std::vector<STRINGTABLE_ITEMINFO>& vtItemList)
+//{
+//    for (size_t i = 0; i < vtItemList.size(); i++)
+//    {
+//        SaveString(vtItemList[i].strIDName, vtItemList[i].strValue);
+//    }
+//
+//    return TRUE;
+//}
+
+BOOL CStringTableResource::SaveToDocument(CXmlNodeWrapper& root)
 {
-    for (size_t i = 0; i < vtItemList.size(); i++)
+    CXmlNodeWrapper strnode = root.FindNode(KSE::skinstrresbase::GetResKeyName());
+    if (strnode.IsValid())
     {
-        SaveString(vtItemList[i].strIDName, vtItemList[i].strValue);
+        root.RemoveNode(strnode.Interface());
+    }
+
+    m_xmlResNode = root.AppendNode(KSE::skinstrresbase::GetResKeyName());
+    
+    for (size_t i = 0; i < m_vtItemList.size(); i++)
+    {
+        SaveString(m_vtItemList[i].strIDName, m_vtItemList[i].strValue);
     }
 
     return TRUE;
 }
+
+
+std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& CStringTableResource::GetStringTableList()
+{
+    return m_vtItemList;
+}
+

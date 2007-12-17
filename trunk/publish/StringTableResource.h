@@ -20,9 +20,18 @@ public:
 
     BOOL SaveString(LPCTSTR pszIDName, LPCTSTR strValue);
 
-    BOOL GetStringTableList(std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
-    BOOL SetStringTableList(const std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
+    BOOL LoadStringTableList();
 
+    //BOOL GetStringTableList(std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
+    //BOOL SetStringTableList(const std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
+
+    BOOL SaveToDocument(CXmlNodeWrapper& root);
     //////////////////////////////////////////////////////////////////////////
+
+    std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& GetStringTableList();
+
+public:
+
+    std::vector<CStringTableResource::STRINGTABLE_ITEMINFO> m_vtItemList;
 
 };
