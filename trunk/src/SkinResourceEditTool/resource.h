@@ -13,6 +13,7 @@
 #define IDC_IMAGE_LIST                  1001
 #define IDC_EDIT1                       1002
 #define IDC_EDIT3                       1003
+#define IDC_FILE_EDIT                   1003
 #define IDC_BROWSE_BUTTON               1004
 
 // Next default values for new objects

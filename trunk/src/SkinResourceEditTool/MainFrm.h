@@ -65,12 +65,11 @@ public:
 
 
         NOTIFY_HANDLER(IDC_LEFT_TREE, TVN_SELCHANGED, OnSelChanged)
-        NOTIFY_HANDLER(IDC_RIGHT_LIST, NM_DBLCLK    , OnRightListDbClk)
-
 
         COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
         COMMAND_ID_HANDLER(ID_FILE_SAVE_AS, OnFileSaveAs)
         MESSAGE_HANDLER(WM_CLOSE, OnClose)
+        COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
         CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
         REFLECT_NOTIFICATIONS()
@@ -107,11 +106,6 @@ public:
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASLINES ,
             WS_EX_CLIENTEDGE, IDC_LEFT_TREE);
 
-		m_wndRightListView.Create(m_wndSplitter, rcDefault, NULL, 
-            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL, 
-            WS_EX_CLIENTEDGE, IDC_RIGHT_LIST );
-
-        m_wndRightListView.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
         
         m_wndNoneStatic.Create(m_wndSplitter, rcDefault, NULL,  WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_CLIENTEDGE);
 
@@ -166,18 +160,31 @@ public:
         case em_rvt_image:
             
             if (m_wndImageEditDlg.m_hWnd == NULL)
+            {
                 m_wndImageEditDlg.Create(m_wndSplitter);
 
+                m_wndImageEditDlg.LoadResFromDocumnet();
+            }
+
             m_wndLastView = m_wndImageEditDlg;
+            
+
             break;
 
         case em_rvt_string_table:
-            m_wndLastView = m_wndRightListView;
 
-            if ( m_wndRightListView.GetHeader().GetItemCount() == 0 )
+            if (m_wndRightListView.m_hWnd == NULL)
             {
-                InitStringTableWnd();
+                m_wndRightListView.Create(m_wndSplitter, rcDefault, NULL, 
+                    WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL, 
+                    WS_EX_CLIENTEDGE, IDC_RIGHT_LIST );
+
+                m_wndRightListView.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
+
+                m_wndRightListView.LoadResFromDocumnet();
             }
+
+            m_wndLastView = m_wndRightListView;
 
             break;
         case em_rvt_none:
@@ -191,78 +198,6 @@ public:
 
     }
 
-    void InitStringTableWnd()
-    {
-        CResDocument& document = CResDocument::Instance();
-
-        std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& vtList =
-            document.GetStringTableResource()->GetStringTableList();
-
-        m_wndRightListView.InsertColumn(0, _T("Type"), LVCFMT_LEFT, 60);
-        m_wndRightListView.InsertColumn(2, _T("ID"), LVCFMT_LEFT, 150);
-        m_wndRightListView.InsertColumn(3, _T("Caption"), LVCFMT_LEFT, 550);
-
-        for (size_t i = 0; i < vtList.size(); i++)
-        {
-            int nIndex = m_wndRightListView.InsertItem(0xFFFFF, _T("String"));
-            m_wndRightListView.SetItemText(nIndex, 1, vtList[i].strIDName );
-            m_wndRightListView.SetItemText(nIndex, 2, vtList[i].strValue );
-        }
-    
-        int nIndex = m_wndRightListView.InsertItem(0xFFFFF, _T("New..."));
-
-    }
-
-    LRESULT OnRightListDbClk(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
-    {
-        int nIndex = m_wndRightListView.GetSelectedIndex();
-
-        if (nIndex < 0 )
-            return DefWindowProc();
-
-        CEditStringDlg dlg;
-
-        m_wndRightListView.GetItemText(nIndex, 1, dlg.m_strId);
-        m_wndRightListView.GetItemText(nIndex, 2, dlg.m_strCaption);
-        
-        while (dlg.DoModal() == IDOK)
-        {
-            for (int i = 0; i < m_wndRightListView.GetItemCount() - 1; i++)
-            {
-                if (i == nIndex)
-                    continue;
-
-                WTL::CString strId;
-
-                m_wndRightListView.GetItemText(i, 1, strId);
-
-                if (strId == dlg.m_strId)
-                {
-                    m_wndRightListView.SelectItem(i);
-
-                    return DefWindowProc();
-                }
-            }
-            
-            if ( nIndex == m_wndRightListView.GetItemCount() - 1 )
-            {
-                m_wndRightListView.SetItemText(nIndex, 0, _T("String"));
-                m_wndRightListView.InsertItem(0xFFFFF, _T("New..."));
-            }
-
-            m_wndRightListView.SetItemText(nIndex, 1, dlg.m_strId );
-            m_wndRightListView.SetItemText(nIndex, 2, dlg.m_strCaption );
-
-            CResDocument& document = CResDocument::Instance();
-            document.SetChanged();
-
-            break;
-        }
-
-        return DefWindowProc();
-    }
-
-
 
 	LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
@@ -272,7 +207,9 @@ public:
 
 	LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
-		// TODO: add code to initialize document
+        m_wndRightListView.ClearRes();
+        m_wndImageEditDlg.ClearRes();
+
 
 		return 0;
 	}
@@ -307,4 +244,5 @@ public:
     LRESULT OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnFileSaveAs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };

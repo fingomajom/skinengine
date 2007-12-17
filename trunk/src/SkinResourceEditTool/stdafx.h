@@ -21,6 +21,7 @@
 #include <atlctrls.h>
 #include <atlctrlw.h>
 #include <atlctrlx.h>
+#include <atldlgs.h>
 
 using namespace KSE;
 

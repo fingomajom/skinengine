@@ -33,9 +33,9 @@ public:
     
     CStringTableResource* GetStringTableResource();
 
-    skinimageedit& getskinimageedit()
+    skinimageedit* getskinimageedit()
     {
-        return m_skinimageedit;
+        return m_pskinimageedit;
     }
 
 private:
@@ -43,7 +43,7 @@ private:
     CXmlDocumentWrapper*  m_pxmlDocument;
     CStringTableResource* m_pStringTable;
 
-    skinimageedit m_skinimageedit;
+    skinimageedit* m_pskinimageedit;
 
     BOOL m_bChanged ;
     

@@ -275,6 +275,10 @@
 			Name="View"
 			>
 			<File
+				RelativePath=".\EditResBase.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ImageResEditDlg.h"
 				>
 			</File>

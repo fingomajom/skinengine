@@ -37,9 +37,8 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     
     m_pxmlDocument = new CXmlDocumentWrapper();
     m_pStringTable = new CStringTableResource();
-
+    m_pskinimageedit = new skinimageedit;
     
-    CXmlDocumentWrapper xx;
 
     if (m_strFileName.GetLength() > 0)
     {
@@ -73,6 +72,16 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     m_pStringTable->AttachXmlNode(strnode);
     m_pStringTable->LoadStringTableList();
 
+    CXmlNodeWrapper imagenode = root.FindNode(KSE::skinimageresbase::GetResKeyName());
+    if (!imagenode.IsValid())
+    {
+        imagenode = root.AppendNode(KSE::skinimageresbase::GetResKeyName());
+    }
+
+    m_pskinimageedit->AttachXmlNode(imagenode);
+    m_pskinimageedit->LoadImageList();
+
+
     return bResult;
 }
 
@@ -80,6 +89,7 @@ void CResDocument::Uninit( )
 {
     delete m_pxmlDocument;
     delete m_pStringTable;
+    delete m_pskinimageedit;
 }
 
 CStringTableResource* CResDocument::GetStringTableResource()
@@ -104,6 +114,7 @@ void CResDocument::Save()
     }
 
     m_pStringTable->SaveToDocument(root);
+    m_pskinimageedit->SaveToDocument(root);
 
     m_pxmlDocument->Save(m_strFileName);
 
