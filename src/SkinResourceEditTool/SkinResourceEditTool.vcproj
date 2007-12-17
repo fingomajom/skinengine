@@ -275,6 +275,10 @@
 			Name="View"
 			>
 			<File
+				RelativePath=".\ImageResEditDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LeftTreeView.h"
 				>
 			</File>
@@ -286,6 +290,82 @@
 		<Filter
 			Name="Import"
 			>
+			<File
+				RelativePath="..\..\publish\skinapp.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skindlgres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skingdi.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinimageres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinresbase.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinresloader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinstr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinstrres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmldialog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlobject.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlwin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\XmlNodeWrapper.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\publish\XmlNodeWrapper.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Res"
+			>
+			<File
+				RelativePath=".\skinimageedit.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\publish\StringTableResource.cpp"
 				>
@@ -311,58 +391,6 @@
 			</File>
 			<File
 				RelativePath="..\..\publish\StringTableResource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\publish\XmlNodeWrapper.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\publish\XmlNodeWrapper.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Res"
-			>
-			<File
-				RelativePath="..\public\skinapp.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skingdi.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinres.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinresbase.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinresloader.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinstr.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinstrres.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\skinxmlobject.h"
 				>
 			</File>
 		</Filter>

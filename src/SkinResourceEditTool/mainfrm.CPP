@@ -9,7 +9,7 @@ LRESULT CMainFrame::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
     
     
     std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& vtList =
-        document.GetStringTableList();
+        document.GetStringTableResource()->GetStringTableList();
 
 
     vtList.resize( m_wndRightListView.GetItemCount() - 1 );

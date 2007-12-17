@@ -10,6 +10,7 @@
 #include "RightListView.h"
 #include "ResDocument.h"
 #include "EditStringDlg.h"
+#include "ImageResEditDlg.h"
 
 #define IDC_LEFT_TREE   1000
 #define IDC_RIGHT_LIST  1001
@@ -24,6 +25,8 @@ public:
     CSplitterWindow m_wndSplitter;
     CLeftTreeView   m_wndLeftTreeView;
     CRightListView  m_wndRightListView;
+    
+    CImageResEditDlg m_wndImageEditDlg;
 
     CWindow         m_wndLastView;
 
@@ -160,6 +163,14 @@ public:
 
         switch(ntvtype)
         {
+        case em_rvt_image:
+            
+            if (m_wndImageEditDlg.m_hWnd == NULL)
+                m_wndImageEditDlg.Create(m_wndSplitter);
+
+            m_wndLastView = m_wndImageEditDlg;
+            break;
+
         case em_rvt_string_table:
             m_wndLastView = m_wndRightListView;
 
@@ -185,7 +196,7 @@ public:
         CResDocument& document = CResDocument::Instance();
 
         std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& vtList =
-            document.GetStringTableList();
+            document.GetStringTableResource()->GetStringTableList();
 
         m_wndRightListView.InsertColumn(0, _T("Type"), LVCFMT_LEFT, 60);
         m_wndRightListView.InsertColumn(2, _T("ID"), LVCFMT_LEFT, 150);

@@ -5,6 +5,7 @@
 
 enum{
     em_rvt_none = 0,
+    em_rvt_image,
     em_rvt_string_table
 };
 
@@ -51,9 +52,15 @@ public:
     void InitStringTable( CResDocument& document )
     {
         HTREEITEM hItem = CTreeViewCtrl::InsertItem(
+            _T("Images"),
+            CTreeViewCtrl::GetRootItem(), TVI_LAST);
+
+        CTreeViewCtrl::SetItemData(hItem, em_rvt_image);
+
+        hItem = CTreeViewCtrl::InsertItem(
             _T("StringTable[11]"),
             CTreeViewCtrl::GetRootItem(), TVI_LAST);
-        
+
         CTreeViewCtrl::SetItemData(hItem, em_rvt_string_table);
                 
     }

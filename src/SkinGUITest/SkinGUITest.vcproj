@@ -263,55 +263,55 @@
 			Name="Import"
 			>
 			<File
-				RelativePath="..\public\skinapp.h"
+				RelativePath="..\..\publish\skinapp.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinconfig.h"
+				RelativePath="..\..\publish\skinconfig.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skindlgres.h"
+				RelativePath="..\..\publish\skindlgres.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skingdi.h"
+				RelativePath="..\..\publish\skingdi.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinimageres.h"
+				RelativePath="..\..\publish\skinimageres.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinres.h"
+				RelativePath="..\..\publish\skinres.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinresbase.h"
+				RelativePath="..\..\publish\skinresbase.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinresloader.h"
+				RelativePath="..\..\publish\skinresloader.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinstr.h"
+				RelativePath="..\..\publish\skinstr.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinstrres.h"
+				RelativePath="..\..\publish\skinstrres.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinxmldialog.h"
+				RelativePath="..\..\publish\skinxmldialog.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinxmlobject.h"
+				RelativePath="..\..\publish\skinxmlobject.h"
 				>
 			</File>
 			<File
-				RelativePath="..\public\skinxmlwin.h"
+				RelativePath="..\..\publish\skinxmlwin.h"
 				>
 			</File>
 			<File

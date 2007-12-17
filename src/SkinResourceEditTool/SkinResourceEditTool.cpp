@@ -16,7 +16,7 @@
 #include "ResDocument.h"
 
 
-CAppModule _Module;
+CSkinAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
