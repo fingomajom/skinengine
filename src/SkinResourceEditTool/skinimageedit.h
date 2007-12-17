@@ -34,13 +34,13 @@ public:
 
     }IMAGE_ITEMINFO;
 
-    virtual BOOL SaveImageFile(LPCTSTR pszIDName, KSE::CString& strFileName)
+    virtual BOOL SaveImageFile(LPCTSTR pszIDName, LPCTSTR pszFileName)
     {
         CXmlNodeWrapper node = m_xmlResNode.FindNode(pszIDName);
 
         if (node.IsValid())
         {
-            node.SetValue(skinimageresbase::GetValueAttName(), strFileName);
+            node.SetValue(skinimageresbase::GetValueAttName(), pszFileName);
 
             return TRUE;
         }
@@ -49,7 +49,7 @@ public:
 
         if (node.IsValid())
         {
-            node.SetValue(skinimageresbase::GetValueAttName(), strFileName);
+            node.SetValue(skinimageresbase::GetValueAttName(), pszFileName);
 
             return TRUE;
         }
@@ -100,7 +100,8 @@ public:
         {
             SaveImageFile(m_vtItemList[i].strIDName, m_vtItemList[i].strFileName);
         }
-
+        
+        return TRUE;
     }
     //////////////////////////////////////////////////////////////////////////
 

@@ -7,18 +7,9 @@ LRESULT CMainFrame::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 
     CResDocument& document = CResDocument::Instance();
     
-    
-    std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& vtList =
-        document.GetStringTableResource()->GetStringTableList();
+    m_wndRightListView.SaveResToDocument();
+    m_wndImageEditDlg.SaveResToDocument();
 
-
-    vtList.resize( m_wndRightListView.GetItemCount() - 1 );
-
-    for (int i = 0; i < m_wndRightListView.GetItemCount() - 1; i++)
-    {
-        m_wndRightListView.GetItemText(i, 1, vtList[i].strIDName);
-        m_wndRightListView.GetItemText(i, 2, vtList[i].strValue);
-    }
 
     document.Save();
 
@@ -48,4 +39,21 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
     }
 
     return DefWindowProc();
+}
+
+LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    //CFileDialog conDlg(TRUE, _T("bak"), _T("arpconfig"),
+    //    OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, 
+    //    _T("备份文件(*.bak)\0*.bak; *.bak \0所有文件(*.*)\0*.*\0\0"));
+
+    //conDlg.m_ofn.lpstrTitle = (_T("导入设置"));
+
+    //if (IDOK != conDlg.DoModal())
+    //{
+    //    return 0;
+    //}
+
+
+    return 0;
 }
