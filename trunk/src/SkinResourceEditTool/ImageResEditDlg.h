@@ -52,6 +52,7 @@ public:
             if (nIndex >= 0 && nIndex < GetCount() - 1)
             {
                 DeleteString(nIndex);
+                m_vtItems.erase( m_vtItems.begin() + nIndex );
 
                 CResDocument& document = CResDocument::Instance();
                 document.SetChanged();
@@ -188,6 +189,8 @@ public:
                 CBitmap bmp;
 
                 bmp.m_hBitmap = document.getskinimageedit()->LoadBitmap(itemInfo.strIdName);
+                if (bmp.m_hBitmap == NULL)
+                    break;
                 
                 BITMAP bm = { 0 };
 
@@ -272,6 +275,25 @@ public:
         return TRUE;
     }
 
+    BOOL AppendImageBefNew(const KSE::CString& strIdName,
+        const KSE::CString& strFileName)
+    {
+        image_item_info item;
+
+        item.ntype = GetType(strFileName);
+
+        item.strIdName   = strIdName;
+        item.strFileName = strFileName;
+
+        int nIndex = GetCount() - 1;
+
+        m_vtItems.insert(m_vtItems.begin() + nIndex, item);
+        InsertString(nIndex, strIdName);        
+
+        return TRUE;
+    }
+
+
     BOOL SetImage(int nIndex, 
         const KSE::CString& strIdName,
         const KSE::CString& strFileName)
@@ -350,6 +372,105 @@ public:
     }
 };
 
+class CMyFileDialog : public CFileDialogImpl<CMyFileDialog>
+{
+public:
+    CMyFileDialog(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE for FileSaveAs
+        LPCTSTR lpszDefExt = NULL,
+        LPCTSTR lpszFileName = NULL,
+        DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+        LPCTSTR lpszFilter = NULL,
+        HWND hWndParent = NULL)
+        : CFileDialogImpl<CMyFileDialog>(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, hWndParent)
+    { }
+
+    LPCTSTR GetStartPosition() const
+    { return (LPCTSTR)m_ofn.lpstrFile; }
+
+
+    WTL::CString GetNextPathName(LPCTSTR& pos) const
+    {
+        BOOL bExplorer = m_ofn.Flags & OFN_EXPLORER;
+        TCHAR chDelimiter;
+        if (bExplorer)
+            chDelimiter = '\0';
+        else
+            chDelimiter = ' ';
+
+        LPTSTR lpsz = (LPTSTR)pos;
+        if (lpsz == m_ofn.lpstrFile) // first time
+        {
+            if ((m_ofn.Flags & OFN_ALLOWMULTISELECT) == 0)
+            {
+                pos = NULL;
+                return m_ofn.lpstrFile;
+            }
+
+            // find char pos after first Delimiter
+            while(*lpsz != chDelimiter && *lpsz != '\0')
+                lpsz = _tcsinc(lpsz);
+            lpsz = _tcsinc(lpsz);
+
+            // if single selection then return only selection
+            if (*lpsz == 0)
+            {
+                pos = NULL;
+                return m_ofn.lpstrFile;
+            }
+        }
+
+        WTL::CString strBasePath = m_ofn.lpstrFile;
+        if (!bExplorer)
+        {
+            LPTSTR lpszPath = m_ofn.lpstrFile;
+            while(*lpszPath != chDelimiter)
+                lpszPath = _tcsinc(lpszPath);
+            strBasePath = strBasePath.Left(int(lpszPath - m_ofn.lpstrFile));
+        }
+
+        LPTSTR lpszFileName = lpsz;
+        WTL::CString strFileName = lpsz;
+
+        // find char pos at next Delimiter
+        while(*lpsz != chDelimiter && *lpsz != '\0')
+            lpsz = _tcsinc(lpsz);
+
+        if (!bExplorer && *lpsz == '\0')
+            pos = NULL;
+        else
+        {
+            if (!bExplorer)
+                strFileName = strFileName.Left(int(lpsz - lpszFileName));
+
+            lpsz = _tcsinc(lpsz);
+            if (*lpsz == '\0') // if double terminated then done
+                pos = NULL;
+            else
+                pos = (LPCTSTR)lpsz;
+        }
+
+        TCHAR strDrive[_MAX_DRIVE], strDir[_MAX_DIR], strName[_MAX_FNAME], strExt[_MAX_EXT];
+        Checked::tsplitpath_s(strFileName, strDrive, _MAX_DRIVE, strDir, _MAX_DIR, strName, _MAX_FNAME, strExt, _MAX_EXT);
+        TCHAR strPath[_MAX_PATH];
+        if (*strDrive || *strDir)
+        {
+            Checked::tcscpy_s(strPath, _countof(strPath), strFileName);
+        }
+        else
+        {
+            Checked::tsplitpath_s(strBasePath+_T("\\"), strDrive, _MAX_DRIVE, strDir, _MAX_DIR, NULL, 0, NULL, 0);
+            Checked::tmakepath_s(strPath, _MAX_PATH, strDrive, strDir, strName, strExt);
+        }
+
+        return strPath;
+    }
+
+    // override base class map and references to handlers
+    DECLARE_EMPTY_MSG_MAP()
+};
+
+
+
 class CImageResEditDlg : 
     public CDialogImpl<CImageResEditDlg>,
     public CEditResBase
@@ -359,7 +480,9 @@ public:
 
     BEGIN_MSG_MAP(CImageResEditDlg)
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+        MESSAGE_HANDLER(WM_SIZE      , OnSize)
         COMMAND_HANDLER(IDC_BROWSE_BUTTON, BN_CLICKED, OnBnClickedBrowseButton)
+        COMMAND_HANDLER(IDC_ADD_BUTTON, BN_CLICKED, OnBnClickedAddButton)
         COMMAND_ID_HANDLER(IDOK, OnOkCmd)
 
 
@@ -379,6 +502,45 @@ public:
 
     CImageListViewCtrl m_wndImageList;
 
+
+    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        RECT rcClient = { 0 };
+
+        GetClientRect(&rcClient);
+
+        RECT rcListbox = rcClient;
+
+        rcClient.bottom -= 60;
+
+        m_wndImageList.MoveWindow(&rcClient);
+
+        RECT rcIdName   = { 10, rcClient.bottom + 4, rcListbox.right - 150 , rcClient.bottom + 24 } ;
+        RECT rcFileName = { 10, rcClient.bottom + 28, rcListbox.right - 150,  rcClient.bottom + 48 } ;;
+
+        RECT rcAddBtn     = rcIdName;
+        RECT rcBrowseBtn  = rcFileName;
+        RECT rcOkBtn      = rcFileName;
+
+        rcAddBtn.left = rcAddBtn.right + 10;
+        rcAddBtn.right = rcAddBtn.left + 60;
+            
+        rcBrowseBtn.left = rcAddBtn.left;
+        rcBrowseBtn.right = rcAddBtn.right;
+
+        rcOkBtn.left = rcBrowseBtn.right + 10;
+        rcOkBtn.right = rcOkBtn.left + 60;
+
+        
+        GetDlgItem(IDC_ID_EDIT).MoveWindow(&rcIdName);
+        GetDlgItem(IDC_FILE_EDIT).MoveWindow(&rcFileName);
+        GetDlgItem(IDC_ADD_BUTTON).MoveWindow(&rcAddBtn);
+        GetDlgItem(IDC_BROWSE_BUTTON).MoveWindow(&rcBrowseBtn);
+        GetDlgItem(IDOK).MoveWindow(&rcOkBtn);
+
+
+        return TRUE;
+    }
 
     virtual BOOL LoadResFromDocumnet()
     {
@@ -485,8 +647,6 @@ public:
 
             KSE::CString strFileName = path.m_strPath.Mid(path.FindFileName());
 
-            SetDlgItemText( IDC_FILE_EDIT, strFileName);
-            
             CResDocument& document = CResDocument::Instance();
 
             skinconfigbase* pskinconfig = document.getskinimageedit()->m_pskinconfig;
@@ -494,7 +654,6 @@ public:
             if (pskinconfig != 0)
             {
                 KSE::CString strImagePath = pskinconfig->GetSkinImagePath();
-
                 
                 path.RemoveFileSpec();
 
@@ -508,13 +667,78 @@ public:
 
             }
 
-
             return 0;
         }
 
         return 0;
 
     }
+
+    LRESULT OnBnClickedAddButton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+
+
+        CMyFileDialog openDlg(TRUE, _T(""), _T(""),
+            OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT, 
+            _T("Bitmap file(*.bmp)\0*.bmp\0Icon file(*.ico)\0*.ico\0Cursor file(*.cur)\0*.cur\0所有文件(*.*)\0*.*\0\0"));
+
+        openDlg.m_ofn.lpstrTitle = (_T("打开文件"));
+
+        TCHAR szBuffer[4096] = { 0 };
+
+        openDlg.m_ofn.lpstrFile = szBuffer;
+
+        if (IDOK == openDlg.DoModal())
+        {
+            LPCTSTR pos = openDlg.GetStartPosition();
+
+            CResDocument& document = CResDocument::Instance();
+
+            while (pos)
+            {
+                WTL::CString strPathFile = openDlg.GetNextPathName(pos);
+
+                CPath path = strPathFile;
+
+                KSE::CString strFileName = path.m_strPath.Mid(path.FindFileName());
+                KSE::CString strIdName   = path.m_strPath.Mid(path.FindFileName());
+
+                strIdName = "IDB_";
+
+                strIdName += (LPCTSTR)strFileName.Left( strFileName.GetLength() - path.GetExtension().GetLength() );
+
+
+                skinconfigbase* pskinconfig = document.getskinimageedit()->m_pskinconfig;
+
+                if (pskinconfig != 0)
+                {
+                    KSE::CString strImagePath = pskinconfig->GetSkinImagePath();
+
+
+                    path.RemoveFileSpec();
+
+                    if ( strImagePath.CompareNoCase(path.m_strPath) != 0)
+                    {
+                        CPath pathCopyTo = strImagePath;
+                        pathCopyTo.Append(strFileName);
+
+                        CopyFile(strPathFile, pathCopyTo.m_strPath, FALSE);
+                    }
+
+                }
+
+                m_wndImageList.AppendImageBefNew(strIdName, strFileName );
+
+                document.SetChanged();
+
+            }
+
+            return 0;
+        }
+
+        return 0;
+
+    }    
 
     LRESULT CImageResEditDlg::OnEnChangeIdEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {

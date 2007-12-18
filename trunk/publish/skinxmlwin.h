@@ -47,6 +47,7 @@ public:
 
     BOOL GetFont( HFONT& hFont );
 
+
 public:
 
     CXmlNodeWrapper m_xmlResNode;
