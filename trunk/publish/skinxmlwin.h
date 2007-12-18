@@ -18,15 +18,7 @@ namespace KSE{
 
 class skinxmlwin : public skinxmlobject
 {
-public:
 
-    virtual bool  AttachXmlNode(const CXmlNodeWrapper& xmlNode)
-    {
-        m_xmlResNode = xmlNode;
-
-        return true;
-    }
-    
 public:
 
     BOOL GetIdName   (KSE::CString& strIdName );
@@ -49,6 +41,13 @@ public:
 
 
 public:
+
+    virtual bool  AttachXmlNode(const CXmlNodeWrapper& xmlNode)
+    {
+        m_xmlResNode = xmlNode;
+
+        return true;
+    }
 
     CXmlNodeWrapper m_xmlResNode;
 

@@ -13,7 +13,7 @@
 #pragma once
 
 #include <XmlNodeWrapper.h>
-
+#include <skintinyxml.h>
 
 namespace KSE{
 

@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../publish"
+				AdditionalIncludeDirectories="../../publish;../../tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG;_USE_EDIT_SKINRESOURCE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -74,6 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="../../sharelib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -108,7 +109,8 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
-			ATLMinimizesCRunTimeLibraryUsage="true"
+			UseOfATL="1"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
 			>
 			<Tool
@@ -137,10 +139,11 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../publish"
+				AdditionalIncludeDirectories="../../publish;../../tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
-				ExceptionHandling="0"
+				ExceptionHandling="1"
 				RuntimeLibrary="0"
+				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="0"
@@ -160,6 +163,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="../../sharelib"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -335,6 +339,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skintinyxml.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skinxmldialog.h"
 				>
 			</File>
@@ -351,6 +359,14 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -388,6 +404,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
 						ObjectFile="$(IntDir)\$(InputName)1.obj"
 						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
 					/>
