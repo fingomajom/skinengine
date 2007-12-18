@@ -15,6 +15,8 @@
 #define IDC_EDIT3                       1003
 #define IDC_FILE_EDIT                   1003
 #define IDC_BROWSE_BUTTON               1004
+#define IDC_BROWSE_BUTTON2              1005
+#define IDC_ADD_BUTTON                  1005
 
 // Next default values for new objects
 // 
