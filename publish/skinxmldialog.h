@@ -45,7 +45,7 @@ public:
         {
             skinxmlwin win;
 
-            win.AttachXmlNode(childwinnode);
+            win.AttachXmlElement(childwinnode);
 
             pcallback->onchildwin(win);
 

@@ -69,7 +69,7 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
         strnode = root.AppendElement(KSE::skinstrresbase::GetResKeyName());
     }
     
-    m_pStringTable->AttachXmlNode(strnode);
+    m_pStringTable->AttachXmlElement(strnode);
     m_pStringTable->LoadStringTableList();
 
     SkinXmlElement imagenode = root.FirstChildElement(KSE::skinimageresbase::GetResKeyName());
@@ -78,7 +78,7 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
         imagenode = root.AppendElement(KSE::skinimageresbase::GetResKeyName());
     }
 
-    m_pskinimageedit->AttachXmlNode(imagenode);
+    m_pskinimageedit->AttachXmlElement(imagenode);
     m_pskinimageedit->LoadImageList();
 
 

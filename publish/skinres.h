@@ -1,4 +1,13 @@
-
+/********************************************************************
+* CreatedOn: 2007-12-19   17:40
+* FileName: skinres.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 
 #pragma once
 
@@ -89,7 +98,7 @@ public:
                     break;
                 SkinXmlElement strresnode = root.FirstChildElement(skinstrresbase::GetResKeyName());
                 if (strresnode.IsValid())
-                    ((skinstrres*)m_pskinstrres)->AttachXmlNode( strresnode );
+                    ((skinstrres*)m_pskinstrres)->AttachXmlElement( strresnode );
 
             }
 
@@ -100,7 +109,7 @@ public:
                     break;
                 SkinXmlElement strdlgnode = root.FirstChildElement(skindlgresbase::GetResKeyName());
                 if (strdlgnode.IsValid())
-                    ((skindlgres*)m_pskindlgres)->AttachXmlNode( strdlgnode );
+                    ((skindlgres*)m_pskindlgres)->AttachXmlElement( strdlgnode );
 
             }
 
@@ -111,7 +120,7 @@ public:
                     break;
                 SkinXmlElement strdimgnode = root.FirstChildElement(skinimageresbase::GetResKeyName());
                 if (strdimgnode.IsValid())
-                    ((skinimageres*)m_pskinimageresbase)->AttachXmlNode( strdimgnode );
+                    ((skinimageres*)m_pskinimageresbase)->AttachXmlElement( strdimgnode );
 
             }
 

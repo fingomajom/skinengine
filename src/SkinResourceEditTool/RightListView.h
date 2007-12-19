@@ -1,4 +1,13 @@
-
+/********************************************************************
+* CreatedOn: 2007-12-19   17:40
+* FileName: RightListView.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 #pragma once
 
 

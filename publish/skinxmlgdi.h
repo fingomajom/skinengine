@@ -1,6 +1,6 @@
 /********************************************************************
 * CreatedOn: 2007-12-19   17:40
-* FileName: EditResBase.h
+* FileName: skinxmlgdi.h
 * CreatedBy: lidengwang <lidengwang@kingsoft.net>
 * $LastChangedDate$
 * $LastChangedRevision$
@@ -9,24 +9,34 @@
 * Purpose:
 *********************************************************************/
 
+
 #pragma once
 
-class CEditResBase
+#include <skinstr.h>
+
+namespace KSE{
+    
+class skinxmlfont
 {
 public:
+    
+    static HFONT GetFont( const KSE::CString& strFont );
 
-    virtual BOOL LoadResFromDocumnet()
-    {
-        return FALSE;
-    }
+    static KSE::CString GetFontString( HFNT )
 
-    virtual BOOL SaveResToDocument()
-    {
-        return FALSE;
-    }
+};
 
-    virtual BOOL ClearRes()
-    {
-        return FALSE;
-    }
+class skinxmlbrush 
+{
+};
+
+class skinxmlpen 
+{
+};
+
+class skinxmlcolor
+{
+
+};
+
 };

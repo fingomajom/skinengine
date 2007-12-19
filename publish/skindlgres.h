@@ -43,13 +43,6 @@ public:
 
     }
 
-    bool AttachXmlNode(const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return true;
-    }
-
     virtual BOOL LoadDialog( LPCTSTR pszIDName, skinxmldialog& dlg )
     {
         SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
@@ -57,12 +50,10 @@ public:
         if (!node.IsValid())
             return FALSE;
 
-        return dlg.AttachXmlNode(node);
+        return dlg.AttachXmlElement(node);
     }
 
 public:
-
-    SkinXmlElement m_xmlResElement;
 
 };
 
