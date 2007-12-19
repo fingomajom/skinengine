@@ -4,6 +4,8 @@
 #include <skinstrres.h>
 #include <vector>
 
+using namespace KSE;
+
 class CStringTableResource : public KSE::skinstrres
 {
 public:
@@ -25,7 +27,7 @@ public:
     //BOOL GetStringTableList(std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
     //BOOL SetStringTableList(const std::vector<STRINGTABLE_ITEMINFO>& vtItemList);
 
-    BOOL SaveToDocument(CXmlNodeWrapper& root);
+    BOOL SaveToDocument(SkinXmlElement& root);
     //////////////////////////////////////////////////////////////////////////
 
     std::vector<CStringTableResource::STRINGTABLE_ITEMINFO>& GetStringTableList();

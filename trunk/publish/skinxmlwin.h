@@ -42,14 +42,14 @@ public:
 
 public:
 
-    virtual bool  AttachXmlNode(const CXmlNodeWrapper& xmlNode)
+    virtual bool  AttachXmlNode(const SkinXmlElement& xmlElement)
     {
-        m_xmlResNode = xmlNode;
+        m_xmlResElement = xmlElement;
 
         return true;
     }
 
-    CXmlNodeWrapper m_xmlResNode;
+    SkinXmlElement m_xmlResElement;
 
 };
 

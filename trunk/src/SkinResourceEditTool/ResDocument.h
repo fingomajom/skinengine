@@ -13,7 +13,7 @@ public:
 
     static CResDocument& Instance();
 
-    CXmlDocumentWrapper& GetDocument() ;       
+    SkinXmlDocument& GetDocument() ;       
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +40,7 @@ public:
 
 private:
     
-    CXmlDocumentWrapper*  m_pxmlDocument;
+    SkinXmlDocument*  m_pxmlDocument;
     CStringTableResource* m_pStringTable;
 
     skinimageedit* m_pskinimageedit;
