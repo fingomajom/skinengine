@@ -16,10 +16,15 @@
 
 namespace KSE{
 
+
+#define skinwinA
+
 class skinxmlwin : public skinxmlobject
 {
 
 public:
+    //////////////////////////////////////////////////////////////////////////
+    // 标准属性
 
     BOOL GetIdName   (KSE::CString& strIdName );
     BOOL GetClassName(KSE::CString& strIdName );
@@ -39,17 +44,17 @@ public:
 
     BOOL GetFont( HFONT& hFont );
 
+    //////////////////////////////////////////////////////////////////////////
+    // 扩展属性
+    
+    BOOL GetFont ( LPCTSTR Name, HFONT    & hFont );
+    BOOL GetColor( LPCTSTR Name, COLORREF & clr   );
+    BOOL GetBrush( LPCTSTR Name, HBRUSH   & brush );
+    BOOL GetPen  ( LPCTSTR Name, HPEN     & pen   );
 
+  
+    //////////////////////////////////////////////////////////////////////////
 public:
-
-    virtual bool  AttachXmlNode(const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return true;
-    }
-
-    SkinXmlElement m_xmlResElement;
 
 };
 

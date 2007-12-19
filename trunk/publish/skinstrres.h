@@ -44,12 +44,6 @@ public:
 
     }
 
-    bool  AttachXmlNode(const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return true;
-    }
 
     BOOL LoadString(LPCTSTR pszIDName, KSE::CString& strValue)
     {
@@ -73,7 +67,6 @@ public:
 
 public:
 
-    SkinXmlElement m_xmlResElement;
 
 };
 

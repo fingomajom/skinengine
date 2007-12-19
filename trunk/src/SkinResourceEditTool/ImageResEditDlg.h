@@ -1,3 +1,14 @@
+/********************************************************************
+* CreatedOn: 2007-12-19   17:40
+* FileName: ImageResEditDlg.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
+
 #pragma once
 
 #include "resource.h"

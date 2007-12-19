@@ -44,14 +44,6 @@ public:
 
     }
 
-    bool AttachXmlNode(const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return true;
-    }
-
-
     virtual HBITMAP LoadBitmap(LPCTSTR pszIDName)
     {
         return (HBITMAP)LoadImage(pszIDName, IMAGE_BITMAP, 0, 0, 
@@ -104,10 +96,7 @@ public:
     }
 
 
-public:
-
-    SkinXmlElement m_xmlResElement;
-    
+public:   
     skinconfigbase* m_pskinconfig;
 };
 
