@@ -72,13 +72,13 @@ public:
             pathXmlFile.m_strPath = m_pskinconfig->GetSkinResPath();
             pathXmlFile.Append(pszSkinXmlFile);
 
-            m_pXmlDocument = new CXmlDocumentWrapper();
+            m_pXmlDocument = new SkinXmlDocument();
             if (m_pXmlDocument == NULL)
                 break;
 
-            m_pXmlDocument->Load(pathXmlFile);
+            m_pXmlDocument->LoadFile(pathXmlFile);
 
-            CXmlNodeWrapper root = m_pXmlDocument->AsNode();
+            SkinXmlElement root = m_pXmlDocument->RootElement();
             if (!root.IsValid())
                 break;
 
@@ -87,7 +87,7 @@ public:
                 m_pskinstrres = new skinstrres();
                 if (m_pskinstrres == NULL)
                     break;
-                CXmlNodeWrapper strresnode = root.FindNode(skinstrresbase::GetResKeyName());
+                SkinXmlElement strresnode = root.FirstChildElement(skinstrresbase::GetResKeyName());
                 if (strresnode.IsValid())
                     ((skinstrres*)m_pskinstrres)->AttachXmlNode( strresnode );
 
@@ -98,7 +98,7 @@ public:
                 m_pskindlgres = new skindlgres();
                 if (m_pskindlgres == NULL)
                     break;
-                CXmlNodeWrapper strdlgnode = root.FindNode(skindlgresbase::GetResKeyName());
+                SkinXmlElement strdlgnode = root.FirstChildElement(skindlgresbase::GetResKeyName());
                 if (strdlgnode.IsValid())
                     ((skindlgres*)m_pskindlgres)->AttachXmlNode( strdlgnode );
 
@@ -109,7 +109,7 @@ public:
                 m_pskinimageresbase = new skinimageres(m_pskinconfig);
                 if (m_pskinimageresbase == NULL)
                     break;
-                CXmlNodeWrapper strdimgnode = root.FindNode(skinimageresbase::GetResKeyName());
+                SkinXmlElement strdimgnode = root.FirstChildElement(skinimageresbase::GetResKeyName());
                 if (strdimgnode.IsValid())
                     ((skinimageres*)m_pskinimageresbase)->AttachXmlNode( strdimgnode );
 
@@ -159,7 +159,7 @@ public:
 
 public:
 
-    CXmlDocumentWrapper* m_pXmlDocument;
+    SkinXmlDocument* m_pXmlDocument;
     
     skinconfigbase* m_pskinconfig;
     skinstrresbase* m_pskinstrres;

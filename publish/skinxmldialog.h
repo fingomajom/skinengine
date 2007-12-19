@@ -32,18 +32,14 @@ public:
 
     BOOL EnumChildWindows( enumchildwincallback * pcallback )
     {        
-        if (!m_xmlResNode.IsValid() || pcallback == NULL )
+        if (!m_xmlResElement.IsValid() || pcallback == NULL )
             return FALSE;
 
-        CXmlNodeWrapper childnode = m_xmlResNode.FindNode( GetChildWinKeyName() );
+        SkinXmlElement childnode = m_xmlResElement.FirstChildElement( GetChildWinKeyName() );
         if (!childnode.IsValid())
             return FALSE;
-   
-        CXmlNodeListWrapper childwinlist = childnode.GetChildNodes();
 
-        childwinlist.Start();
-
-        CXmlNodeWrapper childwinnode = childwinlist.Next();
+        SkinXmlElement childwinnode = childnode.FirstChildElement();
 
         while ( childwinnode.IsValid() )
         {
@@ -53,7 +49,7 @@ public:
 
             pcallback->onchildwin(win);
 
-            childwinnode = childwinlist.Next();
+            childwinnode = childwinnode.NextSiblingElement();
         }
 
         return TRUE;

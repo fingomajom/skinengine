@@ -36,7 +36,7 @@ public:
 
     virtual BOOL SaveImageFile(LPCTSTR pszIDName, LPCTSTR pszFileName)
     {
-        CXmlNodeWrapper node = m_xmlResNode.FindNode(pszIDName);
+        SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
 
         if (node.IsValid())
         {
@@ -45,7 +45,7 @@ public:
             return TRUE;
         }
 
-        node = m_xmlResNode.AppendNode(pszIDName);
+        node = m_xmlResElement.AppendElement(pszIDName);
 
         if (node.IsValid())
         {
@@ -59,14 +59,7 @@ public:
 
     BOOL LoadImageList()
     {
-        CXmlNodeListWrapper nodelist = m_xmlResNode.GetChildNodes();
-
-        if (!nodelist.IsValid())
-            return FALSE;
-
-        nodelist.Start();
-
-        CXmlNodeWrapper node = nodelist.Next();
+        SkinXmlElement node = m_xmlResElement.FirstChildElement();
 
         while ( node.IsValid() )
         {
@@ -77,7 +70,7 @@ public:
             node.GetValue(skinimageresbase::GetValueAttName(), itemInfo.strFileName);
             m_vtItemList.push_back(itemInfo);
 
-            node = nodelist.Next();
+            node = node.NextSiblingElement();
 
         }
 
@@ -86,15 +79,15 @@ public:
     }
 
 
-    BOOL SaveToDocument(CXmlNodeWrapper& root)
+    BOOL SaveToDocument(SkinXmlElement& root)
     {
-        CXmlNodeWrapper strnode = root.FindNode(KSE::skinimageresbase::GetResKeyName());
+        SkinXmlElement strnode = root.FirstChildElement(KSE::skinimageresbase::GetResKeyName());
         if (strnode.IsValid())
         {
-            root.RemoveNode(strnode.Interface());
+            root.RemoveElement(strnode);
         }
 
-        m_xmlResNode = root.AppendNode(KSE::skinimageresbase::GetResKeyName());
+        m_xmlResElement = root.AppendElement(KSE::skinimageresbase::GetResKeyName());
 
         for (size_t i = 0; i < m_vtItemList.size(); i++)
         {

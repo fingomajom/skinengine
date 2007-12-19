@@ -35,10 +35,8 @@ class skinstrres :
 {
 public:
 
-    skinstrres(MSXML2::IXMLDOMNode* pStringTableNode = NULL)
-    {
+    skinstrres()    {
        
-        AttachXmlNode(CXmlNodeWrapper(pStringTableNode));
     }
 
     ~skinstrres(void)
@@ -46,16 +44,16 @@ public:
 
     }
 
-    bool  AttachXmlNode(const CXmlNodeWrapper& xmlNode)
+    bool  AttachXmlNode(const SkinXmlElement& xmlElement)
     {
-        m_xmlResNode = xmlNode;
+        m_xmlResElement = xmlElement;
 
         return true;
     }
 
     BOOL LoadString(LPCTSTR pszIDName, KSE::CString& strValue)
     {
-        CXmlNodeWrapper node = m_xmlResNode.FindNode(pszIDName);
+        SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
 
         if (!node.IsValid())
             return FALSE;
@@ -75,7 +73,7 @@ public:
 
 public:
 
-    CXmlNodeWrapper m_xmlResNode;
+    SkinXmlElement m_xmlResElement;
 
 };
 

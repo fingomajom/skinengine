@@ -24,7 +24,7 @@ CResDocument& CResDocument::Instance()
     return g_CResDocument_Instance;
 }
 
-CXmlDocumentWrapper& CResDocument::GetDocument()    
+SkinXmlDocument& CResDocument::GetDocument()    
 {
     return *m_pxmlDocument;
 }
@@ -35,14 +35,14 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
 {
     BOOL bResult = FALSE;
     
-    m_pxmlDocument = new CXmlDocumentWrapper();
+    m_pxmlDocument = new SkinXmlDocument();
     m_pStringTable = new CStringTableResource();
     m_pskinimageedit = new skinimageedit;
     
 
     if (m_strFileName.GetLength() > 0)
     {
-        bResult = m_pxmlDocument->Load(m_strFileName);
+        bResult = m_pxmlDocument->LoadFile(m_strFileName);
     }
     else
     {
@@ -55,7 +55,7 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     if (!bResult)
         return bResult;
 
-    CXmlNodeWrapper root = m_pxmlDocument->AsNode();
+    SkinXmlElement root = m_pxmlDocument->RootElement();
     if (!root.IsValid())
         return FALSE;
 
@@ -63,19 +63,19 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
 
     root.Name(strValue);
 
-    CXmlNodeWrapper strnode = root.FindNode(KSE::skinstrresbase::GetResKeyName());
+    SkinXmlElement strnode = root.FirstChildElement (KSE::skinstrresbase::GetResKeyName());
     if (!strnode.IsValid())
     {
-        strnode = root.AppendNode(KSE::skinstrresbase::GetResKeyName());
+        strnode = root.AppendElement(KSE::skinstrresbase::GetResKeyName());
     }
     
     m_pStringTable->AttachXmlNode(strnode);
     m_pStringTable->LoadStringTableList();
 
-    CXmlNodeWrapper imagenode = root.FindNode(KSE::skinimageresbase::GetResKeyName());
+    SkinXmlElement imagenode = root.FirstChildElement(KSE::skinimageresbase::GetResKeyName());
     if (!imagenode.IsValid())
     {
-        imagenode = root.AppendNode(KSE::skinimageresbase::GetResKeyName());
+        imagenode = root.AppendElement(KSE::skinimageresbase::GetResKeyName());
     }
 
     m_pskinimageedit->AttachXmlNode(imagenode);
@@ -100,14 +100,14 @@ CStringTableResource* CResDocument::GetStringTableResource()
 
 void CResDocument::Save()
 {
-    CXmlNodeWrapper root = m_pxmlDocument->AsNode();
+    SkinXmlElement root = m_pxmlDocument->RootElement();
     if (!root.IsValid())
     {
         LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSE></KSE>");
         
         m_pxmlDocument->LoadXML(pszXML);
         
-        root = m_pxmlDocument->AsNode();
+        root = m_pxmlDocument->RootElement();
 
         if (!root.IsValid())
             return;
@@ -116,7 +116,7 @@ void CResDocument::Save()
     m_pStringTable->SaveToDocument(root);
     m_pskinimageedit->SaveToDocument(root);
 
-    m_pxmlDocument->Save(m_strFileName);
+    m_pxmlDocument->SaveFile(m_strFileName);
 
     m_bChanged = FALSE;
 

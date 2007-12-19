@@ -12,7 +12,6 @@
 
 #pragma once
 
-#include <XmlNodeWrapper.h>
 #include <skintinyxml.h>
 
 namespace KSE{
@@ -21,7 +20,7 @@ class skinxmlobject
 {
 public:
     
-    virtual bool  AttachXmlNode(const CXmlNodeWrapper& xmlNode) = 0;
+    virtual bool  AttachXmlNode(const SkinXmlElement& xmlElement) = 0;
 
 
 };

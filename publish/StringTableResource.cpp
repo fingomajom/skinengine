@@ -12,7 +12,7 @@ CStringTableResource::~CStringTableResource(void)
 
 BOOL CStringTableResource::SaveString(LPCTSTR pszIDName, LPCTSTR strValue)
 {
-    CXmlNodeWrapper node = m_xmlResNode.FindNode(pszIDName);
+    SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
 
     if (node.IsValid())
     {
@@ -21,7 +21,7 @@ BOOL CStringTableResource::SaveString(LPCTSTR pszIDName, LPCTSTR strValue)
         return TRUE;
     }
 
-    node = m_xmlResNode.AppendNode(pszIDName);
+    node = m_xmlResElement.AppendElement(pszIDName);
     
     if (node.IsValid())
     {
@@ -36,16 +36,7 @@ BOOL CStringTableResource::SaveString(LPCTSTR pszIDName, LPCTSTR strValue)
 
 BOOL CStringTableResource::LoadStringTableList()
 {
-    CXmlNodeListWrapper nodelist = m_xmlResNode.GetChildNodes();
-
-    if (!nodelist.IsValid())
-        return FALSE;
-
-    int nCount = nodelist.Count();
-    
-    nodelist.Start();
-
-    CXmlNodeWrapper node = nodelist.Next();
+    SkinXmlElement node = m_xmlResElement.FirstChildElement();
 
     while ( node.IsValid() )
     {
@@ -56,7 +47,7 @@ BOOL CStringTableResource::LoadStringTableList()
         node.GetValue(skinstrresbase::GetValueAttName(), itemInfo.strValue);
         m_vtItemList.push_back(itemInfo);
 
-        node = nodelist.Next();
+        node = node.NextSiblingElement();
 
     }
 
@@ -74,15 +65,15 @@ BOOL CStringTableResource::LoadStringTableList()
 //    return TRUE;
 //}
 
-BOOL CStringTableResource::SaveToDocument(CXmlNodeWrapper& root)
+BOOL CStringTableResource::SaveToDocument(SkinXmlElement& root)
 {
-    CXmlNodeWrapper strnode = root.FindNode(KSE::skinstrresbase::GetResKeyName());
+    SkinXmlElement strnode = root.FirstChildElement(KSE::skinstrresbase::GetResKeyName());
     if (strnode.IsValid())
     {
-        root.RemoveNode(strnode.Interface());
+        root.RemoveElement(strnode);
     }
 
-    m_xmlResNode = root.AppendNode(KSE::skinstrresbase::GetResKeyName());
+    m_xmlResElement = root.AppendElement(KSE::skinstrresbase::GetResKeyName());
     
     for (size_t i = 0; i < m_vtItemList.size(); i++)
     {
