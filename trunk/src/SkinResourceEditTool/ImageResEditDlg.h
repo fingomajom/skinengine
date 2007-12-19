@@ -130,8 +130,8 @@ public:
         CFont font;
         CFont sfont;
 
-        font.CreatePointFont(128,  _T("÷ÚÌו"), dc, true);
-        sfont.CreatePointFont(96 , _T("ËÎÌו"), dc);
+        font.CreatePointFont(128,  _T("Courier New"), dc, true);
+        sfont.CreatePointFont(96 , _T("Courier New"), dc);
 
         HFONT hOldFont = dc.SelectFont(font);
 
