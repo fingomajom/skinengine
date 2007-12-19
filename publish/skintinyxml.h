@@ -299,6 +299,9 @@ const TiXmlEncoding SKINXML_DEFAULT_ENCODIN = TIXML_ENCODING_UTF8;
 class SkinXmlDocument
 {
 public:
+    SkinXmlDocument()
+    {
+    }
 
     bool LoadFile( LPCTSTR filename )
     {
