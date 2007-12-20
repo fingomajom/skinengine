@@ -18,6 +18,8 @@
 #include <skingdi.h>
 #include "EditResBase.h"
 
+#include <skinxmlctrls.h>
+
 
 enum {
     em_imagelist_height = 60

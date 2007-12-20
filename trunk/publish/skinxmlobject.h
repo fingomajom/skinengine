@@ -19,7 +19,19 @@ namespace KSE{
 class skinxmlobject
 {
 public:
+
+    operator SkinXmlElement ()
+    {
+        return m_xmlResElement;
+    }
+
     
+    void operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+    }
+
+
     virtual BOOL  AttachXmlElement(const SkinXmlElement& xmlElement)
     {
         m_xmlResElement = xmlElement;

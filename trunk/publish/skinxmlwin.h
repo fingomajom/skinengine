@@ -17,16 +17,11 @@
 namespace KSE{
 
 
-//#define sxw_def_btn     _T("skin_def_btn")
-//#define sxw_btn         _T("skin_btn")
-//#define sxw_def_btn     _T("skin_def_btn")
-//#define sxw_def_btn     _T("skin_def_btn")
-//#define sxw_def_btn     _T("skin_def_btn")
-
 class skinxmlwin : public skinxmlobject
 {
 
 public:
+
     //////////////////////////////////////////////////////////////////////////
     // ±ê×¼ÊôĞÔ
 
