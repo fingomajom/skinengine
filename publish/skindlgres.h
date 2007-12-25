@@ -34,8 +34,16 @@ class skindlgres :
 {
 public:
 
-    skindlgres()
+    skindlgres(const SkinXmlElement& xmlElement = SkinXmlElement()) :
+        skinxmlobject(xmlElement)
     {
+    }
+
+    const skindlgres& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
     }
 
     ~skindlgres(void)

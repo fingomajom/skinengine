@@ -44,6 +44,19 @@ public:
 
     }
 
+    skinimageres(const SkinXmlElement& xmlElement = SkinXmlElement()) :
+        skinxmlobject(xmlElement)
+    {
+    }
+
+    const skinimageres& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+
     virtual HBITMAP LoadBitmap(LPCTSTR pszIDName)
     {
         return (HBITMAP)LoadImage(pszIDName, IMAGE_BITMAP, 0, 0, 

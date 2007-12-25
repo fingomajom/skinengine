@@ -56,16 +56,70 @@ class skinxmldatetime;
 class skinxmlstatic : public skinxmlwin
 {
 public:
-    skinxmlstatic()
+
+    skinxmlstatic(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
     {
-        skinxmlwin win;
-
-        SkinXmlElement em;
-
-        const SkinXmlElement emm = em;
-
-        (*this) = emm;
     }
+
+    const skinxmlstatic& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+    
+    static LPCTSTR GetWndClassName() 
+    {
+        return _T("skinstatic");
+    }
+
+};
+
+class skinxmlpicture : public skinxmlwin
+{
+public:
+
+    skinxmlpicture(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmlpicture& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetWndClassName() 
+    {
+        return _T("skinpicture");
+    }
+
+};
+
+class skinxmlgroupbox : public skinxmlwin
+{
+public:
+
+    skinxmlgroupbox(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmlgroupbox& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetWndClassName() 
+    {
+        return _T("skingroupbox");
+    }
+
 };
 
 };

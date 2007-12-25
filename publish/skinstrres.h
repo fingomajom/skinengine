@@ -35,8 +35,16 @@ class skinstrres :
 {
 public:
 
-    skinstrres()    {
-       
+    skinstrres(const SkinXmlElement& xmlElement = SkinXmlElement()) :
+        skinxmlobject(xmlElement)
+    {
+    }
+
+    const skinstrres& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
     }
 
     ~skinstrres(void)
