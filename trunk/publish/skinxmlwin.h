@@ -22,6 +22,18 @@ class skinxmlwin : public skinxmlobject
 
 public:
 
+    skinxmlwin(const SkinXmlElement& xmlElement = SkinXmlElement()) :
+        skinxmlobject(xmlElement)
+    {
+    }
+
+    const skinxmlwin& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // ±ê×¼ÊôÐÔ
 

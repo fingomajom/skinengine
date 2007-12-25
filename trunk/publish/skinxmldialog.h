@@ -30,6 +30,19 @@ public:
 
 public:
 
+    skinxmldialog(const SkinXmlElement& xmlElement = SkinXmlElement()) :
+        skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmldialog& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+
     BOOL EnumChildWindows( enumchildwincallback * pcallback )
     {        
         if (!m_xmlResElement.IsValid() || pcallback == NULL )

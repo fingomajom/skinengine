@@ -20,17 +20,23 @@ class skinxmlobject
 {
 public:
 
-    operator SkinXmlElement ()
-    {
-        return m_xmlResElement;
-    }
-
-    
-    void operator = (const SkinXmlElement& xmlElement)
+    skinxmlobject(const SkinXmlElement& xmlElement = SkinXmlElement())
     {
         m_xmlResElement = xmlElement;
     }
 
+    const skinxmlobject& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+
+    operator SkinXmlElement () 
+    {
+        return m_xmlResElement; 
+    }
 
     virtual BOOL  AttachXmlElement(const SkinXmlElement& xmlElement)
     {
@@ -72,12 +78,13 @@ public:
     }
 
 
-
 public:
 
     SkinXmlElement m_xmlResElement;
 
-
 };
 
+
+
 } // amespace KSE{
+
