@@ -19,7 +19,6 @@ namespace KSE{
 
 class skinxmlwin : public skinxmlobject
 {
-
 public:
 
     skinxmlwin(const SkinXmlElement& xmlElement = SkinXmlElement()) :
