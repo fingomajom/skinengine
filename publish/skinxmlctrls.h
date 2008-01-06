@@ -69,7 +69,7 @@ public:
         return *this;
     }
     
-    static LPCTSTR GetWndClassName() 
+    static LPCTSTR GetSkinWndClassName() 
     {
         return _T("skinstatic");
     }
@@ -92,7 +92,7 @@ public:
         return *this;
     }
 
-    static LPCTSTR GetWndClassName() 
+    static LPCTSTR GetSkinWndClassName() 
     {
         return _T("skinpicture");
     }
@@ -115,7 +115,7 @@ public:
         return *this;
     }
 
-    static LPCTSTR GetWndClassName() 
+    static LPCTSTR GetSkinWndClassName() 
     {
         return _T("skingroupbox");
     }
