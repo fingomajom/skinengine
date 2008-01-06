@@ -67,13 +67,13 @@ BOOL CStringTableResource::LoadStringTableList()
 
 BOOL CStringTableResource::SaveToDocument(SkinXmlElement& root)
 {
-    SkinXmlElement strnode = root.FirstChildElement(KSE::skinstrresbase::GetResKeyName());
+    SkinXmlElement strnode = root.FirstChildElement(KSG::skinstrresbase::GetResKeyName());
     if (strnode.IsValid())
     {
         root.RemoveElement(strnode);
     }
 
-    m_xmlResElement = root.AppendElement(KSE::skinstrresbase::GetResKeyName());
+    m_xmlResElement = root.AppendElement(KSG::skinstrresbase::GetResKeyName());
     
     for (size_t i = 0; i < m_vtItemList.size(); i++)
     {

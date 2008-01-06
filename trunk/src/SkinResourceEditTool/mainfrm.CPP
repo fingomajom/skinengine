@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "MainFrm.h"
-#include "atlimage.h"
 
 LRESULT CMainFrame::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {

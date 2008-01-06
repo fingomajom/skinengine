@@ -9,7 +9,7 @@ CResDocument::CResDocument(void)
 
     m_bChanged = FALSE;
 
-    m_strFileName = _T("C:\\KSE.xml");
+    m_strFileName = _T("C:\\KSG.xml");
 
 }
 
@@ -46,7 +46,7 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     }
     else
     {
-        LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSE></KSE>");
+        LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG></KSG>");
 
         bResult = m_pxmlDocument->LoadXML(pszXML);
 
@@ -59,23 +59,23 @@ BOOL CResDocument::Init( LPCTSTR pszFile )
     if (!root.IsValid())
         return FALSE;
 
-    KSE::CString strValue;
+    KSG::CString strValue;
 
     root.Name(strValue);
 
-    SkinXmlElement strnode = root.FirstChildElement (KSE::skinstrresbase::GetResKeyName());
+    SkinXmlElement strnode = root.FirstChildElement (KSG::skinstrresbase::GetResKeyName());
     if (!strnode.IsValid())
     {
-        strnode = root.AppendElement(KSE::skinstrresbase::GetResKeyName());
+        strnode = root.AppendElement(KSG::skinstrresbase::GetResKeyName());
     }
     
     m_pStringTable->AttachXmlElement(strnode);
     m_pStringTable->LoadStringTableList();
 
-    SkinXmlElement imagenode = root.FirstChildElement(KSE::skinimageresbase::GetResKeyName());
+    SkinXmlElement imagenode = root.FirstChildElement(KSG::skinimageresbase::GetResKeyName());
     if (!imagenode.IsValid())
     {
-        imagenode = root.AppendElement(KSE::skinimageresbase::GetResKeyName());
+        imagenode = root.AppendElement(KSG::skinimageresbase::GetResKeyName());
     }
 
     m_pskinimageedit->AttachXmlElement(imagenode);
@@ -103,7 +103,7 @@ void CResDocument::Save()
     SkinXmlElement root = m_pxmlDocument->RootElement();
     if (!root.IsValid())
     {
-        LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSE></KSE>");
+        LPCTSTR pszXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG></KSG>");
         
         m_pxmlDocument->LoadXML(pszXML);
         

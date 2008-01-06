@@ -11,7 +11,7 @@
 
 #pragma once
 
-namespace KSE{
+namespace KSG{
 
 #define skin_delete_p(p)   if (p != 0) { delete p; p = NULL; }
 

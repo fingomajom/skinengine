@@ -14,7 +14,7 @@
 #include <skinxmlobject.h>
 #include <skinxmlgdi.h>
 
-namespace KSE{
+namespace KSG{
 
 
 class skinxmlwin : public skinxmlobject
@@ -36,9 +36,9 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // ±ê×¼ÊôÐÔ
 
-    BOOL GetIdName   (KSE::CString& strIdName );
-    BOOL GetClassName(KSE::CString& strClassName );
-    BOOL GetCaption  (KSE::CString& strCaption);
+    BOOL GetIdName   (KSG::CString& strIdName );
+    BOOL GetClassName(KSG::CString& strClassName );
+    BOOL GetCaption  (KSG::CString& strCaption);
 
     BOOL GetItemId ( DWORD& dwId     );
     BOOL GetStyle  ( DWORD& dwStype  );
@@ -69,15 +69,15 @@ public:
 };
 
 
-inline BOOL skinxmlwin::GetIdName(KSE::CString& strIdName )
+inline BOOL skinxmlwin::GetIdName(KSG::CString& strIdName )
 {
     return GetObject(_T("IdName"), strIdName);
 }
-inline BOOL skinxmlwin::GetClassName(KSE::CString& strClassName )
+inline BOOL skinxmlwin::GetClassName(KSG::CString& strClassName )
 {
     return GetObject(_T("ClassName"), strClassName);
 }
-inline BOOL skinxmlwin::GetCaption(KSE::CString& strCaption)
+inline BOOL skinxmlwin::GetCaption(KSG::CString& strCaption)
 {
     return GetObject(_T("Caption"), strCaption);
 }
@@ -176,4 +176,4 @@ inline BOOL skinxmlwin::GetPen  ( LPCTSTR Name, HPEN & pen   )
 }
 
 
-} // amespace KSE{
+} // amespace KSG{

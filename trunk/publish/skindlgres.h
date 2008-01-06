@@ -15,7 +15,7 @@
 #include <skinxmldialog.h>
 
 
-namespace KSE{
+namespace KSG{
 
 class skindlgresbase
 {
@@ -65,4 +65,4 @@ public:
 
 };
 
-} // namespace KSE
+} // namespace KSG

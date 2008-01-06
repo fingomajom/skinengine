@@ -56,7 +56,7 @@ public:
 
 		UIAddChildWindowContainer(m_hWnd);
 
-        KSE::skinxmlfont xmlfont;
+        KSG::skinxmlfont xmlfont;
 
         xmlfont << GetFont();
 
@@ -66,7 +66,7 @@ public:
 
         COLORREF clr = RGB(1,1,1);
 
-        KSE::skinxmlcolor xmlclr;
+        KSG::skinxmlcolor xmlclr;
 
         xmlclr << clr;
 
@@ -78,7 +78,7 @@ public:
 
         pen.CreatePen(PS_DASH, 1, clr);
 
-        KSE::skinxmlpen xmlpen;
+        KSG::skinxmlpen xmlpen;
 
         xmlpen << pen;
 
@@ -87,7 +87,7 @@ public:
         xmlpen >> pennew.m_hPen;
 
 
-        KSE::skinxmlbrush xmlbursh;
+        KSG::skinxmlbrush xmlbursh;
 
         CBrush brush, brushnew;
 

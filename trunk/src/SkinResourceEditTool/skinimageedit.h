@@ -14,7 +14,7 @@
 #include <skinconfig.h>
 #include <skinimageres.h>
 
-namespace KSE{
+namespace KSG{
 
 
 class skinimageedit : public skinimageres
@@ -29,8 +29,8 @@ public:
 
     typedef struct _ImageItemInfo 
     {
-        KSE::CString strIDName;
-        KSE::CString strFileName;
+        KSG::CString strIDName;
+        KSG::CString strFileName;
 
     }IMAGE_ITEMINFO;
 
@@ -81,13 +81,13 @@ public:
 
     BOOL SaveToDocument(SkinXmlElement& root)
     {
-        SkinXmlElement strnode = root.FirstChildElement(KSE::skinimageresbase::GetResKeyName());
+        SkinXmlElement strnode = root.FirstChildElement(KSG::skinimageresbase::GetResKeyName());
         if (strnode.IsValid())
         {
             root.RemoveElement(strnode);
         }
 
-        m_xmlResElement = root.AppendElement(KSE::skinimageresbase::GetResKeyName());
+        m_xmlResElement = root.AppendElement(KSG::skinimageresbase::GetResKeyName());
 
         for (size_t i = 0; i < m_vtItemList.size(); i++)
         {

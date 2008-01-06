@@ -17,7 +17,7 @@
 
 #include <skinapp.h>
 
-using namespace KSE;
+using namespace KSG;
 
 
 #if defined _M_IX86
