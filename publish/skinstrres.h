@@ -15,13 +15,13 @@
 #include <skinxmlobject.h>
 
 
-namespace KSE{
+namespace KSG{
 
 class skinstrresbase
 {
 public:
-    virtual BOOL LoadString(LPCTSTR pszIDName, KSE::CString& strValue) = 0;
-    virtual BOOL LoadString(UINT    uResID   , KSE::CString& strValue) = 0;
+    virtual BOOL LoadString(LPCTSTR pszIDName, KSG::CString& strValue) = 0;
+    virtual BOOL LoadString(UINT    uResID   , KSG::CString& strValue) = 0;
 
     static LPCTSTR GetResKeyName()   { return _T("StringTable"); }
     static LPCTSTR GetValueAttName() { return _T("Text")       ; }
@@ -53,7 +53,7 @@ public:
     }
 
 
-    BOOL LoadString(LPCTSTR pszIDName, KSE::CString& strValue)
+    BOOL LoadString(LPCTSTR pszIDName, KSG::CString& strValue)
     {
         SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
 
@@ -63,9 +63,9 @@ public:
         return node.GetValue(skinstrresbase::GetValueAttName(), strValue);
     }
 
-    BOOL LoadString(UINT uResID, KSE::CString& strValue)
+    BOOL LoadString(UINT uResID, KSG::CString& strValue)
     {
-        KSE::CString strIdName;
+        KSG::CString strIdName;
 
         strIdName.Format(skinstrresbase::GetResIdFormat(), uResID);
 
@@ -78,4 +78,4 @@ public:
 
 };
 
-} // namespace KSE
+} // namespace KSG

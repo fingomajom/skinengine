@@ -4,9 +4,9 @@
 #include <skinstrres.h>
 #include <vector>
 
-using namespace KSE;
+using namespace KSG;
 
-class CStringTableResource : public KSE::skinstrres
+class CStringTableResource : public KSG::skinstrres
 {
 public:
     CStringTableResource();
@@ -15,8 +15,8 @@ public:
     //////////////////////////////////////////////////////////////////////////
     typedef struct _StringTableItemInfo 
     {
-        KSE::CString strIDName;
-        KSE::CString strValue;
+        KSG::CString strIDName;
+        KSG::CString strValue;
 
     }STRINGTABLE_ITEMINFO;
 

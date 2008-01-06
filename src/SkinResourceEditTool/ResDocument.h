@@ -47,5 +47,5 @@ private:
 
     BOOL m_bChanged ;
     
-    KSE::CString m_strFileName;
+    KSG::CString m_strFileName;
 };

@@ -13,7 +13,7 @@
 
 #include <skinxmlwin.h>
 
-namespace KSE{
+namespace KSG{
 
 
 class skinxmlstatic;

@@ -11,7 +11,7 @@
     #pragma comment(lib, "tinyxml.lib")
 #endif
 
-namespace KSE{
+namespace KSG{
 
 //typedef TiXmlNode           SkinXmlNode;
 //typedef TiXmlDocument       SkinXmlDocument;
@@ -82,18 +82,18 @@ public:
 
 public:
 
-    KSE::CString Name()
+    KSG::CString Name()
     {
         if (m_tixmlelement == 0)
-            return KSE::CString();
+            return KSG::CString();
 
         CA2TEX<> Value(m_tixmlelement->Value(), CP_DEFAULT);
 
-        return KSE::CString(Value.m_psz);
+        return KSG::CString(Value.m_psz);
     }
 
 
-    BOOL Name(KSE::CString& name)
+    BOOL Name(KSG::CString& name)
     {
         if (m_tixmlelement == 0)
             return FALSE;
@@ -105,7 +105,7 @@ public:
         return TRUE;
     }
 
-    BOOL SetName(const KSE::CString& name)
+    BOOL SetName(const KSG::CString& name)
     {
         if (m_tixmlelement == 0)
             return FALSE;
@@ -131,19 +131,19 @@ public:
 
     void SetValue(LPCTSTR valueName, int value)
     {
-        KSE::CString str;
+        KSG::CString str;
         str.Format(_T("%ld"),value);
         SetValue(valueName, str);
     }
 
     void SetValue(LPCTSTR valueName, float   value)
     {
-        KSE::CString str;
+        KSG::CString str;
         str.Format(_T("%f"),value);
         SetValue(valueName,str);
     }
 
-    BOOL GetValue(LPCTSTR valueName, KSE::CString& value)
+    BOOL GetValue(LPCTSTR valueName, KSG::CString& value)
     {
         if (m_tixmlelement == 0)    
             return FALSE;
@@ -163,7 +163,7 @@ public:
 
     BOOL GetValue(LPCTSTR valueName, int& value)
     {
-        KSE::CString strvalue;
+        KSG::CString strvalue;
 
         if (!GetValue(valueName, strvalue))
             return FALSE;
@@ -175,7 +175,7 @@ public:
 
     BOOL GetValue(LPCTSTR valueName, float&  value)
     {
-        KSE::CString strvalue;
+        KSG::CString strvalue;
 
         if (!GetValue(valueName, strvalue))
             return FALSE;

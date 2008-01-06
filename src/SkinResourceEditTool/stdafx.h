@@ -23,7 +23,7 @@
 #include <atlctrlx.h>
 #include <atldlgs.h>
 
-using namespace KSE;
+using namespace KSG;
 
 extern CSkinAppModule _Module;
 

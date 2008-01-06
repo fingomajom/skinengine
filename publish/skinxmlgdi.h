@@ -14,15 +14,15 @@
 
 #include <skinstr.h>
 
-namespace KSE{
+namespace KSG{
     
-class skinxmlfont : public KSE::CString
+class skinxmlfont : public KSG::CString
 {
 public:
 
     void operator << (const LOGFONT& font)
     {
-        KSE::CString strCharSet;
+        KSG::CString strCharSet;
 
         GetCharSet(font.lfCharSet, strCharSet);
 
@@ -33,9 +33,9 @@ public:
     {
         memset(&font, 0, sizeof(LOGFONT));
 
-        KSE::CString strRef = (*this);
-        KSE::CString strFaceName;
-        KSE::CString strCharSet;
+        KSG::CString strRef = (*this);
+        KSG::CString strFaceName;
+        KSG::CString strCharSet;
 
         int nDotIndex = 0;
 
@@ -131,7 +131,7 @@ protected:
         return (sizeof(CharSetList) / sizeof(CharSetList[0]));
     }
 
-    void GetCharSet( BYTE  lfCharSet, KSE::CString& strCharSet )
+    void GetCharSet( BYTE  lfCharSet, KSG::CString& strCharSet )
     {
         int ListCount = 0;
         LPCHARSETITEM CharSetList = NULL;
@@ -153,7 +153,7 @@ protected:
         }
     }
 
-    void GetCharSet( const KSE::CString& strCharSet, BYTE &lfCharSet)
+    void GetCharSet( const KSG::CString& strCharSet, BYTE &lfCharSet)
     {
         int ListCount = 0;
         LPCHARSETITEM CharSetList = NULL;
@@ -179,7 +179,7 @@ protected:
 
 };
 
-class skinxmlbrush : public KSE::CString
+class skinxmlbrush : public KSG::CString
 {
 public:
 
@@ -220,7 +220,7 @@ public:
 
 };
 
-class skinxmlpen : public KSE::CString
+class skinxmlpen : public KSG::CString
 {
 public:
     
@@ -261,7 +261,7 @@ public:
 
 };
 
-class skinxmlcolor : public KSE::CString
+class skinxmlcolor : public KSG::CString
 {
 public:
 

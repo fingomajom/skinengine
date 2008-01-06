@@ -14,7 +14,7 @@
 
 #include <skintinyxml.h>
 
-namespace KSE{
+namespace KSG{
 
 class skinxmlobject
 {
@@ -45,7 +45,7 @@ public:
         return TRUE;
     }
 
-    virtual BOOL GetObject( LPCTSTR Name, KSE::CString& strOjbect )
+    virtual BOOL GetObject( LPCTSTR Name, KSG::CString& strOjbect )
     {
         if (!m_xmlResElement.IsValid())
             return FALSE;
@@ -55,7 +55,7 @@ public:
 
     virtual BOOL GetObject( LPCTSTR Name, DWORD& uOjbect )
     {
-        KSE::CString strObject;
+        KSG::CString strObject;
 
         if (!GetObject(Name, strObject))
             return FALSE;
@@ -67,7 +67,7 @@ public:
 
     virtual BOOL GetObject( LPCTSTR Name, int & nOjbect )
     {
-        KSE::CString strObject;
+        KSG::CString strObject;
 
         if (!GetObject(Name, strObject))
             return FALSE;
@@ -86,5 +86,5 @@ public:
 
 
 
-} // amespace KSE{
+} // amespace KSG{
 

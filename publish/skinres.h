@@ -18,7 +18,7 @@
 #include <skinimageres.h>
 #include <atlpath.h>
 
-namespace KSE{
+namespace KSG{
 
 
 class skinresbase
@@ -176,4 +176,4 @@ public:
     skinimageresbase* m_pskinimageresbase;
 };
 
-} // namespace KSE
+} // namespace KSG

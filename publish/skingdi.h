@@ -14,7 +14,7 @@
 #include <atlgdi.h>
 
 
-namespace KSE{
+namespace KSG{
 
 template <bool t_bManaged>
 class CSkinDCT : public CDCT<t_bManaged>
@@ -97,4 +97,4 @@ public:
 typedef CSkinDCT<false>   CSkinDCHandle;
 typedef CSkinDCT<true>    CSkinDC;
 
-} // amespace KSE
+} // amespace KSG

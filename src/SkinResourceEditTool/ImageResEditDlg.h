@@ -42,8 +42,8 @@ public:
     typedef struct image_item_info
     {
         int ntype;
-        KSE::CString strIdName;
-        KSE::CString strFileName;
+        KSG::CString strIdName;
+        KSG::CString strFileName;
     };
 
     std::vector<image_item_info> m_vtItems;
@@ -104,8 +104,8 @@ public:
         
         const image_item_info& itemInfo = m_vtItems[nItem];
 
-        KSE::CString strDisplayName;
-        KSE::CString strFileName;
+        KSG::CString strDisplayName;
+        KSG::CString strFileName;
 
         if (itemInfo.ntype == em_image_new)
         {
@@ -272,8 +272,8 @@ public:
     }
 
 
-    BOOL AppendImage(const KSE::CString& strIdName,
-        const KSE::CString& strFileName)
+    BOOL AppendImage(const KSG::CString& strIdName,
+        const KSG::CString& strFileName)
     {
         image_item_info item;
         
@@ -288,8 +288,8 @@ public:
         return TRUE;
     }
 
-    BOOL AppendImageBefNew(const KSE::CString& strIdName,
-        const KSE::CString& strFileName)
+    BOOL AppendImageBefNew(const KSG::CString& strIdName,
+        const KSG::CString& strFileName)
     {
         image_item_info item;
 
@@ -308,8 +308,8 @@ public:
 
 
     BOOL SetImage(int nIndex, 
-        const KSE::CString& strIdName,
-        const KSE::CString& strFileName)
+        const KSG::CString& strIdName,
+        const KSG::CString& strFileName)
     {
         for (int i = 0; i < GetCount(); i++)
         {
@@ -343,7 +343,7 @@ public:
     }
 
     
-    int GetType(const KSE::CString& strFileName)
+    int GetType(const KSG::CString& strFileName)
     {
         int nresult = em_image_unknown;
 
@@ -658,7 +658,7 @@ public:
         {
             CPath path = openDlg.m_ofn.lpstrFile;
 
-            KSE::CString strFileName = path.m_strPath.Mid(path.FindFileName());
+            KSG::CString strFileName = path.m_strPath.Mid(path.FindFileName());
 
             CResDocument& document = CResDocument::Instance();
 
@@ -666,7 +666,7 @@ public:
 
             if (pskinconfig != 0)
             {
-                KSE::CString strImagePath = pskinconfig->GetSkinImagePath();
+                KSG::CString strImagePath = pskinconfig->GetSkinImagePath();
                 
                 path.RemoveFileSpec();
 
@@ -713,8 +713,8 @@ public:
 
                 CPath path = strPathFile;
 
-                KSE::CString strFileName = path.m_strPath.Mid(path.FindFileName());
-                KSE::CString strIdName   = path.m_strPath.Mid(path.FindFileName());
+                KSG::CString strFileName = path.m_strPath.Mid(path.FindFileName());
+                KSG::CString strIdName   = path.m_strPath.Mid(path.FindFileName());
 
                 strIdName = "IDB_";
 
@@ -725,7 +725,7 @@ public:
 
                 if (pskinconfig != 0)
                 {
-                    KSE::CString strImagePath = pskinconfig->GetSkinImagePath();
+                    KSG::CString strImagePath = pskinconfig->GetSkinImagePath();
 
 
                     path.RemoveFileSpec();
