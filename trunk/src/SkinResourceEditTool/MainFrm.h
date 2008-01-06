@@ -15,10 +15,16 @@
 #define IDC_LEFT_TREE   1000
 #define IDC_RIGHT_LIST  1001
 
+#include <skinwin.h>
 
-class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
-		public CMessageFilter, public CIdleHandler
+class CMainFrame : 
+    public CFrameWindowImpl<CMainFrame, SkinWindow<> >, 
+    public CUpdateUI<CMainFrame>,
+	public CMessageFilter, 
+    public CIdleHandler
 {
+    typedef CFrameWindowImpl<CMainFrame, SkinWindow<> > TBase;
+
 public:
 	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
@@ -36,7 +42,7 @@ public:
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg)
 	{
-		if(CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
+		if(TBase::PreTranslateMessage(pMsg))
 			return TRUE;
 
         return FALSE;
@@ -71,7 +77,7 @@ public:
         MESSAGE_HANDLER(WM_CLOSE, OnClose)
         COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
         CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
-		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
+		CHAIN_MSG_MAP( TBase )
         REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 

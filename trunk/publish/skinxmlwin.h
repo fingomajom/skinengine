@@ -36,9 +36,9 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // ±ê×¼ÊôÐÔ
 
-    BOOL GetIdName   (KSG::CString& strIdName );
-    BOOL GetClassName(KSG::CString& strClassName );
-    BOOL GetCaption  (KSG::CString& strCaption);
+    BOOL GetIdName (KSG::CString& strIdName );
+    BOOL GetCaption(KSG::CString& strCaption);
+    BOOL GetSkinClassName(KSG::CString& strClassName );
 
     BOOL GetItemId ( DWORD& dwId     );
     BOOL GetStyle  ( DWORD& dwStype  );
@@ -73,13 +73,15 @@ inline BOOL skinxmlwin::GetIdName(KSG::CString& strIdName )
 {
     return GetObject(_T("IdName"), strIdName);
 }
-inline BOOL skinxmlwin::GetClassName(KSG::CString& strClassName )
-{
-    return GetObject(_T("ClassName"), strClassName);
-}
+
 inline BOOL skinxmlwin::GetCaption(KSG::CString& strCaption)
 {
     return GetObject(_T("Caption"), strCaption);
+}
+
+inline BOOL skinxmlwin::GetSkinClassName(KSG::CString& strClassName )
+{
+    return GetObject(_T("SkinClassName"), strClassName);
 }
 
 inline BOOL skinxmlwin::GetItemId(DWORD& dwId)

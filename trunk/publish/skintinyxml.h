@@ -186,7 +186,7 @@ public:
     }
 
 
-    BOOL IsValid()
+    BOOL IsValid() const
     {
         return m_tixmlelement != 0;
     }

@@ -209,7 +209,7 @@ public:
         (*this) << brush;
     }
 
-    void operator >> ( HBRUSH hbrush )
+    void operator >> ( HBRUSH& hbrush )
     {
         LOGBRUSH brush = { 0 };
 
@@ -250,7 +250,7 @@ public:
         (*this) << pen;
     }
 
-    void operator >> ( HPEN hpen )
+    void operator >> ( HPEN& hpen )
     {
         LOGPEN pen = { 0 };
         

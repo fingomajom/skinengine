@@ -25,6 +25,16 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	CMainFrame wndMain;
 
+    SkinXmlDocument xmlDocument;
+
+    xmlDocument.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG Caption=\"123123\"></KSG>"));
+
+    SkinXmlElement xmlElement = xmlDocument.RootElement();
+
+    wndMain.SkinCreate(xmlElement, NULL, _T("STATIC") );
+
+
+
 	if(wndMain.CreateEx() == NULL)
 	{
 		ATLTRACE(_T("Main window creation failed!\n"));
