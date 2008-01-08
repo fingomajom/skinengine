@@ -33,7 +33,7 @@ public:
 
         skinxmlwin xmlWin(xmlElement);
 
-        RECT rcClient = { 0 };
+        RECT rcClient = rcDefault;
         KSG::CString strCaption;
 
         DWORD dwStyle   = 0;
