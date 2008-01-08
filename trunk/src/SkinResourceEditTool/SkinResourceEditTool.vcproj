@@ -311,10 +311,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\publish\skingdi.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\publish\skinimageres.h"
 				>
 			</File>
@@ -343,10 +339,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\publish\skinwin.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\publish\skinxmlctrls.h"
 				>
 			</File>
@@ -366,6 +358,22 @@
 				RelativePath="..\..\publish\skinxmlwin.h"
 				>
 			</File>
+			<Filter
+				Name="skinwin"
+				>
+				<File
+					RelativePath="..\..\publish\skinctrls.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\publish\skingdi.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\publish\skinwin.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Res"
