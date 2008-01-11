@@ -11,17 +11,20 @@
 
 #pragma once
 
+#include <map>
 
 namespace KSG{
 
-
-template<class xmlWinT = skinxmlwin>
-class SkinWindow  : public CWindow
+class SkinWindow : public CWindow
 {
 public:
 
     SkinWindow(HWND hWnd = NULL)  
         : CWindow(hWnd)
+    {
+    }
+
+    virtual ~SkinWindow()  
     {
     }
     
@@ -63,6 +66,12 @@ public:
 
     virtual BOOL UpdateSkinCaption(const SkinXmlElement& xmlElement)
     {
+        skinxmlwin xmlWin(xmlElement);
+
+        KSG::CString strCaption;
+
+        if (xmlWin.GetCaption(strCaption))
+            SetWindowText(strCaption);
 
         return TRUE;
     }
@@ -81,7 +90,7 @@ public:
         if ( !xmlElement.IsValid() )
             return FALSE;
 
-        xmlWinT xmlWin(xmlElement);
+        skinxmlwin xmlWin(xmlElement);
 
         if (!xmlWin.GetLeft((int&)rcClient.left))
             return FALSE;
@@ -103,7 +112,7 @@ public:
 
         GetClassName(hWndParent, szClassName, 7);
 
-        if ( !_tcscmp(szClassName, _T("#32770")) ) // 是一个对话
+        if ( !_tcscmp(szClassName, _T("#32770")) ) // 是一个对话框的话
         {
             MapDialogRect(hWndParent, &rcClient);
         }
@@ -113,10 +122,13 @@ public:
 
 };
 
+class SkinWindowCreator;
 
-template<class T, class TBase >
+template<class T, class TBase , class WinCreator = SkinWindowCreator>
 class SkinWindowImpl : public CWindowImpl<T, TBase>
 {
 };
+
+
 
 }; // namespace KSG

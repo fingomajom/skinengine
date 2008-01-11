@@ -373,6 +373,10 @@
 					RelativePath="..\..\publish\skinwin.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\publish\skinwincreator.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
