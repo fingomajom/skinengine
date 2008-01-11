@@ -16,14 +16,15 @@
 #define IDC_RIGHT_LIST  1001
 
 #include <skinwin.h>
+#include "skinwincreator.h"
 
 class CMainFrame : 
-    public CFrameWindowImpl<CMainFrame, SkinWindow<> >, 
+    public CFrameWindowImpl<CMainFrame, SkinWindow >, 
     public CUpdateUI<CMainFrame>,
 	public CMessageFilter, 
     public CIdleHandler
 {
-    typedef CFrameWindowImpl<CMainFrame, SkinWindow<> > TBase;
+    typedef CFrameWindowImpl<CMainFrame, SkinWindow > TBase;
 
 public:
 	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
@@ -107,7 +108,7 @@ public:
 
         m_hWndClient = m_wndSplitter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
         
-
+        
         m_wndLeftTreeView.Create(m_wndSplitter, rcDefault, NULL, 
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASLINES ,
             WS_EX_CLIENTEDGE, IDC_LEFT_TREE);
@@ -136,7 +137,10 @@ public:
 		ATLASSERT(pLoop != NULL);
 		pLoop->AddMessageFilter(this);
 		pLoop->AddIdleHandler(this);
+            
 
+        SkinWindowCreator::Instance();
+        //CWindow * pthis = const_cast<CMainFrame*>(this);
 
 		return 0;
 	}

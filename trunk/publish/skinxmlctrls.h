@@ -18,8 +18,8 @@ namespace KSG{
 
 class skinxmlstatic;
 class skinxmlpicture;
-class skinxmlgroupbox;
 
+class skinxmlgroupbox;
 class skinxmlbutton;
 class skinxmldefbutton;
 class skinxmlcheckbox;
@@ -118,6 +118,29 @@ public:
     static LPCTSTR GetSkinWndClassName() 
     {
         return _T("skingroupbox");
+    }
+
+};
+
+class skinxmlbutton : public skinxmlwin
+{
+public:
+
+    skinxmlbutton(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmlbutton& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetSkinWndClassName() 
+    {
+        return _T("skinbutton");
     }
 
 };

@@ -24,11 +24,64 @@ namespace KSG{
 
 
 template <class TBase>
-class CSkinStaticT : public TBase
+class CSkinStaticT : public CStaticT<TBase>
 {
+public:
+
+    CSkinStaticT(HWND hWnd = NULL) : CStaticT<TBase>(hWnd)
+    { }
+
+    CSkinStaticT< TBase >& operator =(HWND hWnd)
+    {
+        m_hWnd = hWnd;
+        return *this;
+    }
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        return TBase::SkinCreate(xmlElement, 
+            hWndParent, 
+            GetWndClassName(),
+            MenuOrID);
+    }
 };
 
-typedef CSkinStaticT<KSG::SkinWindow< skinxmlstatic > >   CSkinStatic;
+typedef CSkinStaticT< KSG::SkinWindow > CSkinStatic;
 
+
+//////////////////////////////////////////////////////////////////////////
+
+template <class TBase>
+class CSkinButtonT : public CButtonT<TBase>
+{
+public:
+
+    CSkinButtonT(HWND hWnd = NULL) : CButtonT<TBase>(hWnd)
+    { }
+
+    CSkinButtonT< TBase >& operator =(HWND hWnd)
+    {
+        m_hWnd = hWnd;
+        return *this;
+    }
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        return TBase::SkinCreate(xmlElement, 
+            hWndParent, 
+            GetWndClassName(),
+            MenuOrID);
+    }
+};
+
+typedef CSkinButtonT< KSG::SkinWindow > CSkinButton;
+
+
+
+//////////////////////////////////////////////////////////////////////////
 
 }; // namespace KSG
