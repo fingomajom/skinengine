@@ -42,6 +42,7 @@ SkinWindow* SkinCreate_Static(
 
 class SkinWindowCreator
 {
+
 protected:
 
     typedef SkinWindow* pfnSkinCreateFunc(const SkinXmlElement& xmlElement,
@@ -82,6 +83,13 @@ public:
         return g_skinWinCreator;
     }
 
+    void AddSkinCreator( const KSG::CString& strWndClass, 
+        pfnSkinCreateFunc* pfnCreator)
+    {
+        m_mapCreator[strWndClass] = pfnCreator;
+    }
+
+
 protected:
 
     SkinWindowCreator()
@@ -94,12 +102,6 @@ protected:
 
         AddSkinCreator(KSG::skinxmlbutton::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
-    }
-
-    void AddSkinCreator( const KSG::CString& strWndClass, 
-        pfnSkinCreateFunc* pfnCreator)
-    {
-        m_mapCreator[strWndClass] = pfnCreator;
     }
 
 
