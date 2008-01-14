@@ -45,7 +45,29 @@ public:
             hWndParent, 
             GetWndClassName(),
             MenuOrID);
+
+        //UpdateSkin();
     }
+
+    virtual BOOL UpdateSkinCaption(const SkinXmlElement& xmlElement)
+    {
+        skinxmlwin xmlWin(xmlElement);
+
+        KSG::CString strCaption;
+
+        if (xmlWin.GetCaption(strCaption))
+            SetWindowText(strCaption);
+
+        return TRUE;
+    }
+
+
+    virtual BOOL UpdateSkin(const SkinXmlElement& xmlElement)
+    {
+
+        return TRUE;
+    }
+
 };
 
 typedef CSkinStaticT< KSG::SkinWindow > CSkinStatic;
@@ -81,6 +103,7 @@ public:
 typedef CSkinButtonT< KSG::SkinWindow > CSkinButton;
 
 
+//CBitmapButton
 
 //////////////////////////////////////////////////////////////////////////
 
