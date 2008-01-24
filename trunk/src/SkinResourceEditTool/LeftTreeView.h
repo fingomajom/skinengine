@@ -15,7 +15,10 @@
 enum{
     em_rvt_none = 0,
     em_rvt_image,
-    em_rvt_string_table
+    em_rvt_string_table,
+    em_rvt_dialogs,
+    em_rvt_dialog,
+    em_rvt_dialog_item
 };
 
 class CLeftTreeView : public CWindowImpl<CLeftTreeView, CTreeViewCtrl>
