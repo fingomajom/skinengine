@@ -27,19 +27,20 @@ class CMainFrame :
     typedef CFrameWindowImpl<CMainFrame, SkinWindow > TBase;
 
 public:
+
 	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
-    CSplitterWindow m_wndSplitter;
-    CLeftTreeView   m_wndLeftTreeView;
-    CRightListView  m_wndRightListView;
+    CSplitterWindow  m_wndSplitter;
+    CLeftTreeView    m_wndLeftTreeView;
+    CRightListView   m_wndRightListView;
     
     CImageResEditDlg m_wndImageEditDlg;
 
-    CWindow         m_wndLastView;
+    CWindow          m_wndLastView;
 
-    CStatic         m_wndNoneStatic;
+    CStatic          m_wndNoneStatic;
 
-	CCommandBarCtrl m_CmdBar;
+	CCommandBarCtrl  m_CmdBar;
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg)
 	{
@@ -63,23 +64,27 @@ public:
 	END_UPDATE_UI_MAP()
 
 	BEGIN_MSG_MAP(CMainFrame)
+
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
-		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
-		COMMAND_ID_HANDLER(ID_FILE_NEW, OnFileNew)
-		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR, OnViewToolBar)
+        MESSAGE_HANDLER(WM_CLOSE , OnClose)
+
+        NOTIFY_HANDLER (IDC_LEFT_TREE, TVN_SELCHANGED, OnSelChanged)
+
+        COMMAND_ID_HANDLER(ID_APP_EXIT       , OnFileExit)
+		COMMAND_ID_HANDLER(ID_FILE_NEW       , OnFileNew)
+		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR   , OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
-		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
+		COMMAND_ID_HANDLER(ID_APP_ABOUT      , OnAppAbout)
 
-
-        NOTIFY_HANDLER(IDC_LEFT_TREE, TVN_SELCHANGED, OnSelChanged)
-
-        COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
+        COMMAND_ID_HANDLER(ID_FILE_SAVE   , OnFileSave)
         COMMAND_ID_HANDLER(ID_FILE_SAVE_AS, OnFileSaveAs)
-        MESSAGE_HANDLER(WM_CLOSE, OnClose)
-        COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
+        COMMAND_ID_HANDLER(ID_FILE_OPEN   , OnFileOpen)
+
         CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP( TBase )
+
         REFLECT_NOTIFICATIONS()
+
 	END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
