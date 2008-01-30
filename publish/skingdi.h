@@ -97,4 +97,4 @@ public:
 typedef CSkinDCT<false>   CSkinDCHandle;
 typedef CSkinDCT<true>    CSkinDC;
 
-} // amespace KSG
+} // namespace KSG
