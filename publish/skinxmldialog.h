@@ -12,6 +12,7 @@
 #pragma once
 
 #include <skinxmlwin.h>
+#include <atldlgs.h>
 
 
 namespace KSG{

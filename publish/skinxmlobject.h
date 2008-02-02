@@ -60,7 +60,7 @@ public:
         if (!GetObject(Name, strObject))
             return FALSE;
 
-        uOjbect = (DWORD)_ttol(strObject);
+        uOjbect = (DWORD)_ttoi64(strObject);
 
         return TRUE;
     }
@@ -72,7 +72,7 @@ public:
         if (!GetObject(Name, strObject))
             return FALSE;
 
-        nOjbect = (DWORD)_ttoi(strObject);
+        nOjbect = _ttoi(strObject);
 
         return TRUE;
     }
