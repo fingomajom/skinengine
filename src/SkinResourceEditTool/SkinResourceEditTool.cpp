@@ -70,11 +70,11 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
     xmlDocument.LoadXML(
         _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-            _T("<IDD_DlgTest Caption=\"中国人啊人\" Style=\"2160590976\" ExStyle=\"0\" Font=\"宋体,GB2312_CHARSET,20,1,800,0\" Left=\"10\" Top=\"10\" Width=\"200\" Height=\"200\">")
+            _T("<IDD_DlgTest Caption=\"中国人啊人\" Style=\"2160590976\" ExStyle=\"0\" Font=\"宋体,GB2312_CHARSET,9,1,400,0\" Left=\"10\" Top=\"10\" Width=\"292\" Height=\"151\">")
                 _T("<ChildWindow>")
                 _T("<IDS_STATIC SkinClassName=\"skinxmlstatic\" IdName=\"ids_abc\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"10\" Width=\"200\" Height=\"20\" />")
                 _T("<IDS_STATIC SkinClassName=\"skinxmlstatic\" IdName=\"ids_abc1\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"40\" Width=\"200\" Height=\"20\" />")
-                _T("<IDS_STATIC SkinClassName=\"skinxmlstatic\" IdName=\"ids_abc2\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"80\" Width=\"200\" Height=\"20\" />")
+                _T("<IDS_STATIC SkinClassName=\"skinxmllistbox\" IdName=\"ids_abc2\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"80\" Width=\"200\" Height=\"120\" />")
                 _T("</ChildWindow>")
             _T("</IDD_DlgTest>") );
 
@@ -99,7 +99,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
     xmlfont << font;
 
-    return 0;
+    //return 0;
 
 	if(wndMain.CreateEx() == NULL)
 	{
