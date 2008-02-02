@@ -29,7 +29,7 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 IDD_EDITSTRING_DIALOG DIALOGEX 0, 0, 292, 151
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "辑辑字符串"
-FONT 9, "宋体", 400, 0, 0x0
+FONT 12, "宋体", 700, 1, 0x86
 BEGIN
     DEFPUSHBUTTON   "确定",IDOK,72,121,70,16,WS_DISABLED
     PUSHBUTTON      "取消",IDCANCEL,148,121,70,16
@@ -50,6 +50,13 @@ BEGIN
     EDITTEXT        IDC_FILE_EDIT,7,366,360,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BROWSE_BUTTON,372,364,18,14
     PUSHBUTTON      "添加一批",IDC_ADD_BUTTON,401,345,48,14
+END
+
+IDD_DIALOG1 DIALOGEX 0, 0, 318, 191
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
 END
 
 
@@ -75,9 +82,23 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 405
     END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 311
+        TOPMARGIN, 7
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 123
+//
+
+IDR_DEFAULT1            123                     "res\\default1.bin"
 #endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -96,14 +117,14 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG  0, 0, 187, 102
+IDD_ABOUTBOX DIALOGEX 0, 0, 187, 102
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
-FONT 8, "MS Sans Serif"
+FONT 9, "Courier New", 700, 1, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
     CTEXT           "SkinResourceEditTool Application v1.0\n\n(c) Copyright 2007",IDC_STATIC,25,57,78,32
-    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
+    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,16
     GROUPBOX        "",IDC_STATIC,7,7,115,88
 END
 

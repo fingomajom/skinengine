@@ -16,99 +16,75 @@
 namespace KSG{
 
 
-class skinxmlstatic;
-class skinxmlpicture;
+//class skinxmlstatic;
+//class skinxmlpicture;
+//
+//class skinxmlgroupbox;
+//class skinxmlbutton;
+//class skinxmlcheckbox;
+//class skinxmlradiobox;
 
-class skinxmlgroupbox;
-class skinxmlbutton;
-class skinxmldefbutton;
-class skinxmlcheckbox;
-class skinxmlcombobox;
-class skinxmllistbox;
-class skinxmlradiobox;
-
-class skinxmllistctrl;
-class skinxmltreectrl;
-class skinxmltablectrl;
-
-class skinxmledit;
-class skinxmlhotkey;
-class skinxmlrichedit;
-
-class skinxmldatetime;
-class skinxmlmonthcalendar;
-
-
-class skinxmlhscrollbar;
-class skinxmlvscrollbar;
-
-class skinxmlslider;
-class skinxmlspin;
-class skinxmlprogress;
-
-class skinxmlanimation;
-
-class skinxmlipaddress;
-class skinxmldatetime;
+//class skinxmlcombobox;
+//class skinxmllistbox;
+//
+//class skinxmllistctrl;
+//class skinxmltreectrl;
+//class skinxmltablectrl;
+//
+//class skinxmledit;
+//class skinxmlhotkey;
+//class skinxmlrichedit;
+//
+//class skinxmldatetime;
+//class skinxmlmonthcalendar;
+//
+//
+//class skinxmlhscrollbar;
+//class skinxmlvscrollbar;
+//
+//class skinxmlslider;
+//class skinxmlspin;
+//class skinxmlprogress;
+//
+//class skinxmlanimation;
+//
+//class skinxmlipaddress;
+//
 
 
+#define begin_skinxmlctrls(className, wcn) \
+class className : public skinxmlwin \
+{   \
+public: \
+    className(const SkinXmlElement& xmlElement = SkinXmlElement()) \
+        : skinxmlwin(xmlElement)    \
+    {   \
+    }   \
+    const className& operator = (const SkinXmlElement& xmlElement)  \
+    {   \
+        m_xmlResElement = xmlElement;   \
+        return *this;   \
+    }   \
+    static LPCTSTR GetSkinWndClassName() \
+    {   \
+        return wcn;    \
+    } 
 
-class skinxmlstatic : public skinxmlwin
-{
-public:
-
-    skinxmlstatic(const SkinXmlElement& xmlElement = SkinXmlElement()) 
-        : skinxmlwin(xmlElement)
-    {
-    }
-
-    const skinxmlstatic& operator = (const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return *this;
-    }
-    
-    static LPCTSTR GetSkinWndClassName() 
-    {
-        return _T("skinstatic");
-    }
-
+#define end_skinxmlctrls()  \
 };
 
-class skinxmlpicture : public skinxmlwin
+
+template<const TCHAR*& SkinWndClassName>
+class skinxmlctrls_t : public skinxmlwin
 {
 public:
 
-    skinxmlpicture(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+    skinxmlctrls_t(const SkinXmlElement& xmlElement = SkinXmlElement()) 
         : skinxmlwin(xmlElement)
     {
     }
 
-    const skinxmlpicture& operator = (const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
-
-        return *this;
-    }
-
-    static LPCTSTR GetSkinWndClassName() 
-    {
-        return _T("skinpicture");
-    }
-
-};
-
-class skinxmlgroupbox : public skinxmlwin
-{
-public:
-
-    skinxmlgroupbox(const SkinXmlElement& xmlElement = SkinXmlElement()) 
-        : skinxmlwin(xmlElement)
-    {
-    }
-
-    const skinxmlgroupbox& operator = (const SkinXmlElement& xmlElement)
+    const skinxmlctrls_t<SkinWndClassName>& operator = (const SkinXmlElement& xmlElement)
     {
         m_xmlResElement = xmlElement;
 
@@ -117,32 +93,49 @@ public:
 
     static LPCTSTR GetSkinWndClassName() 
     {
-        return _T("skingroupbox");
+        return SkinWndClassName;
     }
 
 };
 
-class skinxmlbutton : public skinxmlwin
-{
-public:
 
-    skinxmlbutton(const SkinXmlElement& xmlElement = SkinXmlElement()) 
-        : skinxmlwin(xmlElement)
-    {
-    }
+#define define_xml_ctrls(class_name)   \
+    _declspec(selectany) const TCHAR* g_psz##class_name##_xmlctrlstr = _T(#class_name);   \
+    typedef skinxmlctrls_t<g_psz##class_name##_xmlctrlstr>  class_name;
 
-    const skinxmlbutton& operator = (const SkinXmlElement& xmlElement)
-    {
-        m_xmlResElement = xmlElement;
 
-        return *this;
-    }
+define_xml_ctrls(skinxmlstatic);
+define_xml_ctrls(skinxmlpicture);
 
-    static LPCTSTR GetSkinWndClassName() 
-    {
-        return _T("skinbutton");
-    }
+define_xml_ctrls(skinxmlgroupbox);
+define_xml_ctrls(skinxmlbutton);
+define_xml_ctrls(skinxmlcheckbox);
+define_xml_ctrls(skinxmlradiobox);
 
-};
+define_xml_ctrls(skinxmlcombobox);
+define_xml_ctrls(skinxmllistbox);
+
+define_xml_ctrls(skinxmllistctrl);
+define_xml_ctrls(skinxmltreectrl);
+define_xml_ctrls(skinxmltablectrl);
+
+define_xml_ctrls(skinxmledit);
+define_xml_ctrls(skinxmlhotkey);
+define_xml_ctrls(skinxmlrichedit);
+
+define_xml_ctrls(skinxmldatetime);
+define_xml_ctrls(skinxmlmonthcalendar);
+
+define_xml_ctrls(skinxmlhscrollbar);
+define_xml_ctrls(skinxmlvscrollbar);
+
+define_xml_ctrls(skinxmlslider);
+define_xml_ctrls(skinxmlspin);
+define_xml_ctrls(skinxmlprogress);
+
+define_xml_ctrls(skinxmlanimation);
+
+define_xml_ctrls(skinxmlipaddress);
+
 
 };

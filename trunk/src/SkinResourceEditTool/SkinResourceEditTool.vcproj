@@ -265,6 +265,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
+				RelativePath=".\res\default1.bin"
+				>
+			</File>
+			<File
 				RelativePath=".\res\SkinResourceEditTool.ico"
 				>
 			</File>
@@ -365,6 +369,10 @@
 				>
 				<File
 					RelativePath="..\..\publish\skinctrls.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\publish\skindialog.h"
 					>
 				</File>
 				<File
