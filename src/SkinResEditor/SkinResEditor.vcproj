@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="SkinResourceEditTool"
-	ProjectGUID="{162305FC-8F69-4952-9AC5-FC94EA909DC1}"
-	RootNamespace="SkinResourceEditTool"
+	Name="SkinResEditor"
+	ProjectGUID="{17B1EB21-F1B0-4F3D-B9E9-8E26F40AC1CC}"
+	RootNamespace="SkinResEditor"
 	>
 	<Platforms>
 		<Platform
@@ -20,7 +20,7 @@
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -40,21 +40,20 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/SkinResourceEditTool.tlb"
-				HeaderFileName="SkinResourceEditTool.h"
+				TypeLibraryName="$(IntDir)/SkinResEditor.tlb"
+				HeaderFileName="SkinResEditor.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="SkinResourceEditTool_i.c"
-				ProxyFileName="SkinResourceEditTool_p.c"
+				InterfaceIdentifierFileName="SkinResEditor_i.c"
+				ProxyFileName="SkinResEditor_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../publish;../../tinyxml"
-				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG;_USE_EDIT_SKINRESOURCE"
+				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -65,7 +64,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="2052"
+				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
@@ -109,9 +108,8 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
-			UseOfATL="1"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="1"
+			ATLMinimizesCRunTimeLibraryUsage="true"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -131,21 +129,18 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/SkinResourceEditTool.tlb"
-				HeaderFileName="SkinResourceEditTool.h"
+				TypeLibraryName="$(IntDir)/SkinResEditor.tlb"
+				HeaderFileName="SkinResEditor.h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="SkinResourceEditTool_i.c"
-				ProxyFileName="SkinResourceEditTool_p.c"
+				InterfaceIdentifierFileName="SkinResEditor_i.c"
+				ProxyFileName="SkinResEditor_p.c"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="0"
 				AdditionalIncludeDirectories="../../publish;../../tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
-				ExceptionHandling="1"
-				RuntimeLibrary="2"
-				TreatWChar_tAsBuiltInType="false"
+				ExceptionHandling="0"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="0"
@@ -203,15 +198,7 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
 			>
 			<File
-				RelativePath=".\mainfrm.CPP"
-				>
-			</File>
-			<File
-				RelativePath=".\ResDocument.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SkinResourceEditTool.cpp"
+				RelativePath=".\SkinResEditor.cpp"
 				>
 			</File>
 			<File
@@ -248,10 +235,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ResDocument.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -265,11 +248,11 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
-				RelativePath=".\res\SkinResourceEditTool.ico"
+				RelativePath=".\res\SkinResEditor.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\SkinResourceEditTool.rc"
+				RelativePath=".\SkinResEditor.rc"
 				>
 			</File>
 			<File
@@ -278,22 +261,22 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="View"
+			Name="Document"
 			>
 			<File
-				RelativePath=".\EditResBase.h"
+				RelativePath=".\SkinImageResDoc.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ImageResEditDlg.h"
+				RelativePath=".\SkinResDocument.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\LeftTreeView.h"
+				RelativePath=".\SkinResDocument.h"
 				>
 			</File>
 			<File
-				RelativePath=".\RightListView.h"
+				RelativePath=".\SkinStrResDoc.h"
 				>
 			</File>
 		</Filter>
@@ -309,7 +292,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skinctrls.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skindialog.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skindlgres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skingdi.h"
 				>
 			</File>
 			<File
@@ -341,6 +336,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skinwin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinwincreator.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skinxmlctrls.h"
 				>
 			</File>
@@ -360,84 +363,44 @@
 				RelativePath="..\..\publish\skinxmlwin.h"
 				>
 			</File>
-			<Filter
-				Name="skinwin"
-				>
-				<File
-					RelativePath="..\..\publish\skinctrls.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\publish\skindialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\publish\skingdi.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\publish\skinwin.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\publish\skinwincreator.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
-			Name="Res"
+			Name="ViewControls"
 			>
 			<File
-				RelativePath=".\skinimageedit.h"
+				RelativePath=".\SkinPropertyView.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\publish\StringTableResource.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-						ObjectFile="$(IntDir)\$(InputName)1.obj"
-						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-						ObjectFile="$(IntDir)\$(InputName)1.obj"
-						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\publish\StringTableResource.h"
+				RelativePath=".\SkinResTreeView.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Dlg"
+			Name="Controls"
 			>
 			<File
-				RelativePath=".\EditStringDlg.cpp"
+				RelativePath=".\ControlDef.h"
 				>
 			</File>
 			<File
-				RelativePath=".\EditStringDlg.h"
+				RelativePath=".\SkinControlsMgt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinResPropertyView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinResStringListView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinTreeControlView.h"
 				>
 			</File>
 		</Filter>
 	</Files>
 	<Globals>
-		<Global
-			Name="RESOURCE_FILE"
-			Value="SkinResourceEditTool.rc"
-		/>
 	</Globals>
 </VisualStudioProject>

@@ -1,0 +1,208 @@
+// MainFrm.h : interface of the CMainFrame class
+//
+/////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include "SkinControlsMgt.h"
+#include "SkinResDocument.h"
+
+#include "SkinResStringListView.h"
+
+#define IDC_TREE_VIEW       1000
+#define IDC_LIST_VIEW       1001
+#define IDC_PROPERTY_VIEW   1002
+
+class CMainFrame : 
+    public CFrameWindowImpl<CMainFrame>, 
+    public CUpdateUI<CMainFrame>,
+	public CMessageFilter, 
+    public CIdleHandler,
+    public SkinFrame
+{
+public:
+	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
+
+	CCommandBarCtrl m_CmdBar;
+
+    CSplitterWindow    m_wndLRSplitter;
+    CHorSplitterWindow m_wndLTBlitter;
+    
+
+    SkinResStringListView m_wndResStringListView;
+
+	virtual BOOL PreTranslateMessage(MSG* pMsg)
+	{
+		return CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg);
+	}
+
+    virtual HWND SetActiveResultWindow(HWND hWndResult)
+    {
+        HWND hResult = m_wndLTBlitter.GetSplitterPane(SPLIT_PANE_RIGHT);
+
+        m_wndLRSplitter.SetSplitterPanes(m_wndLTBlitter, hWndResult);
+
+        return hResult;
+    }
+
+    virtual HWND GetResultParentWnd()
+    {
+        return m_wndLRSplitter;
+    }
+
+
+	virtual BOOL OnIdle()
+	{
+		UIUpdateToolBar();
+		return FALSE;
+	}
+
+	BEGIN_UPDATE_UI_MAP(CMainFrame)
+		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
+	END_UPDATE_UI_MAP()
+
+	BEGIN_MSG_MAP(CMainFrame)
+
+		MESSAGE_HANDLER(WM_CREATE, OnCreate)
+		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
+		COMMAND_ID_HANDLER(ID_FILE_NEW, OnFileNew)
+		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR, OnViewToolBar)
+		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
+		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
+		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
+		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
+
+        REFLECT_NOTIFICATIONS()
+
+	END_MSG_MAP()
+
+// Handler prototypes (uncomment arguments if needed):
+//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+
+	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	{
+		// create command bar window
+		HWND hWndCmdBar = m_CmdBar.Create(m_hWnd, rcDefault, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE);
+		// attach menu
+		m_CmdBar.AttachMenu(GetMenu());
+		// load command bar images
+		m_CmdBar.LoadImages(IDR_MAINFRAME);
+		// remove old menu
+		SetMenu(NULL);
+
+		HWND hWndToolBar = CreateSimpleToolBarCtrl(m_hWnd, IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
+
+		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
+		AddSimpleReBarBand(hWndCmdBar);
+		AddSimpleReBarBand(hWndToolBar, NULL, TRUE);
+
+		CreateSimpleStatusBar();
+
+		UIAddToolBar(hWndToolBar);
+		UISetCheck(ID_VIEW_TOOLBAR, 1);
+		UISetCheck(ID_VIEW_STATUS_BAR, 1);
+
+		// register object for message filtering and idle updates
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		ATLASSERT(pLoop != NULL);
+		pLoop->AddMessageFilter(this);
+		pLoop->AddIdleHandler(this);
+
+        OnCreateChildWindow();
+
+		return 0;
+	}
+
+    LRESULT OnCreateChildWindow()
+    {
+
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        ControlsMgt.m_piSkinFrame = this;
+
+        m_hWndClient = m_wndLRSplitter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+
+        m_wndLTBlitter.Create(m_wndLRSplitter, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+
+        ControlsMgt.m_skinTreeControlView.Create(m_wndLTBlitter, rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASLINES ,
+            WS_EX_CLIENTEDGE, IDC_TREE_VIEW);
+        
+        ControlsMgt.m_skinResPropertyView.Create(m_wndLTBlitter, rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER,
+            WS_EX_CLIENTEDGE, IDC_PROPERTY_VIEW);
+
+        m_wndLRSplitter.SetSplitterPanes(m_wndLTBlitter, NULL);
+        m_wndLTBlitter.SetSplitterPanes(ControlsMgt.m_skinTreeControlView, ControlsMgt.m_skinResPropertyView);
+
+        UpdateLayout();
+
+        RECT rect;
+        GetClientRect(&rect);
+        m_wndLRSplitter.SetSplitterPos((rect.right - rect.left) / 4);
+        m_wndLTBlitter.SetSplitterPos((rect.bottom - rect.top) / 2);
+        
+
+        BOOL bHandled = FALSE;
+        OnFileNew(0, 0, 0, bHandled);
+
+        return TRUE;
+    }
+
+	LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		PostMessage(WM_CLOSE);
+		return 0;
+	}
+
+	LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        ControlsMgt.m_skinTreeControlView.CTreeViewCtrl::DeleteAllItems();
+
+        ControlsMgt.m_resDocument.NewDocument();
+
+        ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            TVI_ROOT, ControlsMgt.m_resDocument.GetFileName(), 0, NULL, 0);
+        
+        HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("StringTable"), 0, &m_wndResStringListView, 0);
+
+       
+
+		return 0;
+	}
+
+	LRESULT OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		static BOOL bVisible = TRUE;	// initially visible
+		bVisible = !bVisible;
+		CReBarCtrl rebar = m_hWndToolBar;
+		int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);	// toolbar is 2nd added band
+		rebar.ShowBand(nBandIndex, bVisible);
+		UISetCheck(ID_VIEW_TOOLBAR, bVisible);
+		UpdateLayout();
+		return 0;
+	}
+
+	LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		BOOL bVisible = !::IsWindowVisible(m_hWndStatusBar);
+		::ShowWindow(m_hWndStatusBar, bVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
+		UISetCheck(ID_VIEW_STATUS_BAR, bVisible);
+		UpdateLayout();
+		return 0;
+	}
+
+	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		CAboutDlg dlg;
+		dlg.DoModal();
+		return 0;
+	}
+};
