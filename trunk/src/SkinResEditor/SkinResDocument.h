@@ -1,0 +1,38 @@
+
+#pragma once
+
+
+#include "SkinStrResDoc.h"
+#include "SkinImageResDoc.h"
+
+
+#define IDS_EMPTY_FILENAME _T("Œﬁ±ÍÃ‚")
+
+
+class SkinResDocument
+{
+public:
+
+    SkinResDocument(void);
+    ~SkinResDocument(void);
+
+    BOOL NewDocument();
+    BOOL OpenDocument(const KSG::CString& strFileName);
+    BOOL SaveDocument(const KSG::CString& strFileName);
+    
+    const KSG::CString& GetFileName() const;
+
+    BOOL Modify() const;
+    void Modify(BOOL bModify);
+
+public:
+
+    SkinStrResDoc   m_resStrDoc;
+    SkinImageResDoc m_resImageDoc;
+
+private:
+
+    KSG::CString m_strFileName;   
+    BOOL m_bModify;
+
+};

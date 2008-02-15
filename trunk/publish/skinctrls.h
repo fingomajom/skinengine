@@ -100,7 +100,7 @@ typedef CSkinCtrlsT< CRichEditCtrlT<KSG::SkinWindow> >    CSkinRichEditCtrl;
 typedef CSkinCtrlsT< CDateTimePickerCtrlT<KSG::SkinWindow> > CSkinDateTimePickerCtrl;
 typedef CSkinCtrlsT< CMonthCalendarCtrlT<KSG::SkinWindow> >  CSkinMonthCalendarCtrl;
 
-typedef CSkinCtrlsT< CIPAddressCtrlT<KSG::SkinWindow> > CSkinIPAddressCtrl;
+typedef CSkinCtrlsT< CIPAddressCtrlT<KSG::SkinWindow> >    CSkinIPAddressCtrl;
 typedef CSkinCtrlsT< CTrackBarCtrlT<KSG::SkinWindow> >     CSkinTrackBarCtrl;
 
 
