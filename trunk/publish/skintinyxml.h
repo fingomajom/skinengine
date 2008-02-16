@@ -4,6 +4,7 @@
 #include <tinyxml.h>
 #include <atlconv.h>
 #include <skinstr.h>
+#include <ostream>
 
 #ifdef _DEBUG
     #pragma comment(lib, "tinyxmld.lib")
@@ -321,7 +322,25 @@ public:
     {
         CT2AEX<> Value(xml, CP_DEFAULT);
 
-        return m_tixmldoc.Parse(Value.m_psz, 0, SKINXML_DEFAULT_ENCODIN) != 0;
+        m_tixmldoc.Parse(Value.m_psz, 0, SKINXML_DEFAULT_ENCODIN);
+
+        return m_tixmldoc.ErrorId() == 0;
+    }
+
+    BOOL ToXMLString(KSG::CString& strXmlString)
+    {
+        TiXmlPrinter xmlPrinter;
+
+        xmlPrinter.SetLineBreak("\r\n");
+        
+        if ( ! m_tixmldoc.Accept(&xmlPrinter) )
+            return FALSE;
+
+        CA2TEX<> Value(xmlPrinter.CStr(), CP_DEFAULT);
+
+        strXmlString = Value.m_psz;
+
+        return TRUE;
     }
 
 public:

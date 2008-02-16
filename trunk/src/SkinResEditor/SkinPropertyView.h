@@ -20,6 +20,8 @@ class SkinPropertyView :
 {
     typedef CWindowImpl<SkinPropertyView, CListViewCtrl> theBaseClass;
 
+public:
+
     class PropertyEditNotify
     {
     public:
@@ -67,6 +69,9 @@ public:
     BOOL Clear()
     {
         DeleteAllItems();
+
+        m_edit.ShowWindow(SW_HIDE);
+        m_button.ShowWindow(SW_HIDE);
 
         return TRUE;
     }
@@ -479,7 +484,12 @@ public:
                     GetSysColor(COLOR_HIGHLIGHTTEXT) );
             }
             else
-                dc.SetTextColor(GetSysColor(COLOR_BTNTEXT));
+            {
+                if (GetItemData(nItem) == it_readonly && nColumn == 1)
+                    dc.SetTextColor(GetSysColor(COLOR_GRAYTEXT));
+                else
+                    dc.SetTextColor(GetSysColor(COLOR_BTNTEXT));
+            }
 
 
             if (nColumn > 0)

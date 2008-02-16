@@ -45,6 +45,7 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
     m_strFileName = strFileName;
     m_bModify     = FALSE;
 
+
     return bResult;
 }
 
@@ -52,9 +53,25 @@ BOOL SkinResDocument::SaveDocument(const KSG::CString& strFileName)
 {
     BOOL bResult = FALSE;
 
-    LPCTSTR pszDefResXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG></KSG>");
-    
     KSG::SkinXmlDocument doc;
+    
+    bResult = SaveDocument(doc);
+    if (!bResult)
+        return bResult;
+
+    m_strFileName = strFileName;
+    m_bModify     = FALSE;
+
+    doc.SaveFile(strFileName);
+
+    return bResult;
+}
+
+BOOL SkinResDocument::SaveDocument(KSG::SkinXmlDocument& doc)
+{
+    BOOL bResult = FALSE;
+
+    LPCTSTR pszDefResXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG></KSG>");
 
     bResult = doc.LoadXML(pszDefResXML);
     if (!bResult)
@@ -63,11 +80,9 @@ BOOL SkinResDocument::SaveDocument(const KSG::CString& strFileName)
     m_resStrDoc.SaveResDoc(doc);
     m_resImageDoc.SaveResDoc(doc);
 
-    m_strFileName = strFileName;
-    m_bModify     = FALSE;
-
     return bResult;
 }
+
 
 const KSG::CString& SkinResDocument::GetFileName() const
 {

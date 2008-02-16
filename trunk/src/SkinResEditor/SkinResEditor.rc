@@ -13,6 +13,60 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RESEDITIMAGE_DIALOG DIALOGEX 0, 0, 186, 93
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_IMAGE_LIST,14,7,48,40,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_EDITDLG_DIALOG DIALOGEX 0, 0, 356, 270
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,289,27,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,289,45,50,14
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,0,0,280,268,WS_EX_CLIENTEDGE
+    COMBOBOX        IDC_COMBO1,289,5,48,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_RESEDITIMAGE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -108,9 +162,10 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About SkinResEditor...",              ID_APP_ABOUT
+        MENUITEM "&About SkinResEditor...",     ID_APP_ABOUT
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -126,19 +181,17 @@ IDR_MAINFRAME           ICON                    "res\\SkinResEditor.ico"
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG  0, 0, 187, 102
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUTBOX DIALOGEX 0, 0, 187, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
-    CTEXT           "SkinResEditor Application v1.0\n\n(c) Copyright 2008",IDC_STATIC,25,57,78,
-                    32
-    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
+    CTEXT           "SkinResEditor Application v1.0\n\n(c) Copyright 2008",IDC_STATIC,25,57,78,32
+    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,20,20
     GROUPBOX        "",IDC_STATIC,7,7,115,88
+    LISTBOX         IDC_LIST1,124,19,48,40,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
-
-
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -206,21 +259,21 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "SkinResEditor Module\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "SkinResEditor\0"
-            VALUE "LegalCopyright", "Copyright 2008\0"
-            VALUE "OriginalFilename", "SkinResEditor.exe\0"
-            VALUE "ProductName", "SkinResEditor Module\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "FileDescription", "SkinResEditor Module"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "SkinResEditor"
+            VALUE "LegalCopyright", "Copyright 2008"
+            VALUE "OriginalFilename", "SkinResEditor.exe"
+            VALUE "ProductName", "SkinResEditor Module"
+            VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x0409, 0x04B0
+        VALUE "Translation", 0x409, 1200
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -229,7 +282,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDR_MAINFRAME	"SkinResEditor"
+    IDR_MAINFRAME           "SkinResEditor"
 END
 
 STRINGTABLE 
@@ -309,6 +362,10 @@ END
 STRINGTABLE 
 BEGIN
     ATL_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE 
+BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
@@ -316,5 +373,3 @@ END
 /////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef APSTUDIO_INVOKED
-#endif    // not APSTUDIO_INVOKED
