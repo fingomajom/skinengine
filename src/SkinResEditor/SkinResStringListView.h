@@ -66,7 +66,7 @@ public:
             m_edit.Create(m_hWnd, 
                 rcDefault, 
                 NULL, 
-                WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL);
+                WS_CHILD | WS_BORDER | ES_AUTOHSCROLL);
 
             m_edit.SetFont(GetFont());
 
@@ -113,6 +113,8 @@ public:
     {
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
         
+        ShowWindow(SW_SHOW);
+
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
     }
 
@@ -121,6 +123,8 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
         ControlsMgt.m_skinResPropertyView.Clear();
+
+        ShowWindow(SW_HIDE);
 
     }
 
@@ -216,6 +220,10 @@ public:
 
             if ( m_neditsubitem == 1 )
             {
+                if (szNewBuffer[0] >= '0' && szNewBuffer[0] <= '9') // 不合法的项名
+                    return TRUE;
+
+
                 if ( FindSameKeyItem(szNewBuffer, m_neditindex) >= 0)
                 {
                     KSG::CString strMsg;
@@ -324,6 +332,7 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
         
         ControlsMgt.m_skinResPropertyView.Clear();
+        ControlsMgt.m_skinResPropertyView.SetPropertyEditNotify(NULL);
 
         if (index >= 0 )
         {

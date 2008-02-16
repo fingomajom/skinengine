@@ -19,6 +19,7 @@ public:
     BOOL NewDocument();
     BOOL OpenDocument(const KSG::CString& strFileName);
     BOOL SaveDocument(const KSG::CString& strFileName);
+    BOOL SaveDocument(KSG::SkinXmlDocument& doc);
     
     const KSG::CString& GetFileName() const;
 

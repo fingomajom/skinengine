@@ -388,6 +388,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SkinResEditView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinResImageListView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SkinResPropertyView.h"
 				>
 			</File>
