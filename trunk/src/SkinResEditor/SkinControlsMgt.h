@@ -1,3 +1,13 @@
+/********************************************************************
+* CreatedOn: 2008-2-17   12:25
+* FileName: SkinControlsMgt.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 
 #pragma once
 

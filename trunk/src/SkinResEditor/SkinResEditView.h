@@ -1,14 +1,28 @@
+/********************************************************************
+* CreatedOn: 2008-2-17   12:25
+* FileName: SkinResEditView.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 
 #pragma once
 
 
 #include "SkinControlsMgt.h"
+#include <skindialog.h>
 
 class SkinResEditView : 
-    public CWindowImpl<SkinResEditView, CEdit>,
+    public KSG::SkinDialogImpl<SkinResEditView>, //CWindowImpl<SkinResEditView, CPaneContainer>,
     public SkinTreeItemControl
 {
+
 public:
+
+    CEdit m_wndEdit;
 
     virtual void InitResult(HTREEITEM hTreeItem)
     {
@@ -17,13 +31,16 @@ public:
 
         if (m_hWnd == NULL)
         {
-            Create(ControlsMgt.m_piSkinFrame->GetResultParentWnd(), 
+            Create(ControlsMgt.m_piSkinFrame->GetResultParentWnd());
+
+            m_wndEdit.Create(m_hWnd, 
                 rcDefault, 
                 NULL, 
                 WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN | ES_READONLY,
                 WS_EX_CLIENTEDGE);
 
-            SetFont( ControlsMgt.m_skinTreeControlView.GetFont() );
+            m_wndEdit.SetFont( ControlsMgt.m_skinTreeControlView.GetFont() );
+
         }
     }
 
@@ -35,14 +52,17 @@ public:
 
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
-        KSG::SkinXmlDocument doc;
-        ControlsMgt.m_resDocument.SaveDocument(doc);
+        //if (ControlsMgt.m_resDocument.Modify())
+        {
+            KSG::SkinXmlDocument doc;
+            ControlsMgt.m_resDocument.SaveDocument(doc);
 
-        KSG::CString strXmlText;
+            KSG::CString strXmlText;
 
-        doc.ToXMLString(strXmlText);
+            doc.ToXMLString(strXmlText);
 
-        SetWindowText( strXmlText );
+            m_wndEdit.SetWindowText( strXmlText );
+        }
 
     }
 
@@ -52,9 +72,33 @@ public:
 
     }
 
+    DWORD GetDefaultStyle()
+    {
+        return DS_SETFONT | WS_CHILD | WS_SYSMENU;
+    }
+
+
     BEGIN_MSG_MAP(SkinResTreeView)
-        MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkgnd )
+        MESSAGE_HANDLER(WM_SIZE , OnSize)
+        //MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkgnd )
     END_MSG_MAP()
+
+    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+
+        if (m_wndEdit.m_hWnd != NULL)
+        {
+            RECT rcClient = { 0 };
+
+            GetClientRect(&rcClient);
+
+            m_wndEdit.MoveWindow(&rcClient);
+
+        }
+
+        return DefWindowProc();
+    }
+
 
     LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
