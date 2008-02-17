@@ -7,9 +7,17 @@
 #define IDD_RESEDITIMAGE_DIALOG         201
 #define IDD_DIALOG1                     202
 #define IDD_EDITDLG_DIALOG              202
+#define IDD_EDITDLGLIST_DIALOG          202
+#define IDD_EDITDLG_DIALOG1             203
 #define IDC_LIST1                       1000
 #define IDC_IMAGE_LIST                  1001
 #define IDC_COMBO1                      1002
+#define IDC_EDIT1                       1003
+#define IDC_EDIT                        1003
+#define IDC_ADD                         1004
+#define IDC_DELETE                      1005
+#define IDC_MODIFY                      1006
+#define IDC_DIALOG_LIST                 1007
 
 // Next default values for new objects
 // 
@@ -17,7 +25,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         32772
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

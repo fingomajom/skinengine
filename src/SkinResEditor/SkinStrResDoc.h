@@ -1,6 +1,14 @@
-
+/********************************************************************
+* CreatedOn: 2008-2-17   12:25
+* FileName: SkinStrResDoc.h
+* CreatedBy: lidengwang <lidengwang@kingsoft.net>
+* $LastChangedDate$
+* $LastChangedRevision$
+* $LastChangedBy$
+* $HeadURL:  $
+* Purpose:
+*********************************************************************/
 #pragma once
-
 
 
 class SkinStrResDoc : public KSG::skinstrres

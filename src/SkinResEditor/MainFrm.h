@@ -10,6 +10,7 @@
 #include "SkinResStringListView.h"
 #include "SkinResImageListView.h"
 #include "SkinResEditView.h"
+#include "SkinResDialogListView.h"
 
 #define IDC_TREE_VIEW       1000
 #define IDC_LIST_VIEW       1001
@@ -32,6 +33,7 @@ public:
     
 
     SkinResStringListView m_wndResStringListView;
+    SkinResDialogListView m_wndResDialogListView;
     CImageResEditDlg      m_wndResImageDlg;
     SkinResEditView       m_wndResEditView;
 
@@ -214,6 +216,10 @@ public:
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
             _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
 
+        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("Dialog"), 0, &m_wndResDialogListView, 0);
+
         
         ControlsMgt.m_skinTreeControlView.Expand(
             ControlsMgt.m_skinTreeControlView.GetRootItem());
@@ -274,6 +280,11 @@ public:
         hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
             _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
+
+        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("Dialog"), 0, &m_wndResDialogListView, 0);
+
 
 
         ControlsMgt.m_skinTreeControlView.Expand(
