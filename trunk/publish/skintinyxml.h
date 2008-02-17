@@ -258,6 +258,22 @@ public:
 
         return AppendElement(Ele);
     }
+    
+    TiXmlAttribute* FirstAttribute()
+    { 
+        if (m_tixmlelement == 0)
+            return NULL;
+
+        return m_tixmlelement->FirstAttribute(); 
+    }
+
+    TiXmlAttribute* LastAttribute()
+    { 
+        if (m_tixmlelement == 0)
+            return NULL;
+
+        return m_tixmlelement->LastAttribute(); 
+    }
 
 
 protected:

@@ -13,7 +13,7 @@
 
 #include "SkinStrResDoc.h"
 #include "SkinImageResDoc.h"
-
+#include "SkinDialogListResDoc.h"
 
 #define IDS_EMPTY_FILENAME _T("Œﬁ±ÍÃ‚")
 
@@ -39,6 +39,7 @@ public:
 
     SkinStrResDoc   m_resStrDoc;
     SkinImageResDoc m_resImageDoc;
+    SkinDialogListResDoc m_resDialogDoc;
 
 private:
 

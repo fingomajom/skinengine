@@ -10,6 +10,7 @@
 *********************************************************************/
 
 #include "SkinControlsMgt.h"
+#include "SkinResDialogView.h"
 
 class SkinResDialogListView : 
     public CDialogImpl<SkinResDialogListView>,
@@ -19,6 +20,7 @@ public:
 
     virtual void InitResult(HTREEITEM hTreeItem)
     {
+        m_hTreeItem = hTreeItem;
 
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
@@ -26,6 +28,22 @@ public:
         {
             Create(ControlsMgt.m_piSkinFrame->GetResultParentWnd());
         }
+
+        while (m_wndListBox.GetCount() > 0)
+        {
+            m_wndListBox.DeleteString(0);
+        }
+
+        m_wndEdit.SetWindowText(_T(""));
+
+        std::vector<SkinDialogRes>& vtList =
+            ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
+
+        for (size_t i = 0; i < vtList.size(); i++)
+        {
+            m_wndListBox.AddString(vtList[i].m_dlgWndProperty.GetIdName());
+        }
+
     }
 
     virtual void ShowResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -51,11 +69,178 @@ public:
     CButton  m_wndDelBtn;
     CButton  m_wndMotifyBtn;
 
+    HTREEITEM m_hTreeItem;
+
     BEGIN_MSG_MAP(SkinResDialogListView)
+
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_SIZE      , OnSize)
-        REFLECT_NOTIFICATIONS()
+
+        COMMAND_HANDLER(IDC_DIALOG_LIST, LBN_SELCHANGE, OnSelChanged)
+        COMMAND_HANDLER(IDC_ADD   , BN_CLICKED, OnAdd)
+        COMMAND_HANDLER(IDC_DELETE, BN_CLICKED, OnDel)
+        COMMAND_HANDLER(IDC_MODIFY, BN_CLICKED, OnModify)
+
     END_MSG_MAP()
+
+    LRESULT OnSelChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        int index = m_wndListBox.GetCurSel();
+
+        return TRUE;
+    }
+
+    int FindIndex(LPCTSTR pszName)
+    {
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+
+        for (int i = 0; i < m_wndListBox.GetCount(); i++)
+        {
+            m_wndListBox.GetText(i, szBuffer);
+
+            if (_tcscmp(pszName, szBuffer) == 0)
+                return i;
+        }
+
+        return -1;
+    }
+
+    LRESULT OnAdd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+
+        m_wndEdit.GetWindowText(szBuffer, MAX_PATH);
+
+        if (szBuffer[0] >= '0' && szBuffer[0] <= '9') // 不合法的项名
+        {
+            return TRUE;
+        }
+        
+        int nindex = FindIndex(szBuffer);
+
+        if (nindex >= 0)
+        {
+            m_wndListBox.SetCurSel(nindex);
+
+            return TRUE;
+        }
+
+        m_wndListBox.AddString(szBuffer);
+
+        {
+            SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+            std::vector<SkinDialogRes>& vtList =
+                ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
+
+            ATLASSERT((m_wndListBox.GetCount() - 1) == vtList.size());
+
+            SkinDialogRes dlgRes;
+
+            dlgRes.m_dlgWndProperty.GetIdName() = szBuffer;
+
+            vtList.push_back(dlgRes);
+
+            SkinResDialogView* pResDialogView = 
+                new SkinResDialogView( vtList[ m_wndListBox.GetCount() - 1] );
+
+            m_wndListBox.SetItemDataPtr(m_wndListBox.GetCount() - 1, pResDialogView);
+
+            HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+                m_hTreeItem,
+                szBuffer, 0, pResDialogView, 0);
+
+            ControlsMgt.m_skinTreeControlView.SelectItem(hTreeItem);
+
+        }
+
+        return TRUE;
+    }
+
+    LRESULT OnDel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        int nindex = m_wndListBox.GetCurSel();;
+
+        if (nindex >= 0)
+        {
+            SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+            SkinResDialogView* pResDialogView = 
+                (SkinResDialogView*)m_wndListBox.GetItemDataPtr(nindex);
+
+            ControlsMgt.m_skinTreeControlView.DeleteItem(
+                pResDialogView->m_hTreeItem);
+
+            delete pResDialogView;
+
+
+            m_wndListBox.DeleteString(nindex);
+
+            m_wndListBox.SetCurSel(nindex);
+
+            {
+
+                std::vector<SkinDialogRes>& vtList =
+                    ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
+
+                ATLASSERT(m_wndListBox.GetCount() == vtList.size() - 1);
+
+                vtList.erase(vtList.begin() + nindex);
+            }
+
+
+            return TRUE;
+        }
+
+        return TRUE;
+    }
+
+    LRESULT OnModify(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+
+        m_wndEdit.GetWindowText(szBuffer, MAX_PATH);
+
+        int nindex = m_wndListBox.GetCurSel();
+
+        if (nindex >= 0)
+        {
+            int nfindindex = FindIndex(szBuffer);
+            if (nfindindex >= 0)
+                return TRUE;
+
+            SkinResDialogView* pResDialogView = 
+                (SkinResDialogView*)m_wndListBox.GetItemDataPtr(nindex);
+
+            m_wndListBox.DeleteString(nindex);
+            m_wndListBox.InsertString(nindex, szBuffer);
+
+            m_wndListBox.SetItemDataPtr(nindex, pResDialogView);
+
+
+            m_wndListBox.SetCurSel(nindex);
+
+            {
+                SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+                std::vector<SkinDialogRes>& vtList =
+                    ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
+
+                ATLASSERT(m_wndListBox.GetCount() == vtList.size());
+
+                vtList[nindex].m_dlgWndProperty.GetIdName() = szBuffer;
+
+                ControlsMgt.m_skinTreeControlView.SetItemText(
+                    pResDialogView->m_hTreeItem, szBuffer);
+            }
+
+
+            return TRUE;
+        }
+
+        return TRUE;
+    }
+
 
     LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
@@ -89,6 +274,8 @@ public:
 
         return TRUE;
     }
+
+
 
 
 };

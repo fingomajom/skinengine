@@ -23,6 +23,11 @@ BOOL SkinResDocument::NewDocument()
     if (!bResult)
         return bResult;
 
+    bResult = m_resDialogDoc.NewResDoc();
+    if (!bResult)
+        return bResult;
+
+    
     m_strFileName = IDS_EMPTY_FILENAME;   
     m_bModify     = FALSE;
 
@@ -41,6 +46,7 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
 
     m_resStrDoc.OpenResDoc(doc);
     m_resImageDoc.OpenResDoc(doc);
+    m_resDialogDoc.OpenResDoc(doc);
 
     m_strFileName = strFileName;
     m_bModify     = FALSE;
@@ -79,6 +85,7 @@ BOOL SkinResDocument::SaveDocument(KSG::SkinXmlDocument& doc)
 
     m_resStrDoc.SaveResDoc(doc);
     m_resImageDoc.SaveResDoc(doc);
+    m_resDialogDoc.SaveResDoc(doc);
 
     return bResult;
 }

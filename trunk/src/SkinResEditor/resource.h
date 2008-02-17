@@ -5,10 +5,9 @@
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
 #define IDD_RESEDITIMAGE_DIALOG         201
-#define IDD_DIALOG1                     202
-#define IDD_EDITDLG_DIALOG              202
 #define IDD_EDITDLGLIST_DIALOG          202
 #define IDD_EDITDLG_DIALOG1             203
+#define IDD_EDITDLG_DIALOG              203
 #define IDC_LIST1                       1000
 #define IDC_IMAGE_LIST                  1001
 #define IDC_COMBO1                      1002
