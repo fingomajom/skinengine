@@ -80,16 +80,16 @@ public:
 
     BOOL LoadString(LPCTSTR pszIDName)
     {
-        if (s_pfn_loadstring_str != NULL)
-            return s_pfn_loadstring_str(pszIDName, *this);
+        if (get_pfn_loadstring_str() != NULL)
+            return get_pfn_loadstring_str()(pszIDName, *this);
 
         return FALSE;
     }
 
     BOOL LoadString(UINT uResID)
     {
-        if (s_pfn_loadstring_uint != NULL)
-            return s_pfn_loadstring_uint(uResID, *this);
+        if (get_pfn_loadstring_uint != NULL)
+            return get_pfn_loadstring_uint()(uResID, *this);
 
         return FALSE;
     }
@@ -99,13 +99,23 @@ public:
     typedef BOOL(*PFN_LoadString_STR)(LPCTSTR, KSG::CString&);
     typedef BOOL(*PFN_LoadString_UINT)(UINT, KSG::CString&);
     
-    static PFN_LoadString_STR  s_pfn_loadstring_str;
-    static PFN_LoadString_UINT s_pfn_loadstring_uint;
+    static PFN_LoadString_STR& get_pfn_loadstring_str()
+    {
+        static PFN_LoadString_STR s_pfn_loadstring_str;
+        return s_pfn_loadstring_str;
+    }
+
+    static PFN_LoadString_UINT& get_pfn_loadstring_uint()
+    {
+        static PFN_LoadString_UINT s_pfn_loadstring_uint;
+        return s_pfn_loadstring_uint;
+    }
+
 };
 
 
-_declspec(selectany) CString::PFN_LoadString_STR  CString::s_pfn_loadstring_str  = NULL;
-_declspec(selectany) CString::PFN_LoadString_UINT CString::s_pfn_loadstring_uint = NULL;
+//_declspec(selectany) CString::PFN_LoadString_STR  CString::s_pfn_loadstring_str  = NULL;
+//_declspec(selectany) CString::PFN_LoadString_UINT CString::s_pfn_loadstring_uint = NULL;
 
 
 } // namespace KSG

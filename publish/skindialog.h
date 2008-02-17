@@ -100,7 +100,7 @@ public:
 };
 
 
-template <class T, class TBase /* = SkinWindow */>
+template <class T, class TBase = SkinWindow >
 class ATL_NO_VTABLE SkinDialogImpl : public  CDialogImpl<T, TBase>
 {
     typedef CDialogImpl<T, TBase> theBase;
@@ -216,13 +216,13 @@ public:
         m_bModal = false;
 #endif //_DEBUG
 
-        DLGTEMPLATEEX* pDlgTemplate = (DLGTEMPLATEEX*)_MakeDlgTemplateBuffer( -1 );
+        ::DLGTEMPLATEEX* pDlgTemplate = (::DLGTEMPLATEEX*)_MakeDlgTemplateBuffer( -1 );
         if( pDlgTemplate == NULL )
             return NULL;
 
         HWND hWnd = ::CreateDialogIndirectParam(
             _AtlBaseModule.GetResourceInstance(), 
-            pDlgTemplate,
+            (LPCDLGTEMPLATE)pDlgTemplate,
             hWndParent,
             T::StartDialogProc,
             dwInitParam
@@ -250,6 +250,10 @@ public:
         return ::DestroyWindow(m_hWnd);
     }
 
+    DWORD GetDefaultStyle()
+    {
+        return DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
+    }
 
     void* _MakeDlgTemplateBuffer( int nIDD )
     {
@@ -274,7 +278,7 @@ public:
         GetRealRect(NULL, xmldialog, rcClient);
 
         if (dwStyle == 0)
-            dwStyle =  DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
+            dwStyle =  static_cast<T*>(this)->GetDefaultStyle();
 
         dwStyle |= (DS_SETFONT);
 

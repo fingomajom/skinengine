@@ -41,8 +41,8 @@ public:
 
         ATLASSERT(bskininit);
 
-        CString::s_pfn_loadstring_str  = LoadString_S;
-        CString::s_pfn_loadstring_uint = LoadString_U;
+        CString::get_pfn_loadstring_str()  = LoadString_S;
+        CString::get_pfn_loadstring_uint() = LoadString_U;
         
         return bskininit;
     }
