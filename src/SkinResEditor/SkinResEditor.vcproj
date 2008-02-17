@@ -264,6 +264,10 @@
 			Name="Document"
 			>
 			<File
+				RelativePath=".\SkinDialogListResDoc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SkinImageResDoc.h"
 				>
 			</File>
@@ -389,6 +393,10 @@
 			</File>
 			<File
 				RelativePath=".\SkinResDialogListView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinResDialogView.h"
 				>
 			</File>
 			<File

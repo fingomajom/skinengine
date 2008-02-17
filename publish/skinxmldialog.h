@@ -19,6 +19,7 @@ namespace KSG{
 
 class skinxmldialog : public skinxmlwin
 {
+public:
     static LPCTSTR GetChildWinKeyName() { return _T("ChildWindow"); }
 public:
 

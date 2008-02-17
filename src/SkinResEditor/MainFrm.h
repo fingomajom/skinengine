@@ -40,7 +40,7 @@ public:
 
     virtual BOOL PreTranslateMessage(MSG* pMsg)
 	{
-		return CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg);
+		return FALSE;//CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg);
 	}
 
     virtual HWND SetActiveResultWindow(HWND hWndResult)
@@ -139,17 +139,21 @@ public:
 
         ControlsMgt.m_piSkinFrame = this;
 
-        m_hWndClient = m_wndLRSplitter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+        m_hWndClient = m_wndLRSplitter.Create(m_hWnd, rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+            WS_EX_CONTROLPARENT);
 
-        m_wndLTBlitter.Create(m_wndLRSplitter, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+        m_wndLTBlitter.Create(m_wndLRSplitter, rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+            WS_EX_CONTROLPARENT);
 
         ControlsMgt.m_skinTreeControlView.Create(m_wndLTBlitter, rcDefault, NULL, 
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_HASLINES ,
-            WS_EX_CLIENTEDGE, IDC_TREE_VIEW);
+            WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT, IDC_TREE_VIEW);
         
         ControlsMgt.m_skinResPropertyView.Create(m_wndLTBlitter, rcDefault, NULL, 
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER,
-            WS_EX_CLIENTEDGE, IDC_PROPERTY_VIEW);
+            WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT, IDC_PROPERTY_VIEW);
 
         m_wndLRSplitter.SetSplitterPanes(m_wndLTBlitter, NULL);
         m_wndLTBlitter.SetSplitterPanes(ControlsMgt.m_skinTreeControlView, ControlsMgt.m_skinResPropertyView);
