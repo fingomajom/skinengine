@@ -50,7 +50,9 @@ public:
     {
         it_readonly,
         it_text,
+        it_number,
         it_color,
+        it_font,
         it_button
     };
 
@@ -259,6 +261,7 @@ public:
                 break;
             case it_button:
             case it_color:
+            case it_font:
                 {
                     rcSubItem.left = rcSubItem.right - 20;
                     rcSubItem.top+=0;
@@ -279,6 +282,7 @@ public:
 
                 //break;
             case it_text:
+            case it_number:
             default:
                 {
                     TCHAR szBuffer[1024] = { 0 };
@@ -302,6 +306,12 @@ public:
                     m_edit.SendMessage(uMsg, wParam, lParam);
                     m_edit.SendMessage(WM_LBUTTONUP, wParam, lParam);
                     m_edit.SendMessage(WM_MOUSEMOVE, wParam, lParam);
+
+                    if (ntype == it_number)
+                        m_edit.ModifyStyle(0, ES_NUMBER);
+                    else
+                        m_edit.ModifyStyle(ES_NUMBER, 0);
+
 
                     m_neditindex = nIndex;
                 }
@@ -405,6 +415,48 @@ public:
                         szOldBuffer, xmlcolor);
                 }
 
+                return 0;
+            }
+            else if (CListViewCtrl::GetItemData(m_nbtnindex) == it_font)
+            {
+                TCHAR szOldBuffer[1024] = { 0 };
+                TCHAR szNewBuffer[1024] = { 0 };
+
+                LOGFONT logFont = { 0 };
+
+                CListViewCtrl::GetItemText(m_nbtnindex, 1,
+                    szOldBuffer, 1024);
+
+                KSG::skinxmlfont xmlfont;
+
+                (KSG::CString&)xmlfont = (szOldBuffer);
+
+                xmlfont >> logFont;
+
+                CFontDialog fontdlg(&logFont);
+
+                if (fontdlg.DoModal() != IDOK)
+                    return 0;
+
+                //clr = fontdlg.GetFont();
+
+                xmlfont << logFont;
+
+                if (!_tcscmp(szOldBuffer, xmlfont))
+                    return 0;
+
+                CListViewCtrl::SetItemText(m_nbtnindex, 1,
+                    xmlfont);
+                m_edit.SetWindowText(xmlfont);
+
+                if (m_pEditNotify != NULL)
+                {
+                    CListViewCtrl::GetItemText(m_nbtnindex, 0,
+                        szPropertyName, 1024);
+
+                    m_pEditNotify->OnValueChange(szPropertyName,
+                        szOldBuffer, xmlfont);
+                }
 
                 return 0;
             }
