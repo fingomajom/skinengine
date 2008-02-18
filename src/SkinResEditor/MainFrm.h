@@ -86,10 +86,21 @@ public:
 		COMMAND_ID_HANDLER(ID_VIEW_TOOLBAR, OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
-		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
-		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 
-        REFLECT_NOTIFICATIONS()
+        /************************************************************************/
+        /* Notify  ÏûÏ¢¹ýÂË                                                     */
+        /************************************************************************/
+        bHandled = TRUE; 
+        lResult  = ReflectNotifications(uMsg, wParam, lParam, bHandled);
+        if(bHandled) 
+            return TRUE;
+        /************************************************************************/
+        /*                                                                      */
+        /************************************************************************/
+
+        
+        CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
+		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 
 	END_MSG_MAP()
 
@@ -398,6 +409,39 @@ public:
         }
 
         return DefWindowProc();
+    }
+
+    /************************************************************************
+    /*  @brief  ...
+    /*  @param  ...
+    /*  @return ...
+    /*  @remark ...
+    /************************************************************************/
+    LRESULT CMainFrame::ReflectNotifications(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        HWND hWndChild = NULL;
+
+        switch(uMsg)
+        {
+        case WM_NOTIFY:
+            hWndChild = ((LPNMHDR)lParam)->hwndFrom;
+            break;
+        case WM_DRAWITEM:
+            if(wParam)	// not from a menu
+                hWndChild = ((LPDRAWITEMSTRUCT)lParam)->hwndItem;
+            break;
+        }
+
+        if(hWndChild == NULL)
+        {
+            bHandled = FALSE;
+            return 1;
+        }
+
+        ATLASSERT(::IsWindow(hWndChild));
+
+        bHandled = FALSE;
+        return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
     }
 
 };

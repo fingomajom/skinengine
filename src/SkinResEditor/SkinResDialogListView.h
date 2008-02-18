@@ -150,7 +150,18 @@ public:
                 m_hTreeItem,
                 szBuffer, 0, pResDialogView, 0);
 
-            ControlsMgt.m_skinTreeControlView.SelectItem(hTreeItem);
+            TVITEM tvItem;
+
+            tvItem.mask  = TVIF_CHILDREN ;
+            tvItem.hItem = m_hTreeItem;
+
+            ControlsMgt.m_skinTreeControlView.GetItem(&tvItem);
+            tvItem.cChildren = TRUE;
+            ControlsMgt.m_skinTreeControlView.SetItem(&tvItem);
+
+
+            ControlsMgt.m_skinTreeControlView.Expand(m_hTreeItem);
+            ControlsMgt.m_skinTreeControlView.SelectItem(m_hTreeItem);
 
         }
 
@@ -171,6 +182,8 @@ public:
             ControlsMgt.m_skinTreeControlView.DeleteItem(
                 pResDialogView->m_hTreeItem);
 
+            pResDialogView->DestroyWindow();
+
             delete pResDialogView;
 
 
@@ -179,7 +192,6 @@ public:
             m_wndListBox.SetCurSel(nindex);
 
             {
-
                 std::vector<SkinDialogRes>& vtList =
                     ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
 

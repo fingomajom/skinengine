@@ -416,6 +416,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SkinResWndDefProperty.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SkinTreeControlView.h"
 				>
 			</File>
