@@ -17,8 +17,9 @@ class SkinResDialogView :
     public SkinTreeItemControl
 {
 public:
+
+    int m_ndialogindex;
     
-    SkinDialogRes& m_dialogRes;
 
     HTREEITEM      m_hTreeItem;
 
@@ -28,10 +29,21 @@ public:
 
     HTREEITEM      m_hLastSelItem;
 
+    int m_nNewIdIndex;
 
-    SkinResDialogView(SkinDialogRes& dialogRes)
-        : m_dialogRes(dialogRes), m_hTreeItem(NULL)
+    SkinDialogRes& GetResDialog()
     {
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+
+        return ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList[m_ndialogindex];
+    }
+
+
+    SkinResDialogView(int ndialogindex)
+        : m_ndialogindex(ndialogindex), m_hTreeItem(NULL)
+    {
+        m_nNewIdIndex = 0;
     }
 
 public:
@@ -49,16 +61,23 @@ public:
 
         m_wndTree.DeleteAllItems();
 
-        
-        SkinResWndDefProperty::GetResWndDefProperty(m_dialogRes.m_dlgWndProperty);
+        SkinDialogRes& dialogRes = GetResDialog();
 
-        m_wndTree.InsertItem( m_dialogRes.m_dlgWndProperty.GetIdName(),
+        
+        SkinResWndDefProperty::GetResClassWndDefProperty(
+            KSG::CString(), dialogRes.m_dlgWndProperty);
+
+        dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("300"));
+        dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("400"));
+
+
+        m_wndTree.InsertItem( dialogRes.m_dlgWndProperty.GetIdName(),
             TVI_ROOT, TVI_LAST);
 
-        for (size_t i = 0; i < m_dialogRes.m_vtChildWndList.size(); i++)
+        for (size_t i = 0; i < dialogRes.m_vtChildWndList.size(); i++)
         {
             HTREEITEM hInsertItem = m_wndTree.InsertItem( 
-                m_dialogRes.m_vtChildWndList[i].GetIdName(),
+                dialogRes.m_vtChildWndList[i].GetIdName(),
                 m_wndTree.GetRootItem(), TVI_LAST);
 
             m_wndTree.SetItemData(hInsertItem, i);
@@ -68,10 +87,14 @@ public:
 
         SkinResWndDefProperty::GetDefClassNameList(vtClassName);
 
+
+
         for (size_t i = 0; i < vtClassName.size(); i++)
         {
             m_wndComboBox.AddString(vtClassName[i]);
         }
+
+        m_wndTree.Expand(m_wndTree.GetRootItem());
     }
 
     virtual void ShowResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -86,6 +109,10 @@ public:
 
     virtual void HideResult(HTREEITEM hTreeItem, LPARAM lParam)
     {
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        ControlsMgt.m_skinResPropertyView.Clear();
+
         ShowWindow(SW_HIDE);
     }
 
@@ -110,18 +137,24 @@ public:
 
         m_wndComboBox.GetWindowText(szBuffer, MAX_PATH);
 
-        if (szBuffer[0] >= '0' && szBuffer[0] <= '9') // 不合法的项名
+        if ( ( szBuffer[0] >= '0' && szBuffer[0] <= '9' ) || _tcslen(szBuffer) <= 0) // 不合法的项名
         {
             return TRUE;
         }
 
-        SkinWndPropertyList WndProperty;
-        WndProperty.GetIdName() = _T("Wnd");
+        SkinDialogRes& dialogRes = GetResDialog();
 
-        SkinResWndDefProperty::GetResWndDefProperty(WndProperty);
+        SkinWndPropertyList WndProperty;
+
+        SkinResWndDefProperty::GetResClassWndDefProperty(
+            szBuffer, WndProperty);
+
+        WndProperty.GetIdName().Format(_T("IDC_%d"), m_nNewIdIndex++);
+
+        WndProperty.SetProperty(_T("IdName"), WndProperty.GetIdName());
         WndProperty.SetProperty(_T("SkinClassName"), szBuffer);
 
-        m_dialogRes.m_vtChildWndList.push_back(WndProperty);
+        dialogRes.m_vtChildWndList.push_back(WndProperty);
 
 
         HTREEITEM hInsertItem = m_wndTree.InsertItem( 
@@ -129,7 +162,16 @@ public:
             m_wndTree.GetRootItem(), TVI_LAST);
 
         m_wndTree.SetItemData(hInsertItem, 
-            m_dialogRes.m_vtChildWndList.size() - 1);
+            dialogRes.m_vtChildWndList.size() - 1);
+
+        TVITEM tvItem;
+
+        tvItem.mask  = TVIF_CHILDREN ;
+        tvItem.hItem = m_wndTree.GetRootItem();
+
+        m_wndTree.GetItem(&tvItem);
+        tvItem.cChildren = TRUE;
+        m_wndTree.SetItem(&tvItem);
 
 
         return TRUE;
@@ -155,6 +197,8 @@ public:
         LPNMTREEVIEW pNMTV = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 
         LRESULT lResult = DefWindowProc();
+        SkinDialogRes& dialogRes = GetResDialog();
+
 
         m_hLastSelItem = pNMTV->itemNew.hItem;
         
@@ -167,14 +211,14 @@ public:
             std::vector<SkinWndPropertyList::WndPropertyItem>* pPropertyList = NULL;
             
             if (m_hLastSelItem == m_wndTree.GetRootItem())
-                pPropertyList = &m_dialogRes.m_dlgWndProperty.m_vtPropertyList;
+                pPropertyList = &dialogRes.m_dlgWndProperty.m_vtPropertyList;
             else
             {
                 int nindex = (int)m_wndTree.GetItemData(m_hLastSelItem);
 
-                ATLASSERT(nindex >= 0 && nindex < (int)m_dialogRes.m_vtChildWndList.size());
+                ATLASSERT(nindex >= 0 && nindex < (int)dialogRes.m_vtChildWndList.size());
                 
-                pPropertyList = &m_dialogRes.m_vtChildWndList[nindex].m_vtPropertyList;
+                pPropertyList = &dialogRes.m_vtChildWndList[nindex].m_vtPropertyList;
             }
             
             ATLASSERT(pPropertyList != NULL);

@@ -537,7 +537,7 @@ public:
             }
             else
             {
-                if (GetItemData(nItem) == it_readonly && nColumn == 1)
+                if (GetItemData(nItem) == it_readonly) // && nColumn == 1)
                     dc.SetTextColor(GetSysColor(COLOR_GRAYTEXT));
                 else
                     dc.SetTextColor(GetSysColor(COLOR_BTNTEXT));

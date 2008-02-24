@@ -71,7 +71,7 @@ public:
 
 inline BOOL skinxmlwin::GetIdName(KSG::CString& strIdName )
 {
-    return GetObject(_T("IdName"), strIdName);
+    return m_xmlResElement.Name(strIdName); //GetObject(_T("IdName"), strIdName);
 }
 
 inline BOOL skinxmlwin::GetCaption(KSG::CString& strCaption)

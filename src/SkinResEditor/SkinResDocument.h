@@ -18,6 +18,7 @@
 #define IDS_EMPTY_FILENAME _T("Œﬁ±ÍÃ‚")
 
 
+
 class SkinResDocument
 {
 public:
@@ -27,6 +28,7 @@ public:
 
     BOOL NewDocument();
     BOOL OpenDocument(const KSG::CString& strFileName);
+    BOOL OpenDocument(KSG::SkinXmlDocument& doc);
     BOOL SaveDocument(const KSG::CString& strFileName);
     BOOL SaveDocument(KSG::SkinXmlDocument& doc);
     
