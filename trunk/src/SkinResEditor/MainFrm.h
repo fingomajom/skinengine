@@ -36,7 +36,11 @@ public:
     SkinResDialogListView m_wndResDialogListView;
     CImageResEditDlg      m_wndResImageDlg;
     SkinResEditView       m_wndResEditView;
+    
 
+    CMainFrame() : m_wndResEditView(this)
+    {    
+    }
 
     virtual BOOL PreTranslateMessage(MSG* pMsg)
 	{
@@ -60,6 +64,38 @@ public:
         return m_wndLRSplitter;
     }
 
+    virtual void OnReUpdateResView()
+    {
+
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        ControlsMgt.m_skinTreeControlView.CTreeViewCtrl::DeleteAllItems();
+
+
+        ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            TVI_ROOT, ControlsMgt.m_resDocument.GetFileName(), 0, &m_wndResEditView, 0);
+
+        HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("StringTable"), 0, &m_wndResStringListView, 0);
+
+        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
+
+        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("Dialog"), 0, &m_wndResDialogListView, 0);
+
+
+        ControlsMgt.m_skinTreeControlView.Expand(
+            ControlsMgt.m_skinTreeControlView.GetRootItem());
+
+        ControlsMgt.m_skinTreeControlView.SelectItem(NULL);
+        ControlsMgt.m_skinTreeControlView.SelectItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem());
+
+    }
 
 	virtual BOOL OnIdle()
 	{
@@ -213,35 +249,11 @@ public:
             {
                 return 0;
             }
-
         }
-
-        ControlsMgt.m_skinTreeControlView.CTreeViewCtrl::DeleteAllItems();
 
         ControlsMgt.m_resDocument.NewDocument();
 
-        ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            TVI_ROOT, ControlsMgt.m_resDocument.GetFileName(), 0, &m_wndResEditView, 0);
-            
-        HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("StringTable"), 0, &m_wndResStringListView, 0);
-
-        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
-
-        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Dialog"), 0, &m_wndResDialogListView, 0);
-
-        
-        ControlsMgt.m_skinTreeControlView.Expand(
-            ControlsMgt.m_skinTreeControlView.GetRootItem());
-
-        ControlsMgt.m_skinTreeControlView.SelectItem(NULL);
-        ControlsMgt.m_skinTreeControlView.SelectItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem());
+        OnReUpdateResView();
 
 		return 0;
 	}
@@ -283,35 +295,11 @@ public:
             return FALSE;
         }
 
-        ControlsMgt.m_skinTreeControlView.CTreeViewCtrl::DeleteAllItems();
-
-        ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            TVI_ROOT, ControlsMgt.m_resDocument.GetFileName(), 0, &m_wndResEditView, 0);
-
-        HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("StringTable"), 0, &m_wndResStringListView, 0);
-
-        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
-
-        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Dialog"), 0, &m_wndResDialogListView, 0);
-
-
-
-        ControlsMgt.m_skinTreeControlView.Expand(
-            ControlsMgt.m_skinTreeControlView.GetRootItem());
+        OnReUpdateResView();
 
         ControlsMgt.m_skinTreeControlView.SetItemText(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
             ControlsMgt.m_resDocument.GetFileName());
-
-        ControlsMgt.m_skinTreeControlView.SelectItem(NULL);
-        ControlsMgt.m_skinTreeControlView.SelectItem(
-            ControlsMgt.m_skinTreeControlView.GetRootItem());
 
 
         return 0;

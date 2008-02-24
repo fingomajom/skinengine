@@ -42,6 +42,16 @@ public:
         for (size_t i = 0; i < vtList.size(); i++)
         {
             m_wndListBox.AddString(vtList[i].m_dlgWndProperty.GetIdName());
+
+            SkinResDialogView* pResDialogView = 
+                new SkinResDialogView( (int)i );
+
+            m_wndListBox.SetItemDataPtr(i, pResDialogView);
+
+            HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+                m_hTreeItem,
+                vtList[i].m_dlgWndProperty.GetIdName(), 0, pResDialogView, 0);
+
         }
 
     }
@@ -111,7 +121,7 @@ public:
 
         m_wndEdit.GetWindowText(szBuffer, MAX_PATH);
 
-        if (szBuffer[0] >= '0' && szBuffer[0] <= '9') // 不合法的项名
+        if ( (szBuffer[0] >= '0' && szBuffer[0] <= '9' ) || _tcslen(szBuffer) <= 0 ) // 不合法的项名
         {
             return TRUE;
         }
@@ -142,7 +152,7 @@ public:
             vtList.push_back(dlgRes);
 
             SkinResDialogView* pResDialogView = 
-                new SkinResDialogView( vtList[ m_wndListBox.GetCount() - 1] );
+                new SkinResDialogView( m_wndListBox.GetCount() - 1 );
 
             m_wndListBox.SetItemDataPtr(m_wndListBox.GetCount() - 1, pResDialogView);
 

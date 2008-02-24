@@ -43,17 +43,24 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
     bResult = doc.LoadFile(strFileName);
     if (!bResult)
         return bResult;
-
-    m_resStrDoc.OpenResDoc(doc);
-    m_resImageDoc.OpenResDoc(doc);
-    m_resDialogDoc.OpenResDoc(doc);
+    
+    OpenDocument(doc);
 
     m_strFileName = strFileName;
     m_bModify     = FALSE;
 
-
     return bResult;
 }
+
+BOOL SkinResDocument::OpenDocument(KSG::SkinXmlDocument& doc)
+{
+    m_resStrDoc.OpenResDoc(doc);
+    m_resImageDoc.OpenResDoc(doc);
+    m_resDialogDoc.OpenResDoc(doc);
+
+    return TRUE;
+}
+
 
 BOOL SkinResDocument::SaveDocument(const KSG::CString& strFileName)
 {

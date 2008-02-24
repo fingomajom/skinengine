@@ -29,6 +29,9 @@ public:
     virtual HWND SetActiveResultWindow(HWND hWndResult) = 0;
 
     virtual HWND GetResultParentWnd() = 0;
+
+    virtual void OnReUpdateResView() = 0;
+
 };
 
 class SkinTreeControl
