@@ -169,39 +169,41 @@ private:
 
     static int GetWndClassDefInfoEntry( WndClassDefInfo*& pItemList )
     {
+        
+
         static WndClassDefInfo WndClassDefInfoyList[] = 
         {
-            { skinxmlstatic::GetSkinWndClassName()       , 0, 0 },
-            { skinxmlpicture::GetSkinWndClassName()      , 0, 0 },
+            { skinxmlstatic::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlpicture::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE, 0 },
 
-            { skinxmlgroupbox::GetSkinWndClassName()     , 0, 0 },
-            { skinxmlbutton::GetSkinWndClassName()       , 0, 0 },
-            { skinxmlcheckbox::GetSkinWndClassName()     , 0, 0 },
-            { skinxmlradiobox::GetSkinWndClassName()     , 0, 0 },
+            { skinxmlgroupbox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 0 },
+            { skinxmlbutton::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 0 },
+            { skinxmlcheckbox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_CHECKBOX | WS_TABSTOP, 0 },
+            { skinxmlradiobox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | WS_TABSTOP, 0 },
 
-            { skinxmlcombobox::GetSkinWndClassName()     , 0, 0 },
-            { skinxmllistbox::GetSkinWndClassName()      , 0, 0 },
+            { skinxmlcombobox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmllistbox::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
 
-            { skinxmllistctrl::GetSkinWndClassName()     , 0, 0 },
-            { skinxmltreectrl::GetSkinWndClassName()     , 0, 0 },
-            { skinxmltablectrl::GetSkinWndClassName()    , 0, 0 },
+            { skinxmllistctrl::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
+            { skinxmltreectrl::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
+            { skinxmltablectrl::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
 
-            { skinxmledit::GetSkinWndClassName()         , 0, 0 },
-            { skinxmlhotkey::GetSkinWndClassName()       , 0, 0 },
-            { skinxmlrichedit::GetSkinWndClassName()     , 0, 0 },
+            { skinxmledit::GetSkinWndClassName()         , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
+            { skinxmlhotkey::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmlrichedit::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
 
-            { skinxmldatetime::GetSkinWndClassName()     , 0, 0 },
-            { skinxmlmonthcalendar::GetSkinWndClassName(), 0, 0 },
+            { skinxmldatetime::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmlmonthcalendar::GetSkinWndClassName(), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
 
-            { skinxmlhscrollbar::GetSkinWndClassName()   , 0, 0 },
-            { skinxmlvscrollbar::GetSkinWndClassName()   , 0, 0 },
+            { skinxmlhscrollbar::GetSkinWndClassName()   , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlvscrollbar::GetSkinWndClassName()   , WS_CHILD | WS_VISIBLE, 0 },
 
-            { skinxmlslider::GetSkinWndClassName()       , 0, 0 },
-            { skinxmlspin::GetSkinWndClassName()         , 0, 0 },
-            { skinxmlprogress::GetSkinWndClassName()     , 0, 0 },
+            { skinxmlslider::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlspin::GetSkinWndClassName()         , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlprogress::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE, 0 },
 
-            { skinxmlanimation::GetSkinWndClassName()    , 0, 0 },
-            { skinxmlipaddress::GetSkinWndClassName()    , 0, 0 }
+            { skinxmlanimation::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlipaddress::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE }
 
         };
 

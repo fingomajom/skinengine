@@ -73,7 +73,7 @@ public:
             GetWndClassName(),
             MenuOrID);
 
-        if (hWndParent != NULL)
+        if (hWndResult != NULL && hWndParent != NULL)
             SetFont( TBase(hWndParent).GetFont() );
 
         return hWndResult;

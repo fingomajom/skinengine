@@ -27,7 +27,10 @@ BOOL SkinResDocument::NewDocument()
     if (!bResult)
         return bResult;
 
+    m_pskinconfig = new skinconfig;
     
+    _Module.init_skin(NULL, m_pskinconfig);
+
     m_strFileName = IDS_EMPTY_FILENAME;   
     m_bModify     = FALSE;
 
@@ -45,6 +48,19 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
         return bResult;
     
     OpenDocument(doc);
+
+    CPath path = strFileName;
+    path.RemoveFileSpec();
+
+    m_pskinconfig = new skinconfig;
+
+    m_pskinconfig->m_pathSkinImagePath = path;
+    m_pskinconfig->m_pathSkinResPath = path;
+    m_pskinconfig->m_pathWorkDirectory = path;
+
+    _Module.init_skin(strFileName.Mid(path.m_strPath.GetLength() ), m_pskinconfig);
+
+    KSG::CString strOnlyFileName = path.FindFileName();
 
     m_strFileName = strFileName;
     m_bModify     = FALSE;

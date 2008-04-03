@@ -43,6 +43,7 @@ public:
     SkinImageResDoc m_resImageDoc;
     SkinDialogListResDoc m_resDialogDoc;
 
+    skinconfig* m_pskinconfig;
 private:
 
     KSG::CString m_strFileName;   
