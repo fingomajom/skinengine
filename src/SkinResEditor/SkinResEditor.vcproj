@@ -300,6 +300,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skinctrlx.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skindialog.h"
 				>
 			</File>
@@ -349,6 +353,10 @@
 			</File>
 			<File
 				RelativePath="..\..\publish\skinxmlctrls.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlctrlx.h"
 				>
 			</File>
 			<File

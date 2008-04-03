@@ -20,7 +20,7 @@
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -65,7 +65,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
+				Culture="0"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
@@ -273,6 +273,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skinctrls.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinctrlx.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skindialog.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skindlgres.h"
 				>
 			</File>
@@ -305,7 +317,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skintinyxml.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinwin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinwincreator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlctrls.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlctrlx.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skinxmldialog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinxmlgdi.h"
 				>
 			</File>
 			<File

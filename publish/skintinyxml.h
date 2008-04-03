@@ -276,8 +276,6 @@ public:
     }
 
 
-protected:
-
     void ClearThis()
     {
         if (m_bowner && m_tixmlelement != 0)
@@ -285,6 +283,8 @@ protected:
 
         m_tixmlelement = 0;
     }
+
+protected:
 
     SkinXmlElement( TiXmlElement* ref )
     {

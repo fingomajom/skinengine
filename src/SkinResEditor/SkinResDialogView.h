@@ -12,13 +12,22 @@
 #include "SkinControlsMgt.h"
 #include "SkinResWndDefProperty.h"
 
+
+
 class SkinResDialogView : 
     public CDialogImpl<SkinResDialogView>,
-    public SkinTreeItemControl
+    public SkinTreeItemControl,
+    public SkinPropertyView::PropertyEditNotify
 {
 public:
 
+    enum
+    {
+        em_itemid_begin = 1000
+    };
+
     int m_ndialogindex;
+    int m_nNewItemId;
     
 
     HTREEITEM      m_hTreeItem;
@@ -29,7 +38,6 @@ public:
 
     HTREEITEM      m_hLastSelItem;
 
-    int m_nNewIdIndex;
 
     SkinDialogRes& GetResDialog()
     {
@@ -43,7 +51,7 @@ public:
     SkinResDialogView(int ndialogindex)
         : m_ndialogindex(ndialogindex), m_hTreeItem(NULL)
     {
-        m_nNewIdIndex = 0;
+        m_nNewItemId = em_itemid_begin;
     }
 
 public:
@@ -63,13 +71,15 @@ public:
 
         SkinDialogRes& dialogRes = GetResDialog();
 
-        
-        SkinResWndDefProperty::GetResClassWndDefProperty(
-            KSG::CString(), dialogRes.m_dlgWndProperty);
+        if (dialogRes.m_dlgWndProperty.m_vtPropertyList.size() == 0)
+        {
+            SkinResWndDefProperty::GetResClassWndDefProperty(
+                KSG::CString(), dialogRes.m_dlgWndProperty);
 
-        dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("300"));
-        dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("400"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("300"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("400"));
 
+        }
 
         m_wndTree.InsertItem( dialogRes.m_dlgWndProperty.GetIdName(),
             TVI_ROOT, TVI_LAST);
@@ -131,6 +141,61 @@ public:
 
     END_MSG_MAP()
 
+    int GetNextItemId()
+    {
+        int nResult = 0;
+
+        SkinDialogRes& dialogRes = GetResDialog();
+        
+        std::vector<SkinWndPropertyList>& vtChildWndList = dialogRes.m_vtChildWndList;
+
+        KSG::CString strItemIdNew;
+        KSG::CString strItemId;
+
+        for ( ; true; m_nNewItemId++ )
+        {
+            strItemIdNew.Format(_T("%d"), m_nNewItemId);
+                        
+            BOOL bUsed = FALSE;
+
+            for ( size_t i = 0; i < vtChildWndList.size(); i++ )
+            {
+                if (!vtChildWndList[i].GetProperty(_T("ItemId"), strItemId) )
+                    continue;
+                
+                if (!strItemIdNew.CompareNoCase(strItemId))
+                {
+                    bUsed = TRUE;
+
+                    break;
+                }
+            }
+
+            if (!bUsed)
+            {
+                nResult = m_nNewItemId;
+
+                break;
+            }
+        }
+
+        return nResult;
+    }
+
+    int GetItemIndex(HTREEITEM hTreeItem)
+    {
+        int nResult = -1;
+
+        while (hTreeItem != NULL)
+        {
+            hTreeItem = m_wndTree.GetPrevSiblingItem(hTreeItem);
+
+            nResult++;
+        }
+
+        return nResult;
+    }
+
     LRESULT OnAdd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
         TCHAR szBuffer[MAX_PATH] = { 0 };
@@ -149,10 +214,14 @@ public:
         SkinResWndDefProperty::GetResClassWndDefProperty(
             szBuffer, WndProperty);
 
-        WndProperty.GetIdName().Format(_T("IDC_%d"), m_nNewIdIndex++);
+        int nNewItemId = GetNextItemId();
+
+        WndProperty.GetIdName().Format(_T("IDC_%d"), nNewItemId);
 
         WndProperty.SetProperty(_T("IdName"), WndProperty.GetIdName());
         WndProperty.SetProperty(_T("SkinClassName"), szBuffer);
+        WndProperty.SetProperty(_T("ItemId"), nNewItemId);
+
 
         dialogRes.m_vtChildWndList.push_back(WndProperty);
 
@@ -179,13 +248,22 @@ public:
 
     LRESULT OnDel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
-        int nindex = 0;// m_wndTree.GetCurSel();;
+        HTREEITEM hSelItem = m_wndTree.GetSelectedItem();
+
+        int nindex = GetItemIndex(hSelItem);
 
         if (nindex >= 0)
         {
-            SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+            SkinDialogRes& dialogRes = GetResDialog();
 
-             return TRUE;
+            ATLASSERT((size_t)nindex < dialogRes.m_vtChildWndList.size());
+
+            dialogRes.m_vtChildWndList.erase(
+                dialogRes.m_vtChildWndList.begin() + nindex);
+
+            m_wndTree.DeleteItem(hSelItem);
+
+            return TRUE;
         }
 
         return TRUE;
@@ -214,7 +292,7 @@ public:
                 pPropertyList = &dialogRes.m_dlgWndProperty.m_vtPropertyList;
             else
             {
-                int nindex = (int)m_wndTree.GetItemData(m_hLastSelItem);
+                int nindex = (int)GetItemIndex(m_hLastSelItem);
 
                 ATLASSERT(nindex >= 0 && nindex < (int)dialogRes.m_vtChildWndList.size());
                 
@@ -251,4 +329,29 @@ public:
         return TRUE;
     }
 
+    void OnValueChange (
+        LPCTSTR pszPropertyName,
+        LPCTSTR pszOldValue,
+        LPCTSTR pszNewValue)
+    {
+        SkinDialogRes& dialogRes = GetResDialog();
+        
+        dialogRes.m_dlgWndProperty.SetProperty(pszPropertyName, pszNewValue);
+    }
+
+    void UpdateWndProperty( SkinWndPropertyList& WndPropertyList, 
+        LPCTSTR pszPropertyName,
+        LPCTSTR pszNewValue)
+    {
+        if ( !_tcscmp(pszPropertyName, _T("ID") ) )
+        {
+
+        }
+    }
+
+
+    void OnButtonClieck(LPCTSTR pszPropertyName)
+    {
+
+    }
 };

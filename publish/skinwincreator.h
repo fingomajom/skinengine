@@ -14,6 +14,7 @@
 #include <map>
 #include "skinctrls.h"
 #include "skinxmlctrls.h"
+#include <skinctrlx.h>
 
 namespace KSG{
 
@@ -157,6 +158,13 @@ protected:
             SkinCreate_Static<CSkinAnimateCtrl>);
         AddSkinCreator(KSG::skinxmlipaddress::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinIPAddressCtrl>);
+
+        //////////////////////////////////////////////////////////////////////////
+        // ctrlx
+        AddSkinCreator(KSG::skinxmlstaticex::GetSkinWndClassName(), 
+            CSkinStaticEx::SkinCreate_Static);
+        AddSkinCreator(KSG::skinxmlbmpbtn::GetSkinWndClassName(), 
+            CSkinBitmapButton::SkinCreate_Static);
 
     }
 
