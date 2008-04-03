@@ -126,7 +126,7 @@ public:
         
     BOOL InitDlgXMLElement( LPCTSTR pszResName )
     {
-        if (m_xmlDlgElement.IsValid())
+        if (m_xmlDlgElement.IsValid() || pszResName == NULL || _tcslen(pszResName) == 0 )
             return TRUE;
 
         skinresbase* pskinres = skinresloader::instance().get_skinres();
@@ -313,6 +313,12 @@ public:
         return DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
     }
 
+    DWORD GetDefaultExStyle()
+    {
+        return 0;
+    }
+
+
     void* _MakeDlgTemplateBuffer( int nIDD )
     {
         BYTE*    pBuffer  = NULL;
@@ -337,6 +343,8 @@ public:
 
         if (dwStyle == 0)
             dwStyle =  static_cast<T*>(this)->GetDefaultStyle();
+        if (dwExStyle == 0)
+            dwExStyle =  static_cast<T*>(this)->GetDefaultExStyle();
 
         dwStyle |= (DS_SETFONT);
 

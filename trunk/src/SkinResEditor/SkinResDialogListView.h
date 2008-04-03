@@ -79,6 +79,7 @@ public:
     CButton  m_wndDelBtn;
     CButton  m_wndMotifyBtn;
 
+
     HTREEITEM m_hTreeItem;
 
     BEGIN_MSG_MAP(SkinResDialogListView)
@@ -173,6 +174,7 @@ public:
             ControlsMgt.m_skinTreeControlView.Expand(m_hTreeItem);
             ControlsMgt.m_skinTreeControlView.SelectItem(m_hTreeItem);
 
+            ControlsMgt.m_resDocument.Modify(TRUE);
         }
 
         return TRUE;
@@ -219,6 +221,8 @@ public:
                 pResDialogView->m_ndialogindex--;
             }
 
+            ControlsMgt.m_resDocument.Modify(TRUE);
+
             return TRUE;
         }
 
@@ -262,6 +266,9 @@ public:
 
                 ControlsMgt.m_skinTreeControlView.SetItemText(
                     pResDialogView->m_hTreeItem, szBuffer);
+
+                ControlsMgt.m_resDocument.Modify(TRUE);
+
             }
 
 

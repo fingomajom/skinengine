@@ -11,7 +11,7 @@
 
 #include "SkinControlsMgt.h"
 #include "SkinResWndDefProperty.h"
-
+#include "SkinDialgPreviewWindow.h"
 
 
 class SkinResDialogView : 
@@ -34,7 +34,10 @@ public:
 
     CTreeViewCtrl  m_wndTree;
     CComboBox      m_wndComboBox;
+    CButton        m_wndAddBtn;
+    CButton        m_wndDelBtn;
 
+    SkinDialgPreviewWindow m_wndPreView;
 
     HTREEITEM      m_hLastSelItem;
 
@@ -76,8 +79,9 @@ public:
             SkinResWndDefProperty::GetResClassWndDefProperty(
                 KSG::CString(), dialogRes.m_dlgWndProperty);
 
+            dialogRes.m_dlgWndProperty.SetProperty(_T("IdName"), dialogRes.m_dlgWndProperty.GetIdName());
             dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("300"));
-            dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("400"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("200"));
 
         }
 
@@ -98,13 +102,14 @@ public:
         SkinResWndDefProperty::GetDefClassNameList(vtClassName);
 
 
-
         for (size_t i = 0; i < vtClassName.size(); i++)
         {
             m_wndComboBox.AddString(vtClassName[i]);
         }
 
         m_wndTree.Expand(m_wndTree.GetRootItem());
+
+        CreatePreviewWindow();
     }
 
     virtual void ShowResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -112,6 +117,8 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
         ShowWindow(SW_SHOW);
+
+        m_wndTree.SetItemText(m_wndTree.GetRootItem(), GetResDialog().m_dlgWndProperty.GetIdName());
 
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
@@ -127,6 +134,33 @@ public:
     }
 
     enum { IDD = IDD_EDITDLG_DIALOG };
+
+    
+    void CreatePreviewWindow()
+    {
+        SkinXmlElement xmlElement;
+        m_wndPreView.ReCreatePreviewWindow(GetDlgItem(IDC_REVIEW_STATIC), GetResDialog());
+
+        //RECT rcClient   = { 0 };
+        //RECT rcTree     = { 0 };
+        //RECT rcStatic   = { 0 };
+
+        //GetClientRect(&rcClient);
+
+        //m_wndTree.GetClientRect(&rcTree);
+        //m_wndPreView.GetWindowRect(&rcStatic);
+        //    
+        //rcStatic.right = rcStatic.right - rcStatic.left + rcTree.right + 2;
+        //rcStatic.left  = rcTree.right + 2;
+
+        //rcStatic.bottom = rcStatic.bottom - rcStatic.top;
+        //rcStatic.top = 0;
+
+        //m_wndPreView.MoveWindow(&rcStatic);
+
+        //GetDlgItem(IDC_REVIEW_STATIC).ShowWindow(SW_HIDE);
+
+    }
 
     BEGIN_MSG_MAP(SkinResDialogListView)
 
@@ -242,15 +276,19 @@ public:
         tvItem.cChildren = TRUE;
         m_wndTree.SetItem(&tvItem);
 
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+        ControlsMgt.m_resDocument.Modify(TRUE);
+
+        CreatePreviewWindow();
 
         return TRUE;
     }
 
     LRESULT OnDel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
-        HTREEITEM hSelItem = m_wndTree.GetSelectedItem();
+        HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
 
-        int nindex = GetItemIndex(hSelItem);
+        int nindex = GetItemIndex(hTreeItem);
 
         if (nindex >= 0)
         {
@@ -261,7 +299,12 @@ public:
             dialogRes.m_vtChildWndList.erase(
                 dialogRes.m_vtChildWndList.begin() + nindex);
 
-            m_wndTree.DeleteItem(hSelItem);
+            m_wndTree.DeleteItem(hTreeItem);
+
+            SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+            ControlsMgt.m_resDocument.Modify(TRUE);
+
+            CreatePreviewWindow();
 
             return TRUE;
         }
@@ -283,6 +326,7 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
         
         ControlsMgt.m_skinResPropertyView.Clear();
+        ControlsMgt.m_skinResPropertyView.SetPropertyEditNotify(this);
 
         if (m_hLastSelItem != NULL)
         {
@@ -297,16 +341,30 @@ public:
                 ATLASSERT(nindex >= 0 && nindex < (int)dialogRes.m_vtChildWndList.size());
                 
                 pPropertyList = &dialogRes.m_vtChildWndList[nindex].m_vtPropertyList;
+
+                KSG::CString strClassName;
+
+                dialogRes.m_vtChildWndList[nindex].GetProperty(_T("SkinClassName") , strClassName);
+
+                m_wndComboBox.SetWindowText(strClassName);
             }
             
             ATLASSERT(pPropertyList != NULL);
 
             for (size_t i = 0; i < pPropertyList->size(); i++)
             {
+                int ntype = SkinResWndDefProperty::GetResWndPropertyEditType((*pPropertyList)[i].strProperty);
+
+                if (m_hLastSelItem == m_wndTree.GetRootItem() &&
+                    !_tcscmp((*pPropertyList)[i].strProperty, _T("IdName")))
+                {
+                    ntype = SkinPropertyView::it_readonly;
+                }
+
                 ControlsMgt.m_skinResPropertyView.AppendProperty( 
                     (*pPropertyList)[i].strProperty, 
                     (*pPropertyList)[i].strValue, 
-                    SkinResWndDefProperty::GetResWndPropertyEditType((*pPropertyList)[i].strProperty));
+                    ntype);
             }
 
         }
@@ -317,6 +375,46 @@ public:
 
     LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        if (m_wndTree.m_hWnd != NULL)
+        {
+            RECT rcClient   = { 0 };
+            RECT rcTree     = { 0 };
+            RECT rcComboBox = { 0 };
+            RECT rcAddBtn   = { 0 };
+            RECT rcDelBtn   = { 0 };
+            RECT rcStatic   = { 0 };
+
+            GetClientRect(&rcClient);
+
+            m_wndTree.GetClientRect(&rcTree);
+
+            rcTree.bottom = rcClient.bottom - 50;;
+            
+            rcComboBox = rcTree;
+            rcComboBox.top = rcComboBox.bottom + 2;
+            rcComboBox.bottom = rcComboBox.top + 22;
+
+            rcAddBtn = rcComboBox;
+            rcAddBtn.top = rcAddBtn.bottom + 2;
+            rcAddBtn.bottom = rcAddBtn.top + 22;
+
+            rcAddBtn.left += 2;
+            rcAddBtn.right = (rcAddBtn.left + rcAddBtn.right) / 2 + 1;
+            
+            rcDelBtn = rcAddBtn;
+            rcDelBtn.left = rcAddBtn.right + 2;
+            rcDelBtn.right = rcTree.right - 2;
+
+            rcStatic = rcClient;
+            rcStatic.left = rcTree.right + 2;
+
+            m_wndTree.MoveWindow(&rcTree);
+            m_wndComboBox.MoveWindow(&rcComboBox);
+            m_wndAddBtn.MoveWindow(&rcAddBtn);
+            m_wndDelBtn.MoveWindow(&rcDelBtn);
+
+            GetDlgItem(IDC_REVIEW_STATIC).MoveWindow(&rcStatic);
+        }
 
         return DefWindowProc();
     }
@@ -325,6 +423,9 @@ public:
     {
         m_wndTree     = GetDlgItem(IDC_WND_TREE);
         m_wndComboBox = GetDlgItem(IDC_COMBO);
+
+        m_wndAddBtn  = GetDlgItem(IDC_ADD);
+        m_wndDelBtn  = GetDlgItem(IDC_DELETE);
 
         return TRUE;
     }
@@ -335,18 +436,72 @@ public:
         LPCTSTR pszNewValue)
     {
         SkinDialogRes& dialogRes = GetResDialog();
+
+        HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
+
+
+        if (hTreeItem == m_wndTree.GetRootItem())
+        {
+            UpdateWndProperty(dialogRes.m_dlgWndProperty,
+                pszPropertyName,
+                pszOldValue, pszNewValue);
+        }
+        else
+        {
+            int nindex = GetItemIndex(hTreeItem);
+            
+            UpdateWndProperty(dialogRes.m_vtChildWndList[nindex],
+                pszPropertyName,
+                pszOldValue, pszNewValue);
+        }
         
-        dialogRes.m_dlgWndProperty.SetProperty(pszPropertyName, pszNewValue);
     }
 
     void UpdateWndProperty( SkinWndPropertyList& WndPropertyList, 
         LPCTSTR pszPropertyName,
+        LPCTSTR pszOldValue,
         LPCTSTR pszNewValue)
     {
-        if ( !_tcscmp(pszPropertyName, _T("ID") ) )
-        {
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+        SkinDialogRes&   dialogRes   = GetResDialog();
 
+
+        if ( !_tcscmp(pszPropertyName, _T("IdName") ) )
+        {
+            if (pszNewValue[0] >= '0' && pszNewValue[0] <= '9') // 不合法的项名
+            {
+                ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
+                    pszOldValue);
+
+                return;
+            }
+
+            if (&WndPropertyList != &dialogRes.m_dlgWndProperty)
+            {
+
+                for ( size_t i = 0; i < dialogRes.m_vtChildWndList.size(); i++ )
+                {
+                    if ( !dialogRes.m_vtChildWndList[i].GetIdName().CollateNoCase(pszNewValue) ) // 不合法的项名
+                    {
+                        ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
+                            pszOldValue);
+
+                        return;
+                    }
+                }
+
+            }
+
+            m_wndTree.SetItemText( m_wndTree.GetSelectedItem(), pszNewValue);
+
+            WndPropertyList.GetIdName() = pszNewValue;
+            WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
         }
+
+        WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
+
+        CreatePreviewWindow();
+
     }
 
 
