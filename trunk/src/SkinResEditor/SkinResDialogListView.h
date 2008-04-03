@@ -210,6 +210,14 @@ public:
                 vtList.erase(vtList.begin() + nindex);
             }
 
+            for (int i = nindex; i < m_wndListBox.GetCount(); i++)
+            {
+                pResDialogView = (SkinResDialogView*)m_wndListBox.GetItemDataPtr(i);
+                
+                ATLASSERT(pResDialogView != NULL);
+
+                pResDialogView->m_ndialogindex--;
+            }
 
             return TRUE;
         }

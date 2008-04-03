@@ -67,6 +67,13 @@ public:
         m_pskindlgres = pskindlgres;
         m_pskinimageresbase = pskinimageresbase;
 
+        if (pszSkinXmlFile == NULL || _tcslen(pszSkinXmlFile) == NULL)
+        {
+            //
+
+            return true;
+        }
+
         while (pszSkinXmlFile != NULL)
         {
             if (m_pskinconfig == NULL)
@@ -147,21 +154,29 @@ public:
 
     virtual skinconfigbase* get_skinconfig() 
     {
+        ATLASSERT( m_pskinconfig != NULL );
+
         return m_pskinconfig;
     }
 
     virtual skinstrresbase* get_skinstrres()
     {
+        ATLASSERT( m_pskinstrres != NULL );
+
         return m_pskinstrres;
     }
 
     virtual skindlgresbase* get_skindlgres()
     {
+        ATLASSERT( m_pskindlgres != NULL );
+
         return m_pskindlgres;
     }
 
     virtual skinimageresbase* get_skinimageres()
     {
+        ATLASSERT( m_pskinimageresbase != NULL );
+
         return m_pskinimageresbase;
     }
 

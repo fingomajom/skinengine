@@ -4,8 +4,13 @@
 
 #pragma once
 
-class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
-		public CMessageFilter, public CIdleHandler
+#include <skindialog.h>
+
+class CMainDlg : 
+    public SkinDialogImpl<CMainDlg>, 
+    public CUpdateUI<CMainDlg>,
+	public CMessageFilter, 
+    public CIdleHandler
 {
 public:
 	enum { IDD = IDD_MAINDLG };
@@ -19,6 +24,8 @@ public:
 	{
 		return FALSE;
 	}
+
+    DEFINE_DLGXMLRES_NAME(_T("IDS_TEST"));
 
 	BEGIN_UPDATE_UI_MAP(CMainDlg)
 	END_UPDATE_UI_MAP()

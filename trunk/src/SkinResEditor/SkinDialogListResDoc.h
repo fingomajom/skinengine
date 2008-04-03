@@ -59,12 +59,37 @@ public:
         return TRUE;
     }
     
+    BOOL SetProperty(LPCTSTR pszProperty, int nNum)
+    {
+        KSG::CString strName;
+        
+        strName.Format(_T("%d"), nNum);
+
+        return SetProperty(pszProperty, strName);
+    }
+
+
     BOOL SetProperty(int nIndex, LPCTSTR pszValue)
     {
         if (nIndex >= 0 && nIndex < (int)m_vtPropertyList.size())
             m_vtPropertyList[nIndex].strValue = pszValue;
 
         return TRUE;
+    }
+
+    BOOL GetProperty(LPCTSTR pszProperty, KSG::CString& strValue)
+    {
+        for (size_t i = 0; i < m_vtPropertyList.size(); i++)
+        {
+            if (m_vtPropertyList[i].strProperty.Compare(pszProperty) == 0)
+            {
+                strValue = m_vtPropertyList[i].strValue ;
+
+                return TRUE;
+            }
+        }
+
+        return FALSE;
     }
 
     BOOL DelProperty(LPCTSTR pszProperty, LPCTSTR pszValue)

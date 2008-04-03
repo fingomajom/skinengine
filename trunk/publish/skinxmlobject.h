@@ -60,7 +60,16 @@ public:
         if (!GetObject(Name, strObject))
             return FALSE;
 
-        uOjbect = (DWORD)_ttoi64(strObject);
+        if (strObject.GetLength() > 2 && 
+            strObject[0] == '0' && 
+            (strObject[1] == 'x' || strObject[1] == 'X'))
+        {
+            _stscanf_s(strObject, _T("0x%x"), &uOjbect);
+        }
+        else
+        {
+            uOjbect = (DWORD)_ttoi64(strObject);
+        }
 
         return TRUE;
     }

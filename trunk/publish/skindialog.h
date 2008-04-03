@@ -37,7 +37,7 @@ public:
             KSG::CString strIdName;
             DWORD dwId = 0;
 
-            pSinWindow->SetFont(CWindow(m_hWndParent).GetFont());
+            HFONT hFont = NULL;
 
             if ( xmlWin.GetIdName(strIdName) )
             {
@@ -99,6 +99,12 @@ public:
     HWND m_hWndParent;
 };
 
+#define DEFINE_DLGXMLRES_NAME(ResName)  \
+    LPCTSTR GetDlgXMLResName()\
+    {\
+    return ResName;\
+    }
+
 
 template <class T, class TBase = SkinWindow >
 class ATL_NO_VTABLE SkinDialogImpl : public  CDialogImpl<T, TBase>
@@ -106,45 +112,57 @@ class ATL_NO_VTABLE SkinDialogImpl : public  CDialogImpl<T, TBase>
     typedef CDialogImpl<T, TBase> theBase;
 
 public:
+
+    SkinDialogImpl()
+    {
+
+    }
     
     ~SkinDialogImpl()
     {
         m_childList.DestroyChilds();
     }
 
-    static INT_PTR CALLBACK StartDialogProc(HWND hWnd, UINT uMsg,
-        WPARAM wParam, LPARAM lParam)
-    {        
-        CDialogImplBaseT< TBase >* pThis = (CDialogImplBaseT< TBase >*)_AtlWinModule.ExtractCreateWndData();
-        ATLASSERT(pThis != NULL);
-        if(!pThis)
-        {
-            return 0;
-        }
-        pThis->m_hWnd = hWnd;
-        // Initialize the thunk.  This was allocated in CDialogImpl::DoModal or
-        // CDialogImpl::Create, so failure is unexpected here.
-
-        pThis->m_thunk.Init((WNDPROC)pThis->GetDialogProc(), pThis);
-        DLGPROC pProc = (DLGPROC)pThis->m_thunk.GetWNDPROC();
-        DLGPROC pOldProc = (DLGPROC)::SetWindowLongPtr(hWnd, DWLP_DLGPROC, (LONG_PTR)pProc);
-
-#ifdef _DEBUG
-        // check if somebody has subclassed us already since we discard it
-        if(pOldProc != StartDialogProc)
-            ATLTRACE(atlTraceWindowing, 0, _T("Subclassing through a hook discarded.\n"));
-#else
-        pOldProc;	// avoid unused warning
-#endif
-        INT_PTR nResult = pProc(hWnd, uMsg, wParam, lParam);
-            
-        SkinDialogImpl<T, TBase>* pSinThis = static_cast<SkinDialogImpl<T, TBase>*>(pThis);
         
-        pSinThis->_InitXmlDlg();
+    BOOL InitDlgXMLElement( LPCTSTR pszResName )
+    {
+        if (m_xmlDlgElement.IsValid())
+            return TRUE;
 
-        return nResult;
-    }   
+        skinresbase* pskinres = skinresloader::instance().get_skinres();
+        ATLASSERT(pskinres != NULL);
+        if (!pskinres)
+            return FALSE;
 
+        skindlgresbase* pskindlgres = pskinres->get_skindlgres();
+        ATLASSERT(pskindlgres != NULL);
+        if (!pskindlgres)
+            return FALSE;
+
+        skinxmldialog xmldlg;
+
+        if(!pskindlgres->LoadDialog(pszResName, xmldlg))
+        {
+            ATLASSERT(FALSE);
+            return FALSE;
+        }
+
+        m_xmlDlgElement = xmldlg;
+
+        return TRUE;
+    }
+
+    void InitDlgXMLElement( SkinXmlElement xmlDlgElement  )
+    {
+        m_xmlDlgElement.CopyFrom(xmlDlgElement);
+    }
+
+public:
+
+    LPCTSTR GetDlgXMLResName()
+    {
+        return _T("");
+    }
 
     INT_PTR DoModal(HWND hWndParent = ::GetActiveWindow(), LPARAM dwInitParam = NULL)
     {
@@ -165,6 +183,7 @@ public:
         m_bModal = true;
 #endif //_DEBUG
 
+        InitDlgXMLElement(static_cast<T*>(this)->GetDlgXMLResName());
 
         DLGTEMPLATEEX* pDlgTemplate = (DLGTEMPLATEEX*)_MakeDlgTemplateBuffer( -1 );
         if( pDlgTemplate == NULL )
@@ -216,6 +235,8 @@ public:
         m_bModal = false;
 #endif //_DEBUG
 
+        InitDlgXMLElement(static_cast<T*>(this)->GetDlgXMLResName());
+
         ::DLGTEMPLATEEX* pDlgTemplate = (::DLGTEMPLATEEX*)_MakeDlgTemplateBuffer( -1 );
         if( pDlgTemplate == NULL )
             return NULL;
@@ -248,7 +269,44 @@ public:
         ATLASSERT(!m_bModal);	// must not be a modal dialog
 #endif //_DEBUG
         return ::DestroyWindow(m_hWnd);
+
+        m_xmlDlgElement.ClearThis();
     }
+
+
+    static INT_PTR CALLBACK StartDialogProc(HWND hWnd, UINT uMsg,
+        WPARAM wParam, LPARAM lParam)
+    {        
+        CDialogImplBaseT< TBase >* pThis = (CDialogImplBaseT< TBase >*)_AtlWinModule.ExtractCreateWndData();
+        ATLASSERT(pThis != NULL);
+        if(!pThis)
+        {
+            return 0;
+        }
+        pThis->m_hWnd = hWnd;
+        // Initialize the thunk.  This was allocated in CDialogImpl::DoModal or
+        // CDialogImpl::Create, so failure is unexpected here.
+
+        pThis->m_thunk.Init((WNDPROC)pThis->GetDialogProc(), pThis);
+        DLGPROC pProc = (DLGPROC)pThis->m_thunk.GetWNDPROC();
+        DLGPROC pOldProc = (DLGPROC)::SetWindowLongPtr(hWnd, DWLP_DLGPROC, (LONG_PTR)pProc);
+
+#ifdef _DEBUG
+        // check if somebody has subclassed us already since we discard it
+        if(pOldProc != StartDialogProc)
+            ATLTRACE(atlTraceWindowing, 0, _T("Subclassing through a hook discarded.\n"));
+#else
+        pOldProc;	// avoid unused warning
+#endif
+        INT_PTR nResult = pProc(hWnd, uMsg, wParam, lParam);
+
+        SkinDialogImpl<T, TBase>* pSinThis = static_cast<SkinDialogImpl<T, TBase>*>(pThis);
+
+        pSinThis->_InitXmlDlg();
+
+        return nResult;
+    }   
+
 
     DWORD GetDefaultStyle()
     {

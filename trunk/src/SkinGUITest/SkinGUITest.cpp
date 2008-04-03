@@ -13,6 +13,7 @@
 #include "MainDlg.h"
 
 #include <skinstr.h>
+#include <skinctrlx.h>
 
 CSkinAppModule _Module;
 
@@ -22,6 +23,21 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	_Module.AddMessageLoop(&theLoop);
 
 	CMainDlg dlgMain;
+
+
+    SkinXmlDocument xmlDocument;
+
+    xmlDocument.LoadXML(
+        _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        _T("<IDD_DlgTest Caption=\"中国人啊人\" Style=\"2160590976\" ExStyle=\"0\" Font=\"宋体,GB2312_CHARSET,9,1,400,0\" Left=\"10\" Top=\"10\" Width=\"292\" Height=\"151\">")
+        _T("<ChildWindow>")
+        _T("<IDS_STATIC SkinClassName=\"skinxmlstatic\" IdName=\"ids_abc\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"10\" Width=\"200\" Height=\"20\" />")
+        _T("<IDS_STATIC SkinClassName=\"skinxmlstatic\" IdName=\"ids_abc1\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"40\" Width=\"200\" Height=\"20\" />")
+        _T("<IDS_STATIC SkinClassName=\"skinxmllistbox\" IdName=\"ids_abc2\" Style=\"1342177280\" Caption=\"我是中国人\" Left=\"10\" Top=\"80\" Width=\"200\" Height=\"120\" />")
+        _T("</ChildWindow>")
+        _T("</IDD_DlgTest>") );
+    
+    //dlgMain.InitDlgXMLElement(xmlDocument.RootElement());
 
 	if(dlgMain.Create(NULL) == NULL)
 	{
@@ -53,7 +69,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	hRes = _Module.Init(NULL, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
-    _Module.init_skin(_T("KSE.xml"));
+    _Module.init_skin(_T("KSG.XML"));
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);
     

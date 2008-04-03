@@ -68,10 +68,15 @@ public:
         const SkinXmlElement& xmlElement,
         HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
     {
-        return TBase::SkinCreate(xmlElement, 
+        HWND hWndResult = TBase::SkinCreate(xmlElement, 
             hWndParent,              
             GetWndClassName(),
             MenuOrID);
+
+        if (hWndParent != NULL)
+            SetFont( TBase(hWndParent).GetFont() );
+
+        return hWndResult;
     }
 
 };
