@@ -212,7 +212,7 @@ public:
         RECT rect;
         GetClientRect(&rect);
         m_wndLRSplitter.SetSplitterPos((rect.right - rect.left) / 4);
-        m_wndLTBlitter.SetSplitterPos((rect.bottom - rect.top) / 2);
+        m_wndLTBlitter.SetSplitterPos((rect.bottom - rect.top) / 3);
         
 
         BOOL bHandled = FALSE;

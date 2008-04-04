@@ -105,7 +105,7 @@ public:
         ShowWindow(SW_HIDE);
     }
 
-    DWORD GetDefaultStyle()
+    DWORD GetStyle( DWORD dwStyle )
     {
         return DS_SETFONT | WS_CHILD | WS_SYSMENU;
     }

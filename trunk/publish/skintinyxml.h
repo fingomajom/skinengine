@@ -322,21 +322,21 @@ public:
 
     bool LoadFile( LPCTSTR filename )
     {
-        CT2AEX<> Value(filename, CP_DEFAULT);
+        CT2AEX<> Value(filename);
 
         return m_tixmldoc.LoadFile(Value.m_psz, SKINXML_DEFAULT_ENCODIN);
     }
 
     bool SaveFile( LPCTSTR filename )
     {
-        CT2AEX<> Value(filename, CP_DEFAULT);
+        CT2AEX<> Value(filename);
 
         return m_tixmldoc.SaveFile(Value.m_psz);
     }
 
     bool LoadXML( LPCTSTR xml )
     {
-        CT2AEX<> Value(xml, CP_DEFAULT);
+        CT2AEX<> Value(xml);
 
         m_tixmldoc.Parse(Value.m_psz, 0, SKINXML_DEFAULT_ENCODIN);
 

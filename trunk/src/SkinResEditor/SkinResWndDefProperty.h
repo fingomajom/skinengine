@@ -83,7 +83,7 @@ public:
             }
         }
 
-        strStyle.Format(_T("%ld"), dwStyle);
+        strStyle.Format(_T("0x%08x"), dwStyle);
     }
 
     static void GetWndExStyle(KSG::CString strClassName, KSG::CString& strStyle)
@@ -104,7 +104,7 @@ public:
             }
         }
 
-        strStyle.Format(_T("%ld"), dwStyle);
+        strStyle.Format(_T("0x%08x"), dwStyle);
     }
 
 
@@ -151,7 +151,7 @@ private:
             { _T("Height")       , _T("20")         , SkinPropertyView::it_number},
             { _T("TextColor")    , _T("0x00000000") , SkinPropertyView::it_color},
             { _T("BkColor")      , _T("0x00ffffff") , SkinPropertyView::it_color},
-            { _T("Font")         , _T("ËÎÌו,GB2312_CHARSET,9,1,400,0"), SkinPropertyView::it_font }
+            { _T("Font")         , _T("ËÎÌו,GB2312_CHARSET,-12,1,400,0"), SkinPropertyView::it_font }
         };
         
         pItemList = DefPropertyList;
@@ -203,7 +203,11 @@ private:
             { skinxmlprogress::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE, 0 },
 
             { skinxmlanimation::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE, 0 },
-            { skinxmlipaddress::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE }
+            { skinxmlipaddress::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
+
+            { skinxmlstaticex::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmlbmpbtn::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmlclrbtn::GetSkinWndClassName()    , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 }
 
         };
 
