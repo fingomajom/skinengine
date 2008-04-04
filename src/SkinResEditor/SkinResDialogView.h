@@ -80,8 +80,8 @@ public:
                 KSG::CString(), dialogRes.m_dlgWndProperty);
 
             dialogRes.m_dlgWndProperty.SetProperty(_T("IdName"), dialogRes.m_dlgWndProperty.GetIdName());
-            dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("300"));
-            dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("200"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("200"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("150"));
 
         }
 
@@ -109,7 +109,6 @@ public:
 
         m_wndTree.Expand(m_wndTree.GetRootItem());
 
-        CreatePreviewWindow();
     }
 
     virtual void ShowResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -119,6 +118,10 @@ public:
         ShowWindow(SW_SHOW);
 
         m_wndTree.SetItemText(m_wndTree.GetRootItem(), GetResDialog().m_dlgWndProperty.GetIdName());
+
+        CreatePreviewWindow();
+
+        SkinHookMouse::instance().m_hHookWindow = m_wndPreView;
 
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
@@ -130,6 +133,10 @@ public:
 
         ControlsMgt.m_skinResPropertyView.Clear();
 
+        SkinHookMouse::instance().m_hHookWindow = NULL;
+
+        m_wndPreView.m_wndSelectFlag.ShowWindow(SW_HIDE);
+
         ShowWindow(SW_HIDE);
     }
 
@@ -140,32 +147,16 @@ public:
     {
         SkinXmlElement xmlElement;
         m_wndPreView.ReCreatePreviewWindow(GetDlgItem(IDC_REVIEW_STATIC), GetResDialog());
-
-        //RECT rcClient   = { 0 };
-        //RECT rcTree     = { 0 };
-        //RECT rcStatic   = { 0 };
-
-        //GetClientRect(&rcClient);
-
-        //m_wndTree.GetClientRect(&rcTree);
-        //m_wndPreView.GetWindowRect(&rcStatic);
-        //    
-        //rcStatic.right = rcStatic.right - rcStatic.left + rcTree.right + 2;
-        //rcStatic.left  = rcTree.right + 2;
-
-        //rcStatic.bottom = rcStatic.bottom - rcStatic.top;
-        //rcStatic.top = 0;
-
-        //m_wndPreView.MoveWindow(&rcStatic);
-
-        //GetDlgItem(IDC_REVIEW_STATIC).ShowWindow(SW_HIDE);
-
+        
+        SkinHookMouse::instance().m_hHookWindow = m_wndPreView;
     }
 
     BEGIN_MSG_MAP(SkinResDialogListView)
 
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_SIZE      , OnSize)
+        
+        MESSAGE_HANDLER(WM_SELECTCHILDWINDOW, OnSelectWindow)
 
         COMMAND_HANDLER(IDC_ADD   , BN_CLICKED, OnAdd)
         COMMAND_HANDLER(IDC_DELETE, BN_CLICKED, OnDel)
@@ -256,6 +247,15 @@ public:
         WndProperty.SetProperty(_T("SkinClassName"), szBuffer);
         WndProperty.SetProperty(_T("ItemId"), nNewItemId);
 
+        KSG::CString strStyle;
+        KSG::CString strExStyle;
+
+        SkinResWndDefProperty::GetWndStyle(szBuffer, strStyle);
+        SkinResWndDefProperty::GetWndExStyle(szBuffer, strExStyle);
+
+        WndProperty.SetProperty(_T("Style"), strStyle);
+        WndProperty.SetProperty(_T("ExStyle"), strExStyle);
+
 
         dialogRes.m_vtChildWndList.push_back(WndProperty);
 
@@ -279,7 +279,7 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
         ControlsMgt.m_resDocument.Modify(TRUE);
 
-        CreatePreviewWindow();
+        m_wndPreView.AddSkinWindow(WndProperty);
 
         return TRUE;
     }
@@ -287,6 +287,9 @@ public:
     LRESULT OnDel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
         HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
+
+        if (hTreeItem == m_wndTree.GetRootItem())
+            return TRUE;
 
         int nindex = GetItemIndex(hTreeItem);
 
@@ -296,6 +299,8 @@ public:
 
             ATLASSERT((size_t)nindex < dialogRes.m_vtChildWndList.size());
 
+            m_wndPreView.DelSkinWindow(dialogRes.m_vtChildWndList[nindex]) ;
+
             dialogRes.m_vtChildWndList.erase(
                 dialogRes.m_vtChildWndList.begin() + nindex);
 
@@ -304,7 +309,7 @@ public:
             SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
             ControlsMgt.m_resDocument.Modify(TRUE);
 
-            CreatePreviewWindow();
+            //CreatePreviewWindow();
 
             return TRUE;
         }
@@ -333,7 +338,11 @@ public:
             std::vector<SkinWndPropertyList::WndPropertyItem>* pPropertyList = NULL;
             
             if (m_hLastSelItem == m_wndTree.GetRootItem())
+            {             
                 pPropertyList = &dialogRes.m_dlgWndProperty.m_vtPropertyList;
+
+                m_wndPreView.ClearSelectWindow();
+            }
             else
             {
                 int nindex = (int)GetItemIndex(m_hLastSelItem);
@@ -347,6 +356,8 @@ public:
                 dialogRes.m_vtChildWndList[nindex].GetProperty(_T("SkinClassName") , strClassName);
 
                 m_wndComboBox.SetWindowText(strClassName);
+
+                m_wndPreView.SelectWindow(dialogRes.m_vtChildWndList[nindex]);
             }
             
             ATLASSERT(pPropertyList != NULL);
@@ -416,6 +427,8 @@ public:
             GetDlgItem(IDC_REVIEW_STATIC).MoveWindow(&rcStatic);
         }
 
+        m_wndPreView.UpdateSelectFlag();
+
         return DefWindowProc();
     }
 
@@ -426,6 +439,41 @@ public:
 
         m_wndAddBtn  = GetDlgItem(IDC_ADD);
         m_wndDelBtn  = GetDlgItem(IDC_DELETE);
+
+        return TRUE;
+    }
+
+
+    LRESULT OnSelectWindow(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        LPCTSTR lpIdName = (LPCTSTR)wParam;
+
+        if (lpIdName == NULL)
+            m_wndTree.SelectItem(m_wndTree.GetRootItem());
+        else
+        {
+            HTREEITEM hTreeItem = m_wndTree.GetChildItem(m_wndTree.GetRootItem());
+            size_t index = 0;
+
+            SkinDialogRes& dialogRes = GetResDialog();
+
+            while (hTreeItem != NULL)
+            {
+                if (index >= dialogRes.m_vtChildWndList.size())
+                    break;
+
+                if (!dialogRes.m_vtChildWndList[index].GetIdName().CollateNoCase(lpIdName))
+                {
+                    m_wndTree.SelectItem(hTreeItem);
+
+                    break;
+                }
+
+                index++;
+                hTreeItem = m_wndTree.GetNextSiblingItem(hTreeItem);
+
+            }
+        }
 
         return TRUE;
     }
@@ -445,6 +493,8 @@ public:
             UpdateWndProperty(dialogRes.m_dlgWndProperty,
                 pszPropertyName,
                 pszOldValue, pszNewValue);
+
+            CreatePreviewWindow();
         }
         else
         {
@@ -490,17 +540,23 @@ public:
                     }
                 }
 
+                m_wndPreView.DelSkinWindow( WndPropertyList );
             }
 
             m_wndTree.SetItemText( m_wndTree.GetSelectedItem(), pszNewValue);
 
             WndPropertyList.GetIdName() = pszNewValue;
             WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
+
+            if (&WndPropertyList != &dialogRes.m_dlgWndProperty)
+                m_wndPreView.AddSkinWindow(WndPropertyList);
+
+            return;
         }
 
         WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
-
-        CreatePreviewWindow();
+        
+        m_wndPreView.UpdateSkinWindow(WndPropertyList);
 
     }
 

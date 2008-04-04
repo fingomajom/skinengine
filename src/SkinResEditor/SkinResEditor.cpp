@@ -13,6 +13,7 @@
 #include "aboutdlg.h"
 #include "MainFrm.h"
 
+
 KSG::CSkinAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
@@ -52,7 +53,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	hRes = _Module.Init(NULL, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
+    SkinHookMouse::instance().InitHookMouse();
+
 	int nRet = Run(lpstrCmdLine, nCmdShow);
+
+    SkinHookMouse::instance().UnitHookMouse();
 
 	_Module.Term();
 	::CoUninitialize();

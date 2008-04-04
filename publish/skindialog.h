@@ -28,31 +28,7 @@ public:
 
     BOOL onchildwin( skinxmlwin& xmlWin )
     {
-        KSG::SkinWindow* pSinWindow = NULL;
-        
-        pSinWindow = KSG::SkinWindowCreator::Instance().SkinCreate(xmlWin, m_hWndParent);
-
-        if (pSinWindow != NULL)
-        {
-            KSG::CString strIdName;
-            DWORD dwId = 0;
-
-            HFONT hFont = NULL;
-
-            if ( xmlWin.GetIdName(strIdName) )
-            {
-                m_mapIDS2Win[strIdName] = pSinWindow;
-            }
-            else
-            {
-                if (::IsWindow(pSinWindow->m_hWnd))
-                    pSinWindow->DestroyWindow();
-
-                delete pSinWindow;
-            }
-        }
-        
-        return TRUE;
+        return AddChildWindow(xmlWin);
     }
 
     void DestroyChilds()
@@ -90,6 +66,63 @@ public:
             pSkinWindow = iter->second;
 
         return pSkinWindow;
+    }
+
+    BOOL AddChildWindow( skinxmlwin& xmlWin )
+    {
+        KSG::SkinWindow* pSinWindow = NULL;
+
+        pSinWindow = KSG::SkinWindowCreator::Instance().SkinCreate(xmlWin, m_hWndParent);
+
+        if (pSinWindow == NULL)
+            return FALSE;
+
+        KSG::CString strIdName;
+        DWORD dwId = 0;
+
+        HFONT hFont = NULL;
+
+        if ( xmlWin.GetIdName(strIdName) )
+        {
+            m_mapIDS2Win[strIdName] = pSinWindow;
+        }
+        else
+        {
+            if (::IsWindow(pSinWindow->m_hWnd))
+                pSinWindow->DestroyWindow();
+
+            delete pSinWindow;
+
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+
+    BOOL DestroyChildWindow( LPCTSTR pszIdName )
+    {
+        std::map<KSG::CString, SkinWindow*>::iterator iter = 
+            m_mapIDS2Win.find(pszIdName);
+
+        if (iter != m_mapIDS2Win.end())
+        {
+            KSG::SkinWindow* pSkinWindow = NULL;
+
+            pSkinWindow = iter->second;
+
+            if (pSkinWindow == NULL)
+                return FALSE;
+
+            if (::IsWindow(pSkinWindow->m_hWnd))
+                pSkinWindow->DestroyWindow();
+
+            delete pSkinWindow;
+
+            m_mapIDS2Win.erase(iter);
+        }
+        
+        return TRUE;
     }
 
 public:
@@ -268,9 +301,10 @@ public:
 #ifdef _DEBUG
         ATLASSERT(!m_bModal);	// must not be a modal dialog
 #endif //_DEBUG
-        return ::DestroyWindow(m_hWnd);
 
         m_xmlDlgElement.ClearThis();
+
+        return ::DestroyWindow(m_hWnd);
     }
 
 
@@ -308,14 +342,17 @@ public:
     }   
 
 
-    DWORD GetDefaultStyle()
+    DWORD GetStyle( DWORD dwStyle )
     {
-        return DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
+        if (dwStyle == 0)
+            dwStyle =  DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
+
+        return dwStyle;
     }
 
-    DWORD GetDefaultExStyle()
+    DWORD GetExStyle( DWORD dwExStyle )
     {
-        return 0;
+        return dwExStyle;
     }
 
 
@@ -341,10 +378,8 @@ public:
 
         GetRealRect(NULL, xmldialog, rcClient);
 
-        if (dwStyle == 0)
-            dwStyle =  static_cast<T*>(this)->GetDefaultStyle();
-        if (dwExStyle == 0)
-            dwExStyle =  static_cast<T*>(this)->GetDefaultExStyle();
+        dwStyle =  static_cast<T*>(this)->GetStyle(dwStyle);
+        dwExStyle =  static_cast<T*>(this)->GetExStyle(dwExStyle);
 
         dwStyle |= (DS_SETFONT);
 

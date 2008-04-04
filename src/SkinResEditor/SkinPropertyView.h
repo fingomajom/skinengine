@@ -185,7 +185,7 @@ public:
         m_edit.Create(m_hWnd, 
             rcDefault, 
             NULL, 
-            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL);
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN);
 
         m_button.Create(m_hWnd, 
             rcDefault, 
@@ -481,6 +481,9 @@ public:
         LRESULT lResult = CallWindowProc( pfnOldProc, hWnd, uMsg, wParam, lParam);
 
         if (uMsg == WM_KILLFOCUS)
+            ::SendMessage(::GetParent(hWnd), WM_EDITKILLFOCUS, 0, 0);
+
+        if (uMsg == WM_KEYDOWN && wParam == VK_RETURN)
             ::SendMessage(::GetParent(hWnd), WM_EDITKILLFOCUS, 0, 0);
 
         return lResult;
