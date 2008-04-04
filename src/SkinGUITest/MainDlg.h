@@ -69,6 +69,19 @@ public:
 
         SetDlgItemText(IDC_TEST_STATIC, strtext);
 
+        CComboBox box = GetDlgItem(1000);
+        if (box.m_hWnd != NULL)
+        {
+            WTL::CString strMsg;
+
+            for (int i = 0; i < 1000; i++)
+            {
+                strMsg.Format(_T("%d"), i);
+
+                box.AddString(strMsg);
+            }
+        }
+
 		return TRUE;
 	}
 

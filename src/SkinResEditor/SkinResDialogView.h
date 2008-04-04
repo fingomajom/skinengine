@@ -41,6 +41,7 @@ public:
 
     HTREEITEM      m_hLastSelItem;
 
+    CImageList m_imagelist;
 
     SkinDialogRes& GetResDialog()
     {
@@ -86,13 +87,13 @@ public:
         }
 
         m_wndTree.InsertItem( dialogRes.m_dlgWndProperty.GetIdName(),
-            TVI_ROOT, TVI_LAST);
+            2, 2, TVI_ROOT, TVI_LAST);
 
         for (size_t i = 0; i < dialogRes.m_vtChildWndList.size(); i++)
         {
             HTREEITEM hInsertItem = m_wndTree.InsertItem( 
                 dialogRes.m_vtChildWndList[i].GetIdName(),
-                m_wndTree.GetRootItem(), TVI_LAST);
+                3, 3, m_wndTree.GetRootItem(), TVI_LAST);
 
             m_wndTree.SetItemData(hInsertItem, i);
         }
@@ -135,6 +136,7 @@ public:
 
         SkinHookMouse::instance().m_hHookWindow = NULL;
 
+        m_wndTree.SelectItem(NULL);
         m_wndPreView.m_wndSelectFlag.ShowWindow(SW_HIDE);
 
         ShowWindow(SW_HIDE);
@@ -262,7 +264,7 @@ public:
 
         HTREEITEM hInsertItem = m_wndTree.InsertItem( 
             WndProperty.GetIdName(),
-            m_wndTree.GetRootItem(), TVI_LAST);
+            3, 3, m_wndTree.GetRootItem(), TVI_LAST);
 
         m_wndTree.SetItemData(hInsertItem, 
             dialogRes.m_vtChildWndList.size() - 1);
@@ -280,6 +282,8 @@ public:
         ControlsMgt.m_resDocument.Modify(TRUE);
 
         m_wndPreView.AddSkinWindow(WndProperty);
+
+        m_wndTree.SelectItem(hInsertItem);
 
         return TRUE;
     }
@@ -439,6 +443,15 @@ public:
 
         m_wndAddBtn  = GetDlgItem(IDC_ADD);
         m_wndDelBtn  = GetDlgItem(IDC_DELETE);
+
+        CBitmap bmp;
+
+        bmp.LoadBitmap(IDB_RESTYPE_BITMAP);
+
+        m_imagelist.Create(16, 16, ILC_COLOR24 | ILC_MASK, 3, 1);
+        m_imagelist.Add(bmp, RGB(255, 0, 255));
+
+        m_wndTree.SetImageList(m_imagelist);
 
         return TRUE;
     }

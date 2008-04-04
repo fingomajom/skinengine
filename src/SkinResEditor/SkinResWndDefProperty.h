@@ -181,7 +181,7 @@ private:
             { skinxmlcheckbox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_CHECKBOX | WS_TABSTOP, 0 },
             { skinxmlradiobox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | WS_TABSTOP, 0 },
 
-            { skinxmlcombobox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmlcombobox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWN | WS_VSCROLL , 0 },
             { skinxmllistbox::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
 
             { skinxmllistctrl::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },

@@ -50,7 +50,7 @@ public:
 
             HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
                 m_hTreeItem,
-                vtList[i].m_dlgWndProperty.GetIdName(), 0, pResDialogView, 0);
+                vtList[i].m_dlgWndProperty.GetIdName(), 2, pResDialogView, 0);
 
         }
 
@@ -160,7 +160,7 @@ public:
 
             HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
                 m_hTreeItem,
-                szBuffer, 0, pResDialogView, 0);
+                szBuffer, 2, pResDialogView, 0);
 
             TVITEM tvItem;
 

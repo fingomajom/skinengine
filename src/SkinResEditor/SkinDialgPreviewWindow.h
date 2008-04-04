@@ -113,20 +113,21 @@ public:
 
         CSkinDCHandle skinDC(dc.m_hDC);
 
+        //CWindowDC destdc(::GetDesktopWindow());
+
         RECT rcClient;
-        RECT rcWindow;
+        //RECT rcWindow;
         GetClientRect(&rcClient);
-        GetWindowRect(&rcWindow);
+        //GetWindowRect(&rcWindow);
 
-        skinDC.SkinDrawBorder(rcClient, line_color, PS_SOLID, line_space );
-
-        //CClientDC destdc(::GetDesktopWindow());
-        //
+        
         //dc.BitBlt( 0, 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top,
         //    destdc,
-        //    rcWindow.left, rcWindow.top, 
+        //    //rcWindow.left, rcWindow.top, 
+        //    0,0,
         //    SRCCOPY);
 
+        skinDC.SkinDrawBorder(rcClient, line_color, PS_SOLID, line_space );
         
         return TRUE;
     }
@@ -211,6 +212,9 @@ public:
         ::GetCursorPos(&pt);
 
         ScreenToClient(&pt);
+
+        if (!::IsWindow(m_hWnd))
+            return TRUE;
 
         HWND hWndFromPt = ::ChildWindowFromPoint(m_hWnd, pt);
 
