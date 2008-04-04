@@ -77,15 +77,15 @@ public:
 
         HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("StringTable"), 0, &m_wndResStringListView, 0);
+            _T("StringTable"), 1, &m_wndResStringListView, 0);
 
         hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Images"), 0, &m_wndResImageDlg.m_wndResImageList, 0);
+            _T("Images"), 1, &m_wndResImageDlg.m_wndResImageList, 0);
 
         hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Dialog"), 0, &m_wndResDialogListView, 0);
+            _T("Dialog"), 1, &m_wndResDialogListView, 0);
 
 
         ControlsMgt.m_skinTreeControlView.Expand(
@@ -228,6 +228,21 @@ public:
 		return 0;
 	}
 
+    void ReloadAppName()
+    {
+        WTL::CString strAppName;
+        WTL::CString strCaptionName;
+        
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        strAppName.LoadString(IDR_MAINFRAME);
+
+        strCaptionName.Format(_T("%s - [%s]"), 
+            strAppName, ControlsMgt.m_resDocument.GetFileName());
+        
+        SetWindowText(strCaptionName);
+    }
+
 	LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 	{
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
@@ -254,6 +269,8 @@ public:
         ControlsMgt.m_resDocument.NewDocument();
 
         OnReUpdateResView();
+
+        ReloadAppName();
 
 		return 0;
 	}
@@ -301,6 +318,7 @@ public:
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
             ControlsMgt.m_resDocument.GetFileName());
 
+        ReloadAppName();
 
         return 0;
     }
@@ -318,6 +336,8 @@ public:
         }
 
         ControlsMgt.m_resDocument.SaveDocument(ControlsMgt.m_resDocument.GetFileName());
+
+        ReloadAppName();
 
         return 0;
     } 

@@ -342,10 +342,11 @@ public:
             CListViewCtrl::SetItemText(m_neditindex, 1,
                 szNewBuffer);
 
-            if (m_pEditNotify != NULL)
+            CListViewCtrl::GetItemText(m_neditindex, 0,
+                szPropertyName, 1024);
+
+            if (m_pEditNotify != NULL && _tcslen(szPropertyName) > 0)
             {
-                CListViewCtrl::GetItemText(m_neditindex, 0,
-                    szPropertyName, 1024);
 
                 m_pEditNotify->OnValueChange(szPropertyName,
                     szOldBuffer, szNewBuffer);

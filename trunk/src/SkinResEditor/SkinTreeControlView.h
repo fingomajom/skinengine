@@ -27,6 +27,8 @@ class SkinTreeControlView :
     
     TreeItemData m_lastResult;
 
+    CImageList m_imagelist;
+
 public:
 
     SkinTreeControlView()
@@ -90,6 +92,15 @@ public:
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
         LRESULT lResult = DefWindowProc();
+
+        CBitmap bmp;
+
+        bmp.LoadBitmap(IDB_RESTYPE_BITMAP);
+
+        m_imagelist.Create(16, 16, ILC_COLOR24 | ILC_MASK, 3, 1);
+        m_imagelist.Add(bmp, RGB(255, 0, 255));
+
+        SetImageList(m_imagelist);
 
 
         return lResult;
