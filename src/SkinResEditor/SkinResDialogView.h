@@ -243,7 +243,7 @@ public:
 
         int nNewItemId = GetNextItemId();
 
-        WndProperty.GetIdName().Format(_T("IDC_%d"), nNewItemId);
+        WndProperty.GetIdName().Format(_T("IDN_%d"), nNewItemId);
 
         WndProperty.SetProperty(_T("IdName"), WndProperty.GetIdName());
         WndProperty.SetProperty(_T("SkinClassName"), szBuffer);
@@ -531,10 +531,19 @@ public:
 
         if ( !_tcscmp(pszPropertyName, _T("IdName") ) )
         {
-            if (pszNewValue[0] >= '0' && pszNewValue[0] <= '9') // 不合法的项名
+            if ( _tcslen(pszNewValue) <= _tcslen(_T("IDN_")) ||
+                 _tcsncmp(pszNewValue, _T("IDN_"), _tcslen(_T("IDN_")) ) ) // 不合法的项名
             {
                 ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
                     pszOldValue);
+
+                KSG::CString strMsg;
+
+                strMsg.Format(
+                    _T("[%s]不是合法的项名\n必顺以 IDN_ 开头的字符串。"),
+                    pszNewValue);
+
+                MessageBox(strMsg, _T("错误"));
 
                 return;
             }
@@ -548,6 +557,14 @@ public:
                     {
                         ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
                             pszOldValue);
+
+                        KSG::CString strMsg;
+
+                        strMsg.Format(
+                            _T("[%s]项名已存在。请输入其它的名称。"),
+                            pszNewValue);
+
+                        MessageBox(strMsg, _T("错误"));
 
                         return;
                     }

@@ -220,8 +220,19 @@ public:
 
             if ( m_neditsubitem == 1 )
             {
-                if (szNewBuffer[0] >= '0' && szNewBuffer[0] <= '9') // 不合法的项名
+                if ( _tcslen(szNewBuffer) <= _tcslen(_T("IDS_")) ||
+                    _tcsncmp(szNewBuffer, _T("IDS_"), _tcslen(_T("IDS_")) ) ) // 不合法的项名
+                {
+                    KSG::CString strMsg;
+
+                    strMsg.Format(
+                        _T("[%s]不是合法的项名\n必顺以 IDS_ 开头的字符串。"),
+                        szNewBuffer);
+
+                    MessageBox(strMsg, _T("错误"));
+
                     return TRUE;
+                }
 
 
                 if ( FindSameKeyItem(szNewBuffer, m_neditindex) >= 0)

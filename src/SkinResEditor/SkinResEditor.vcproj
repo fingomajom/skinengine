@@ -231,6 +231,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\COutputSetDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MainFrm.h"
 				>
 			</File>
@@ -442,5 +446,9 @@
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="SkinResEditor.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

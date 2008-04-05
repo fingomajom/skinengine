@@ -250,12 +250,38 @@ public:
         {
             if (m_neditindex >= 0)
             {
-                if (pszNewValue[0] >= '0' && pszNewValue[0] <= '9') // 不合法的项名
+                if ( _tcslen(pszNewValue) <= _tcslen(_T("ID")) ||
+                    _tcsncmp(pszNewValue, _T("ID"), _tcslen(_T("ID")) ) ) // 不合法的项名
                 {
                     ControlsMgt.m_skinResPropertyView.SetProperty(_T("ID"),
                         pszOldValue);
 
+                    KSG::CString strMsg;
+
+                    strMsg.Format(
+                        _T("[%s]不是合法的项名\n必顺以 ID 开头的字符串。"),
+                        pszNewValue);
+
+                    MessageBox(strMsg, _T("错误"));
+
+
                     return;
+                }
+
+                for (size_t i = 0; i < m_vtItems.size(); i++)
+                {
+                    if ( !m_vtItems[i].strIDName.CollateNoCase( pszNewValue ) )
+                    {
+                        KSG::CString strMsg;
+
+                        strMsg.Format(
+                            _T("[%s]项名已存在。请输入其它的名称。"),
+                            pszNewValue);
+
+                        MessageBox(strMsg, _T("错误"));
+
+                        return;
+                    }
                 }
 
                 m_vtItems[m_neditindex].strIDName = pszNewValue;
