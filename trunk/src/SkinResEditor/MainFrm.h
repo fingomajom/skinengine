@@ -11,6 +11,7 @@
 #include "SkinResImageListView.h"
 #include "SkinResEditView.h"
 #include "SkinResDialogListView.h"
+#include "COutputSetDlg.h"
 
 #define IDC_TREE_VIEW       1000
 #define IDC_LIST_VIEW       1001
@@ -135,7 +136,9 @@ public:
         /************************************************************************/
 
         
-        CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
+        COMMAND_ID_HANDLER(ID_BUILD_OUT, OnBuildOut)
+            COMMAND_ID_HANDLER(ID_BUILD_SETTING, OnBuildSetting)
+            CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 
 	END_MSG_MAP()
@@ -452,4 +455,19 @@ public:
         return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
     }
 
+    LRESULT OnBuildOut(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+
+        return 0;
+    }
+
+    LRESULT OnBuildSetting(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+            
+        COutputSetDlg dlg;
+
+        dlg.DoModal();
+
+        return 0;
+    }
 };

@@ -8,8 +8,8 @@
 #define IDD_EDITDLGLIST_DIALOG          202
 #define IDD_EDITDLG_DIALOG1             203
 #define IDD_EDITDLG_DIALOG              203
-#define IDB_BITMAP1                     203
 #define IDB_RESTYPE_BITMAP              203
+#define IDD_OUTPUTSET_DIALOG            204
 #define IDC_LIST1                       1000
 #define IDC_IMAGE_LIST                  1001
 #define IDC_COMBO1                      1002
@@ -22,14 +22,18 @@
 #define IDC_DIALOG_LIST                 1007
 #define IDC_WND_TREE                    1008
 #define IDC_REVIEW_STATIC               1009
+#define IDC_BUTTON1                     1010
+#define ID_OUT_SETTING                  32773
+#define ID_BUILD_OUT                    32774
+#define ID_BUILD_SETTING                32775
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        204
-#define _APS_NEXT_COMMAND_VALUE         32772
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_RESOURCE_VALUE        205
+#define _APS_NEXT_COMMAND_VALUE         32776
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
