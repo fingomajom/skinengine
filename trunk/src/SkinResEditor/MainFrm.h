@@ -12,6 +12,7 @@
 #include "SkinResEditView.h"
 #include "SkinResDialogListView.h"
 #include "COutputSetDlg.h"
+#include "OutputHeaderFileMgt.h"
 
 #define IDC_TREE_VIEW       1000
 #define IDC_LIST_VIEW       1001
@@ -457,6 +458,9 @@ public:
 
     LRESULT OnBuildOut(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
+        OutputHeaderFileMgt out;
+
+        out.OutputHeadFile();
 
         return 0;
     }

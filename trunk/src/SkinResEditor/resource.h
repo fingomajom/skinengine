@@ -16,6 +16,7 @@
 #define IDC_COMBO                       1002
 #define IDC_EDIT1                       1003
 #define IDC_EDIT                        1003
+#define IDC_HF_EDIT                     1003
 #define IDC_ADD                         1004
 #define IDC_DELETE                      1005
 #define IDC_MODIFY                      1006
@@ -23,7 +24,8 @@
 #define IDC_WND_TREE                    1008
 #define IDC_REVIEW_STATIC               1009
 #define IDC_BUTTON1                     1010
-#define ID_OUT_SETTING                  32773
+#define IDC_SF_BUTTON1                  1010
+#define IDC_RF_EDIT                     1011
 #define ID_BUILD_OUT                    32774
 #define ID_BUILD_SETTING                32775
 
@@ -33,7 +35,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        205
 #define _APS_NEXT_COMMAND_VALUE         32776
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

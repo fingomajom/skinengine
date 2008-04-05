@@ -272,6 +272,10 @@
 			Name="Document"
 			>
 			<File
+				RelativePath=".\OutputHeaderFileMgt.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SkinDialogListResDoc.h"
 				>
 			</File>
@@ -289,6 +293,10 @@
 			</File>
 			<File
 				RelativePath=".\SkinStrResDoc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SREConfigMgt.h"
 				>
 			</File>
 		</Filter>
