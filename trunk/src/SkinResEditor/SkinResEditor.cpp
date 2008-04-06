@@ -25,7 +25,10 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	CMainFrame wndMain;
 
-	if(wndMain.CreateEx(NULL, 0, 0, WS_EX_CONTROLPARENT) == NULL)
+    if(wndMain.CreateEx(NULL, 
+        0, 
+        ATL::CFrameWinTraits::GetWndStyle(0) |  WS_MAXIMIZE , 
+        WS_EX_CONTROLPARENT) == NULL)
 	{
 		ATLTRACE(_T("Main window creation failed!\n"));
 		return 0;
