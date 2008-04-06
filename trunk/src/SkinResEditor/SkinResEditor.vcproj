@@ -151,7 +151,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
+				Culture="0"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
@@ -321,6 +321,10 @@
 			</File>
 			<File
 				RelativePath="..\..\publish\skindialog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skindirectui.h"
 				>
 			</File>
 			<File

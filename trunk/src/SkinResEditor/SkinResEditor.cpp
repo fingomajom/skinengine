@@ -14,6 +14,8 @@
 #include "MainFrm.h"
 
 
+std::map<KSG::CString, KSG::CString> SkinResDialogView::m_mapUsedIdName;
+
 KSG::CSkinAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)

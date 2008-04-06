@@ -20,9 +20,9 @@ class SkinImageResDoc : public KSG::skinimageres
 public:
 
     SkinImageResDoc() 
-        : skinimageres(new KSG::skinconfig())
+        : skinimageres(NULL)
     {
-
+        skinimageres::m_pskinconfig = &m_config;
     }
 
     typedef struct _ImageItemInfo 
@@ -118,5 +118,6 @@ public:
 
     std::vector<SkinImageResDoc::IMAGE_ITEMINFO> m_vtItemList;
 
+    KSG::skinconfig m_config;
 };
 

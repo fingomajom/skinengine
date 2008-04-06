@@ -71,7 +71,7 @@ public:
 
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
-        ControlsMgt.m_skinTreeControlView.CTreeViewCtrl::DeleteAllItems();
+        ControlsMgt.m_skinTreeControlView.DeleteAllItems();
 
 
         ControlsMgt.m_skinTreeControlView.InsertControlItem(

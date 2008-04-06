@@ -151,7 +151,7 @@ private:
             { _T("Height")       , _T("20")         , SkinPropertyView::it_number},
             { _T("TextColor")    , _T("0x00000000") , SkinPropertyView::it_color},
             { _T("BkColor")      , _T("0x00ffffff") , SkinPropertyView::it_color},
-            { _T("Font")         , _T("ËÎÌו,GB2312_CHARSET,-12,1,400,0"), SkinPropertyView::it_font }
+            { _T("Font")         , _T("ËÎÌו,GB2312_CHARSET,-12,0,400,0"), SkinPropertyView::it_font }
         };
         
         pItemList = DefPropertyList;
@@ -173,8 +173,8 @@ private:
 
         static WndClassDefInfo WndClassDefInfoyList[] = 
         {
-            { skinxmlstatic::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE, 0 },
-            { skinxmlpicture::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE, 0 },
+            { skinxmlstatic::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | SS_LEFT | SS_NOPREFIX, 0 },
+            { skinxmlpicture::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE | SS_BITMAP, 0 },
 
             { skinxmlgroupbox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 0 },
             { skinxmlbutton::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 0 },

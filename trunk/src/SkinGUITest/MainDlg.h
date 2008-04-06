@@ -25,7 +25,7 @@ public:
 		return FALSE;
 	}
 
-    DEFINE_DLGXMLRES_NAME(_T("IDS_TEST"));
+    DEFINE_DLGXMLRES_NAME(_T("IDD_TEST"));
 
 	BEGIN_UPDATE_UI_MAP(CMainDlg)
 	END_UPDATE_UI_MAP()
@@ -67,7 +67,7 @@ public:
 
         strtext.LoadString(_T("IDS_ABC11"));
 
-        SetDlgItemText(IDC_TEST_STATIC, strtext);
+        //SetDlgItemText(IDC_TEST_STATIC, strtext);
 
         CComboBox box = GetDlgItem(1000);
         if (box.m_hWnd != NULL)
@@ -81,6 +81,7 @@ public:
                 box.AddString(strMsg);
             }
         }
+
 
 		return TRUE;
 	}

@@ -200,8 +200,17 @@ public:
     
     BEGIN_MSG_MAP(SkinDialgPreviewWindow)
         //MESSAGE_HANDLER(WM_PAINT, OnPaint)
+        MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
         MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
     END_MSG_MAP()
+
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        if (m_wndSelectFlag.IsWindow())
+            m_wndSelectFlag.DestroyWindow();
+
+        return DefWindowProc();
+    }
 
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
@@ -400,7 +409,8 @@ public:
     {
         m_strSelIdName = _T("");
 
-        m_wndSelectFlag.ShowWindow(SW_HIDE);
+        if (m_wndSelectFlag.IsWindow())
+            m_wndSelectFlag.ShowWindow(SW_HIDE);
 
         //Invalidate();
 

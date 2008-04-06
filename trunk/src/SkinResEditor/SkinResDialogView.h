@@ -43,10 +43,16 @@ public:
 
     CImageList m_imagelist;
 
+    static std::map<KSG::CString, KSG::CString> m_mapUsedIdName;
+
     SkinDialogRes& GetResDialog()
     {
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
-
+        
+        static SkinDialogRes null;
+        
+        if (m_ndialogindex < 0 || m_ndialogindex >= (int)ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList.size())
+            return null;
 
         return ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList[m_ndialogindex];
     }
@@ -56,6 +62,12 @@ public:
         : m_ndialogindex(ndialogindex), m_hTreeItem(NULL)
     {
         m_nNewItemId = em_itemid_begin;
+    }
+
+    ~SkinResDialogView()
+    {
+        if (m_wndPreView.IsWindow())
+            m_wndPreView.DestroyWindow();
     }
 
 public:
@@ -83,6 +95,7 @@ public:
             dialogRes.m_dlgWndProperty.SetProperty(_T("IdName"), dialogRes.m_dlgWndProperty.GetIdName());
             dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("200"));
             dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("150"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Font"),   _T("ËÎÌו,GB2312_CHARSET,9,1,400,0"));
 
         }
 
@@ -96,6 +109,27 @@ public:
                 3, 3, m_wndTree.GetRootItem(), TVI_LAST);
 
             m_wndTree.SetItemData(hInsertItem, i);
+
+            //////////////////////////////////////////////////////////////////////////
+            
+            KSG::CString strItemId;
+
+            if (!dialogRes.m_vtChildWndList[i].GetProperty(_T("ItemId"), strItemId))
+                continue;
+
+            std::map<KSG::CString, KSG::CString>::const_iterator iter =
+                m_mapUsedIdName.find(dialogRes.m_vtChildWndList[i].GetIdName());
+
+            if (iter == m_mapUsedIdName.end())
+            {
+                m_mapUsedIdName[dialogRes.m_vtChildWndList[i].GetIdName()] = strItemId;
+            }
+            else if (strItemId != iter->second)
+            {
+                // error
+            }
+
+            //////////////////////////////////////////////////////////////////////////
         }
 
         std::vector<KSG::CString> vtClassName;
@@ -126,6 +160,7 @@ public:
 
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
+        m_wndTree.SelectItem(m_wndTree.GetRootItem());
     }
 
     virtual void HideResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -178,10 +213,12 @@ public:
 
         KSG::CString strItemIdNew;
         KSG::CString strItemId;
+        KSG::CString strIDName;
 
         for ( ; true; m_nNewItemId++ )
         {
-            strItemIdNew.Format(_T("%d"), m_nNewItemId);
+            strItemIdNew.Format(_T("%d") , m_nNewItemId);
+            strIDName.Format(_T("IDN_%d"), m_nNewItemId);
                         
             BOOL bUsed = FALSE;
 
@@ -191,6 +228,13 @@ public:
                     continue;
                 
                 if (!strItemIdNew.CompareNoCase(strItemId))
+                {
+                    bUsed = TRUE;
+
+                    break;
+                }
+
+                if (!strIDName.CompareNoCase(vtChildWndList[i].GetIdName()))
                 {
                     bUsed = TRUE;
 
@@ -243,11 +287,30 @@ public:
 
         int nNewItemId = GetNextItemId();
 
+        KSG::CString strItemId;
+
+        strItemId.Format(_T("%d"), nNewItemId);
+
         WndProperty.GetIdName().Format(_T("IDN_%d"), nNewItemId);
+
+        //////////////////////////////////////////////////////////////////////////
+        std::map<KSG::CString, KSG::CString>::const_iterator iter =
+            m_mapUsedIdName.find(WndProperty.GetIdName());
+
+        if (iter != m_mapUsedIdName.end())
+        {
+            strItemId = iter->second;
+        }
+        else
+        {
+            m_mapUsedIdName[WndProperty.GetIdName()] = strItemId;
+        }
+        //////////////////////////////////////////////////////////////////////////
 
         WndProperty.SetProperty(_T("IdName"), WndProperty.GetIdName());
         WndProperty.SetProperty(_T("SkinClassName"), szBuffer);
-        WndProperty.SetProperty(_T("ItemId"), nNewItemId);
+        WndProperty.SetProperty(_T("ItemId"), strItemId);
+
 
         KSG::CString strStyle;
         KSG::CString strExStyle;
@@ -290,6 +353,8 @@ public:
 
     LRESULT OnDel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
         HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
 
         if (hTreeItem == m_wndTree.GetRootItem())
@@ -304,9 +369,15 @@ public:
             ATLASSERT((size_t)nindex < dialogRes.m_vtChildWndList.size());
 
             m_wndPreView.DelSkinWindow(dialogRes.m_vtChildWndList[nindex]) ;
+            
+            KSG::CString strIdName = dialogRes.m_vtChildWndList[nindex].GetIdName();
 
             dialogRes.m_vtChildWndList.erase(
                 dialogRes.m_vtChildWndList.begin() + nindex);
+
+            if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(strIdName))
+                m_mapUsedIdName.erase(strIdName);
+
 
             m_wndTree.DeleteItem(hTreeItem);
 
@@ -370,11 +441,17 @@ public:
             {
                 int ntype = SkinResWndDefProperty::GetResWndPropertyEditType((*pPropertyList)[i].strProperty);
 
-                if (m_hLastSelItem == m_wndTree.GetRootItem() &&
-                    !_tcscmp((*pPropertyList)[i].strProperty, _T("IdName")))
+                if (m_hLastSelItem == m_wndTree.GetRootItem())
                 {
-                    ntype = SkinPropertyView::it_readonly;
-                }
+                    if (!_tcscmp((*pPropertyList)[i].strProperty, _T("IdName")))
+                    {
+                        ntype = SkinPropertyView::it_readonly;
+                    }
+                    else if (!_tcscmp((*pPropertyList)[i].strProperty, _T("Font")))
+                    {
+                        ntype = SkinPropertyView::it_button;
+                    }
+               }
 
                 ControlsMgt.m_skinResPropertyView.AppendProperty( 
                     (*pPropertyList)[i].strProperty, 
@@ -571,6 +648,7 @@ public:
                 }
 
                 m_wndPreView.DelSkinWindow( WndPropertyList );
+
             }
 
             m_wndTree.SetItemText( m_wndTree.GetSelectedItem(), pszNewValue);
@@ -579,10 +657,42 @@ public:
             WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
 
             if (&WndPropertyList != &dialogRes.m_dlgWndProperty)
+            {
                 m_wndPreView.AddSkinWindow(WndPropertyList);
 
+                //////////////////////////////////////////////////////////////////////////
+
+                std::map<KSG::CString, KSG::CString>::const_iterator iter =
+                    m_mapUsedIdName.find(WndPropertyList.GetIdName());
+
+                if (iter != m_mapUsedIdName.end())
+                {
+                    WndPropertyList.SetProperty( _T("ItemId"), iter->second );
+
+                    ControlsMgt.m_skinResPropertyView.SetProperty(_T("ItemId"),
+                        iter->second);
+                }
+                else
+                {
+                    KSG::CString strItemId;
+
+                    WndPropertyList.GetProperty(_T("ItemId"), strItemId);
+                    
+                    m_mapUsedIdName[WndPropertyList.GetIdName()] = strItemId;
+                }
+
+                if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(pszOldValue))
+                    m_mapUsedIdName.erase(pszOldValue);
+                //////////////////////////////////////////////////////////////////////////
+           }
+
             return;
+        } 
+        else if ( !_tcscmp(pszPropertyName, _T("ItemId") ) )
+        {
+            m_mapUsedIdName[WndPropertyList.GetIdName()] = pszNewValue;
         }
+
 
         WndPropertyList.SetProperty( pszPropertyName, pszNewValue );
         
@@ -593,6 +703,50 @@ public:
 
     void OnButtonClieck(LPCTSTR pszPropertyName)
     {
+
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
+
+        if (hTreeItem != m_wndTree.GetRootItem())
+            return;
+
+
+        if ( !_tcscmp(pszPropertyName, _T("Font")) )
+        {
+            KSG::CString strOldFont;
+            TCHAR szNewBuffer[1024] = { 0 };
+            
+            GetResDialog().m_dlgWndProperty.GetProperty(_T("Font"), strOldFont);
+
+            LOGFONT logFont = { 0 };
+
+            KSG::skinxmlfont xmlfont;
+
+            (KSG::CString&)xmlfont = (strOldFont);
+
+            xmlfont >> logFont;
+
+            CFontDialog fontdlg(&logFont);
+
+            if (fontdlg.DoModal() != IDOK)
+                return ;
+
+            logFont.lfHeight = fontdlg.GetSize() / 10;
+
+            xmlfont << logFont;
+
+            if (!_tcscmp(strOldFont, xmlfont))
+                return ;
+
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("Font"),
+                xmlfont);
+
+            OnValueChange(pszPropertyName,
+                strOldFont, xmlfont);
+
+            return ;
+        }
 
     }
 };
