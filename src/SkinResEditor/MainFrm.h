@@ -115,6 +115,8 @@ public:
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
         MESSAGE_HANDLER(WM_CLOSE , OnClose)
 
+        //MESSAGE_HANDLER(WM_SHOWWINDOW, OnShowWindow)
+
 		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
         COMMAND_ID_HANDLER(ID_FILE_NEW, OnFileNew)
         COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
@@ -148,6 +150,14 @@ public:
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 //	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+
+    LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        if ( wParam == TRUE && lParam == 0)
+            ShowWindow(SW_MAXIMIZE);
+
+        return DefWindowProc();
+    }
 
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{

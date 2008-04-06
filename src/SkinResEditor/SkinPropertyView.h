@@ -180,7 +180,7 @@ public:
         SetImageList( m_imagelist, LVSIL_SMALL );
 
         InsertColumn( 0, _T("Property"), LVCFMT_LEFT, 100 );
-        InsertColumn( 1, _T("Value"), LVCFMT_LEFT, 100 );
+        InsertColumn( 1, _T("Value"), LVCFMT_LEFT, 130 );
 
         m_edit.Create(m_hWnd, 
             rcDefault, 
