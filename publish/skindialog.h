@@ -345,7 +345,7 @@ public:
     DWORD GetStyle( DWORD dwStyle )
     {
         if (dwStyle == 0)
-            dwStyle =  DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU;
+            dwStyle =  DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE;
 
         return dwStyle;
     }

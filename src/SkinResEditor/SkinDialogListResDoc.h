@@ -257,6 +257,16 @@ public:
         return bResult;
     }
 
+    BOOL IsChildIdNameExists( LPCTSTR pszIdName )
+    {
+        for (size_t i = 0; i < m_vtChildWndList.size(); i++)
+        {
+            if (!m_vtChildWndList[i].GetIdName().CompareNoCase(pszIdName))
+                return TRUE;
+        }
+
+        return FALSE;
+    }
 
 public:
 
@@ -350,6 +360,152 @@ public:
         bResult = TRUE;
 
         return bResult;
+    }
+
+    BOOL IsChildIdNameExists( LPCTSTR pszIdName )
+    {
+        for (size_t i = 0; i < m_vtDialogList.size(); i++)
+        {
+            if (m_vtDialogList[i].IsChildIdNameExists(pszIdName))
+                return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    BOOL CheckValid( BOOL bShowErrorMsg = TRUE )
+    {
+        typedef struct {
+            KSG::CString strItemId;
+            KSG::CString strDialogName;
+        } Valid_Info;
+        
+        std::map<KSG::CString, Valid_Info> mapIdName;
+        std::map<KSG::CString, BOOL> mapDlgName;
+        
+        for (size_t idx = 0; idx < m_vtDialogList.size(); idx++)
+        {
+            std::vector<SkinWndPropertyList>& vtChildWndList = m_vtDialogList[idx].m_vtChildWndList;
+
+            KSG::CString strDialogName = m_vtDialogList[idx].m_dlgWndProperty.GetIdName();
+
+            std::map<KSG::CString, BOOL>::const_iterator iter_dlgName =
+                mapDlgName.find(strDialogName);
+            if ( iter_dlgName == mapDlgName.end() )
+            {
+                mapDlgName[strDialogName] = TRUE;
+            }
+            else if (bShowErrorMsg)
+            {
+                // error 出现重复的IDD 对话框名
+
+                KSG::CString strMsg;
+
+                strMsg.Format(_T("对话框[%s]重名。请检查"), strDialogName);
+
+                MessageBox(GetActiveWindow(), strMsg, _T("错误"), MB_ICONQUESTION | MB_OK);
+
+                return FALSE;
+            }
+
+
+            std::map<KSG::CString, BOOL> mapIdNameExists;
+            std::map<KSG::CString, KSG::CString> mapItemIdExists;
+
+            for (size_t idv = 0; idv < vtChildWndList.size(); idv++)
+            {
+                KSG::CString strIdName;
+                KSG::CString strItemId;
+
+                strIdName = vtChildWndList[idv].GetIdName();
+
+                if ( _tcslen(strIdName) <= _tcslen(_T("IDN_")) ||
+                    _tcsncmp(strIdName, _T("IDN_"), _tcslen(_T("IDN_")) ) ) // 不合法的项名
+                {
+                    KSG::CString strMsg;
+
+                    strMsg.Format(
+                        _T("对话框[%s]中控件名[%s]不合法，\n控件名必顺以 IDN_ 开头的字符串。"),
+                        strDialogName, strIdName);
+
+                    MessageBox(GetActiveWindow(), strMsg, _T("错误"), MB_ICONQUESTION | MB_OK);
+
+                    return FALSE;
+                }
+
+                
+                std::map<KSG::CString, BOOL>::const_iterator iter_IdName =
+                    mapIdNameExists.find(strIdName);
+                if ( iter_IdName == mapIdNameExists.end() )
+                {
+                    mapIdNameExists[strIdName] = TRUE;
+                }
+                else if (bShowErrorMsg)
+                {
+                    // error  同一个对话框中出现相同的 控件名
+
+                    KSG::CString strMsg;
+
+                    strMsg.Format(_T("对话框[%s]中。出现相同的控件名[%s]"), strDialogName, strIdName);
+
+                    MessageBox(GetActiveWindow(), strMsg, _T("错误"), MB_ICONQUESTION | MB_OK);
+
+                    return FALSE;
+                }
+
+
+                if (!vtChildWndList[idv].GetProperty(_T("ItemId"), strItemId))
+                    continue;
+
+                std::map<KSG::CString, KSG::CString>::const_iterator iter_ItemId =
+                    mapItemIdExists.find(strItemId);
+                if ( iter_ItemId == mapItemIdExists.end() )
+                {
+                    mapItemIdExists[strItemId] = strIdName;
+                }
+                else if (bShowErrorMsg)
+                {                    
+                    // error 同一个对话框中出现相同的 ID 名
+
+                    KSG::CString strMsg;
+
+                    strMsg.Format(_T("对话框[%s]中。控件[%s]与控件[%s]有相同的ItemId=[%s]"), 
+                        strDialogName, iter_ItemId->second , strIdName , strItemId);
+
+                    MessageBox(GetActiveWindow(), strMsg, _T("错误"), MB_ICONQUESTION | MB_OK);
+
+                    return FALSE;
+                }
+
+                std::map<KSG::CString, Valid_Info>::const_iterator iter_vaildinfo =
+                    mapIdName.find(strIdName);
+
+                if ( iter_vaildinfo == mapIdName.end() )
+                {
+                    Valid_Info info;
+
+                    info.strDialogName = strDialogName;
+                    info.strItemId     = strItemId;
+
+                    mapIdName[strIdName] = info;
+                }
+                else if (bShowErrorMsg && strItemId != iter_vaildinfo->second.strItemId)
+                {
+                    // error 不同对话框间出现相同IDName但是ItemId不同
+
+                    KSG::CString strMsg;
+
+                    strMsg.Format(_T("对话框[%s]中的控件[%s]与\n对话框[%s]中的控件[%s]\n控件名相同但是ItemId不相同[%s!=%s]。"), 
+                        strDialogName, strIdName , iter_vaildinfo->second.strDialogName, strIdName, strItemId, iter_vaildinfo->second.strItemId);
+
+                    MessageBox(GetActiveWindow(), strMsg, _T("错误"), MB_ICONQUESTION | MB_OK);
+
+                    return FALSE;
+                }
+            }
+        }
+
+        return TRUE;
     }
 
 public:

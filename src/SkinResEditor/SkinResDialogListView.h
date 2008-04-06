@@ -18,6 +18,35 @@ class SkinResDialogListView :
 {
 public:
 
+    SkinResDialogListView()
+    {
+
+    }
+
+    ~SkinResDialogListView()
+    {
+        FreeViews();
+    }
+
+    void FreeViews()
+    {
+        for (size_t i = 0; i < m_vtViews.size(); i++)
+        {
+            SkinResDialogView* pResDialogView =  m_vtViews[i];
+            
+            ATLASSERT(pResDialogView != NULL);
+            if (pResDialogView == NULL)
+                continue;
+
+            if (pResDialogView->IsWindow())
+                pResDialogView->DestroyWindow();
+
+            delete pResDialogView;
+        }
+
+        m_vtViews.clear();
+    }
+
     virtual void InitResult(HTREEITEM hTreeItem)
     {
         m_hTreeItem = hTreeItem;
@@ -34,7 +63,11 @@ public:
             m_wndListBox.DeleteString(0);
         }
 
+        FreeViews();
+
         m_wndEdit.SetWindowText(_T(""));
+
+        SkinResDialogView::m_mapUsedIdName.clear();
 
         std::vector<SkinDialogRes>& vtList =
             ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;
@@ -52,6 +85,7 @@ public:
                 m_hTreeItem,
                 vtList[i].m_dlgWndProperty.GetIdName(), 2, pResDialogView, 0);
 
+            m_vtViews.push_back(pResDialogView);
         }
 
     }
@@ -79,8 +113,9 @@ public:
     CButton  m_wndDelBtn;
     CButton  m_wndMotifyBtn;
 
-
     HTREEITEM m_hTreeItem;
+
+    std::vector<SkinResDialogView*> m_vtViews;
 
     BEGIN_MSG_MAP(SkinResDialogListView)
 
@@ -98,6 +133,12 @@ public:
     LRESULT OnSelChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
         int index = m_wndListBox.GetCurSel();
+
+        WTL::CString strText;
+
+        m_wndListBox.GetText(index, strText);
+
+        m_wndEdit.SetWindowText(strText);
 
         return TRUE;
     }
@@ -123,8 +164,17 @@ public:
 
         m_wndEdit.GetWindowText(szBuffer, MAX_PATH);
 
-        if ( (szBuffer[0] >= '0' && szBuffer[0] <= '9' ) || _tcslen(szBuffer) <= 0 ) // 不合法的项名
+        if ( _tcslen(szBuffer) <= _tcslen(_T("IDD_")) ||
+            _tcsncmp(szBuffer, _T("IDD_"), _tcslen(_T("IDD_")) ) ) // 不合法的项名
         {
+            KSG::CString strMsg;
+
+            strMsg.Format(
+                _T("[%s]不是合法的项名\n必顺以 IDD_ 开头的字符串。"),
+                szBuffer);
+
+            MessageBox(strMsg, _T("错误"));
+
             return TRUE;
         }
         
@@ -155,6 +205,8 @@ public:
 
             SkinResDialogView* pResDialogView = 
                 new SkinResDialogView( m_wndListBox.GetCount() - 1 );
+
+            m_vtViews.push_back(pResDialogView);
 
             m_wndListBox.SetItemDataPtr(m_wndListBox.GetCount() - 1, pResDialogView);
 
@@ -211,6 +263,8 @@ public:
                 ATLASSERT(m_wndListBox.GetCount() == vtList.size() - 1);
 
                 vtList.erase(vtList.begin() + nindex);
+                m_vtViews.erase(m_vtViews.begin() + nindex);
+
             }
 
             for (int i = nindex; i < m_wndListBox.GetCount(); i++)
@@ -235,6 +289,20 @@ public:
         TCHAR szBuffer[MAX_PATH] = { 0 };
 
         m_wndEdit.GetWindowText(szBuffer, MAX_PATH);
+
+        if ( _tcslen(szBuffer) <= _tcslen(_T("IDD_")) ||
+            _tcsncmp(szBuffer, _T("IDD_"), _tcslen(_T("IDD_")) ) ) // 不合法的项名
+        {
+            KSG::CString strMsg;
+
+            strMsg.Format(
+                _T("[%s]不是合法的项名\n必顺以 IDD_ 开头的字符串。"),
+                szBuffer);
+
+            MessageBox(strMsg, _T("错误"));
+
+            return TRUE;
+        }
 
         int nindex = m_wndListBox.GetCurSel();
 

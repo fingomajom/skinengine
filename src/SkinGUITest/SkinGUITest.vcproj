@@ -65,7 +65,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="0"
+				Culture="2052"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool

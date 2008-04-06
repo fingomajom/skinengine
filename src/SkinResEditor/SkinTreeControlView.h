@@ -39,6 +39,17 @@ public:
 
 public:
 
+    BOOL DeleteAllItems()
+    {
+        m_lastResult.lParam = 0;
+        m_lastResult.piTreeItemControl = NULL;
+
+        m_mapItemData.clear();
+
+        return CTreeViewCtrl::DeleteAllItems();
+    }
+
+
     virtual HTREEITEM GetRootItem()
     {
         return CTreeViewCtrl::GetRootItem();
@@ -86,6 +97,7 @@ public:
     BEGIN_MSG_MAP(SkinResTreeView)
         MESSAGE_HANDLER(WM_CREATE, OnCreate)
         REFLECTED_NOTIFY_CODE_HANDLER(TVN_SELCHANGED, OnSelChanged)
+        //REFLECTED_NOTIFY_CODE_HANDLER(TVN_DELETEITEM, OnDeleteItem)
     END_MSG_MAP()
 
 
@@ -117,6 +129,8 @@ public:
 
         if (itfind != m_mapItemData.end())
             newResult = itfind->second;
+        else
+            return 0;
 
         if (m_lastResult.piTreeItemControl != NULL)   
         {
@@ -145,7 +159,7 @@ public:
     {
         LPNMTREEVIEW pNMTV = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
         
-        m_mapItemData.erase(pNMTV->itemNew.hItem);
+        m_mapItemData.erase(pNMTV->itemOld.hItem);
 
         return 0;
     }

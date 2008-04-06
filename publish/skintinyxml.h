@@ -336,7 +336,7 @@ public:
 
     bool LoadXML( LPCTSTR xml )
     {
-        CT2AEX<> Value(xml);
+        CT2AEX<> Value(xml, CP_DEFAULT);
 
         m_tixmldoc.Parse(Value.m_psz, 0, SKINXML_DEFAULT_ENCODIN);
 
