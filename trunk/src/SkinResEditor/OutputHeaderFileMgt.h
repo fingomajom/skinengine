@@ -2,7 +2,7 @@
 #pragma once
 
 #include <atlfile.h>
-#include <atltime.h>
+#include <atlcomtime.h>
 
 #define IDS_TEXTFORMAT  _T("_T(\"%s\")")
 
@@ -132,7 +132,7 @@ public:
 
         m_outfile.WriteLine( strOutLine );
 
-        CTime timeCurrent = CTime::GetCurrentTime();
+        COleDateTime timeCurrent = COleDateTime::GetCurrentTime();
 
         strOutLine.Format(_T("// Build Time [%s]"), 
             timeCurrent.Format(_T("%Y-%m-%d %H:%M:%S")));
