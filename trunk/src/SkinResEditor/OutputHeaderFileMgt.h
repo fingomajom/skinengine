@@ -19,7 +19,7 @@ public:
         return (hr == S_OK);
     }
     
-    BOOL WriteLine(const KSG::CString& strLine)
+    BOOL WriteLine(const KSGUI::CString& strLine)
     {
         CT2AEX<> line(strLine);
 
@@ -29,7 +29,7 @@ public:
         return Write("\r\n", 2) == S_OK;
     }
 
-    BOOL WriteText(const KSG::CString& strLine)
+    BOOL WriteText(const KSGUI::CString& strLine)
     {
         CT2AEX<> line(strLine);
 
@@ -58,7 +58,7 @@ public:
     BOOL OutputHeadFile()
     {
         SREConfigMgt config;
-        KSG::CString strHF;
+        KSGUI::CString strHF;
 
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
         if (!config.GetHeaderFileName( ControlsMgt.m_resDocument.GetFileName(),
@@ -78,7 +78,7 @@ public:
 
         if (!m_outfile.CreateFile(strHF))
         {
-            KSG::CString strMsg;
+            KSGUI::CString strMsg;
 
             strMsg.Format(_T("不能创建文件[%s]。\n您是否现在进行重新设置。"), strHF);
 
@@ -121,7 +121,7 @@ public:
         CPath pathFile = ControlsMgt.m_resDocument.GetFileName();
         pathFile.RemoveFileSpec();
 
-        KSG::CString strOutLine;
+        KSGUI::CString strOutLine;
 
         strOutLine = _T("// Build From [");
         strOutLine += ControlsMgt.m_resDocument.GetFileName().Mid(
@@ -217,14 +217,14 @@ public:
         m_outfile.WriteLine(_T("// DialogList define "));
         m_outfile.WriteLine(_T("// "));
 
-        std::map<KSG::CString, BOOL> mapIdName;
-        std::map<KSG::CString, BOOL> mapItemId;
+        std::map<KSGUI::CString, BOOL> mapIdName;
+        std::map<KSGUI::CString, BOOL> mapItemId;
 
         for (size_t i = 0; i < vtDialogList.size(); i++)
         {
             SkinDialogRes& DialogRes = vtDialogList[i];
 
-            KSG::CString strOutLine;
+            KSGUI::CString strOutLine;
 
             strOutLine = _T("// Dialog "); 
             strOutLine += DialogRes.m_dlgWndProperty.GetIdName();
@@ -244,7 +244,7 @@ public:
             {
                 BOOL bComment = FALSE;
 
-                std::map<KSG::CString, BOOL>::const_iterator iter_IdName =
+                std::map<KSGUI::CString, BOOL>::const_iterator iter_IdName =
                     mapIdName.find(DialogRes.m_vtChildWndList[index].GetIdName());
                 if ( iter_IdName == mapIdName.end() )
                 {
@@ -265,15 +265,15 @@ public:
 
             for (size_t index = 0; index < DialogRes.m_vtChildWndList.size(); index++)
             {
-                KSG::CString strItemId;
-                KSG::CString strIdName = DialogRes.m_vtChildWndList[index].GetIdName();
+                KSGUI::CString strItemId;
+                KSGUI::CString strIdName = DialogRes.m_vtChildWndList[index].GetIdName();
                 strIdName.SetAt(2, 'C');
 
                 DialogRes.m_vtChildWndList[index].GetProperty(_T("ItemId"), strItemId);
 
                 BOOL bComment = FALSE;
 
-                std::map<KSG::CString, BOOL>::const_iterator iter_ItemId =
+                std::map<KSGUI::CString, BOOL>::const_iterator iter_ItemId =
                     mapItemId.find(strIdName);
                 if ( iter_ItemId == mapItemId.end() )
                 {
@@ -296,7 +296,7 @@ public:
 
     BOOL OutDialogResDef(SkinDialogRes& DialogRes)
     {
-        KSG::CString strOutLine;
+        KSGUI::CString strOutLine;
 
         strOutLine = _T("// Dialog "); 
         strOutLine += DialogRes.m_dlgWndProperty.GetIdName();
@@ -321,8 +321,8 @@ public:
 
         for (size_t index = 0; index < DialogRes.m_vtChildWndList.size(); index++)
         {
-            KSG::CString strItemId;
-            KSG::CString strIdName = DialogRes.m_vtChildWndList[index].GetIdName();
+            KSGUI::CString strItemId;
+            KSGUI::CString strIdName = DialogRes.m_vtChildWndList[index].GetIdName();
             strIdName.SetAt(2, 'C');
             
             DialogRes.m_vtChildWndList[index].GetProperty(_T("ItemId"), strItemId);
@@ -340,9 +340,9 @@ private:
         em_value_linepos = 35
     };
 
-    KSG::CString GetFormatText(LPCTSTR pszText)
+    KSGUI::CString GetFormatText(LPCTSTR pszText)
     {
-        KSG::CString strResult;
+        KSGUI::CString strResult;
 
         strResult.Format(IDS_TEXTFORMAT, pszText);
 
@@ -351,7 +351,7 @@ private:
 
     BOOL WriteDefineLine(LPCTSTR pszDefName, LPCTSTR pszDefValue, BOOL bComment = FALSE)
     {
-        KSG::CString strOutLine;
+        KSGUI::CString strOutLine;
 
         strOutLine = _T("#define ");
         strOutLine += pszDefName;

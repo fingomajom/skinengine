@@ -11,7 +11,7 @@
 
 #pragma once
 
-namespace KSG{
+namespace KSGUI{
 
 class skinxmlstaticex : public skinxmlwin
 {
@@ -66,7 +66,7 @@ public:
         return _T("skinxmlbmpbtn");
     }
 
-    BOOL GetBmpResName( KSG::CString& strBmpResName)
+    BOOL GetBmpResName( KSGUI::CString& strBmpResName)
     {
         return GetObject(_T("BmpResName"), strBmpResName);
     }

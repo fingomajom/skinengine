@@ -13,7 +13,7 @@
 
 #include "skinres.h"
 
-namespace KSG{
+namespace KSGUI{
 
 class skinresloader
 {
@@ -78,4 +78,4 @@ public:
 
 
 
-} // namespace KSG
+} // namespace KSGUI

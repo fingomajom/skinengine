@@ -13,7 +13,7 @@
 
 #include <atlpath.h>
 
-namespace KSG{
+namespace KSGUI{
 
 class skinconfigbase
 {

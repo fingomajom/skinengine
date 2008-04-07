@@ -15,12 +15,12 @@
 #include <skinconfig.h>
 #include <atlpath.h>
 
-namespace KSG{
+namespace KSGUI{
 
 class skinimageresbase
 {
 public:
-    virtual BOOL    LoadImageFile(LPCTSTR pszIDName, KSG::CString& strFileName) = 0;
+    virtual BOOL    LoadImageFile(LPCTSTR pszIDName, KSGUI::CString& strFileName) = 0;
 
     virtual HBITMAP LoadBitmap(LPCTSTR pszIDName) = 0;
     virtual HCURSOR LoadCursor(LPCTSTR pszIDName) = 0;
@@ -75,7 +75,7 @@ public:
             LR_LOADFROMFILE | LR_DEFAULTCOLOR);
     }
 
-    virtual BOOL LoadImageFile(LPCTSTR pszIDName, KSG::CString& strFileName)
+    virtual BOOL LoadImageFile(LPCTSTR pszIDName, KSGUI::CString& strFileName)
     {
         SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
 
@@ -95,7 +95,7 @@ public:
         if (m_pskinconfig == NULL)
             return NULL;
 
-        KSG::CString strFileName;
+        KSGUI::CString strFileName;
         if (!LoadImageFile(pszIDName, strFileName))
             return NULL;
         

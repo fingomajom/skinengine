@@ -15,7 +15,7 @@
 #include <atlapp.h>
 #include <atlmisc.h>
 
-namespace KSG{
+namespace KSGUI{
 
 class CString : public WTL::CString
 {
@@ -96,8 +96,8 @@ public:
 
 public:
 
-    typedef BOOL(*PFN_LoadString_STR)(LPCTSTR, KSG::CString&);
-    typedef BOOL(*PFN_LoadString_UINT)(UINT, KSG::CString&);
+    typedef BOOL(*PFN_LoadString_STR)(LPCTSTR, KSGUI::CString&);
+    typedef BOOL(*PFN_LoadString_UINT)(UINT, KSGUI::CString&);
     
     static PFN_LoadString_STR& get_pfn_loadstring_str()
     {
@@ -118,4 +118,4 @@ public:
 //_declspec(selectany) CString::PFN_LoadString_UINT CString::s_pfn_loadstring_uint = NULL;
 
 
-} // namespace KSG
+} // namespace KSGUI

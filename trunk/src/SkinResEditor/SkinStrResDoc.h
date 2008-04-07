@@ -11,7 +11,7 @@
 #pragma once
 
 
-class SkinStrResDoc : public KSG::skinstrres
+class SkinStrResDoc : public KSGUI::skinstrres
 {
 public:
 
@@ -25,8 +25,8 @@ public:
 
     typedef struct _StrResItemInfo 
     {
-        KSG::CString strIDName;
-        KSG::CString strValue;
+        KSGUI::CString strIDName;
+        KSGUI::CString strValue;
 
     }STRRESITEMINFO;
 
@@ -39,31 +39,31 @@ public:
         return bResult;
     }
 
-    BOOL OpenResDoc(KSG::SkinXmlDocument& doc)
+    BOOL OpenResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
         NewResDoc();
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
 
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skinstrresbase::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skinstrresbase::GetResKeyName());
 
         if (!strnode.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement node = strnode.FirstChildElement();
+        KSGUI::SkinXmlElement node = strnode.FirstChildElement();
 
         while ( node.IsValid() )
         {
             SkinStrResDoc::STRRESITEMINFO itemInfo;
 
             node.Name(itemInfo.strIDName);
-            node.GetValue(KSG::skinstrresbase::GetValueAttName(), itemInfo.strValue);
+            node.GetValue(KSGUI::skinstrresbase::GetValueAttName(), itemInfo.strValue);
             m_vtItemList.push_back(itemInfo);
 
             node = node.NextSiblingElement();
@@ -74,27 +74,27 @@ public:
         return bResult;
     }
 
-    BOOL SaveResDoc(KSG::SkinXmlDocument& doc)
+    BOOL SaveResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skinstrresbase::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skinstrresbase::GetResKeyName());
 
         if (strnode.IsValid())
         {
             root.RemoveElement(strnode);
         }
 
-        strnode = root.AppendElement(KSG::skinstrresbase::GetResKeyName());
+        strnode = root.AppendElement(KSGUI::skinstrresbase::GetResKeyName());
 
         for (size_t i = 0; i < m_vtItemList.size(); i++)
         {
-            KSG::SkinXmlElement node = strnode.AppendElement(m_vtItemList[i].strIDName);
+            KSGUI::SkinXmlElement node = strnode.AppendElement(m_vtItemList[i].strIDName);
             
             node.SetValue(skinstrresbase::GetValueAttName(), m_vtItemList[i].strValue);
         }

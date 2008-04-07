@@ -31,7 +31,7 @@ public:
         SREConfigMgt config;
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
-        KSG::CString strHF;
+        KSGUI::CString strHF;
 
         config.GetHeaderFileName( ControlsMgt.m_resDocument.GetFileName(),
             strHF);
@@ -48,7 +48,7 @@ public:
 
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
-        KSG::CString strHF;
+        KSGUI::CString strHF;
 
         TCHAR pszBuffer[MAX_PATH] = { 0 };
 

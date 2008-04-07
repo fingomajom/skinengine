@@ -194,7 +194,7 @@ public:
 };
 
 class SkinDialgPreviewWindow : 
-    public KSG::SkinDialogImpl<SkinDialgPreviewWindow>
+    public KSGUI::SkinDialogImpl<SkinDialgPreviewWindow>
 {
 public:
     
@@ -233,10 +233,10 @@ public:
         }
         else
         {
-            std::map<KSG::CString, SkinWindow*>::iterator iter = 
+            std::map<KSGUI::CString, SkinWindow*>::iterator iter = 
                 m_childList.m_mapIDS2Win.begin();
 
-            KSG::SkinWindow* pSkinWindow = NULL;
+            KSGUI::SkinWindow* pSkinWindow = NULL;
 
             for ( ; iter != m_childList.m_mapIDS2Win.end(); iter++)
             {
@@ -316,7 +316,7 @@ public:
         
         SkinXmlDocument doc;
 
-        if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSG />")))
+        if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSGUI />")))
             return NULL;
 
         xmlDlgRes.SaveResDoc(doc.RootElement());
@@ -337,7 +337,7 @@ public:
     {
         SkinXmlDocument doc;
 
-        if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSG />")))
+        if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSGUI />")))
             return NULL;
 
         WndProperty.SaveResDoc(doc.RootElement());
@@ -423,7 +423,7 @@ public:
 
 public:
 
-    KSG::CString m_strSelIdName;
+    KSGUI::CString m_strSelIdName;
 
     HWND m_hWndParent;
 

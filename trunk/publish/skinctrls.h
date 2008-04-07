@@ -20,7 +20,7 @@
 // CSkinStaticT<TBase> - CSkinStatic
 
 
-namespace KSG{
+namespace KSGUI{
 
 //
 //CSkinStatic;
@@ -82,34 +82,34 @@ public:
 };
 
 
-typedef CSkinCtrlsT< CStaticT<KSG::SkinWindow> >    CSkinStatic;
-typedef CSkinCtrlsT< CButtonT<KSG::SkinWindow> >    CSkinButton;
+typedef CSkinCtrlsT< CStaticT<KSGUI::SkinWindow> >    CSkinStatic;
+typedef CSkinCtrlsT< CButtonT<KSGUI::SkinWindow> >    CSkinButton;
 
-typedef CSkinCtrlsT< CListBoxT<KSG::SkinWindow> >   CSkinListBox;
-typedef CSkinCtrlsT< CComboBoxT<KSG::SkinWindow> >  CSkinComboBox;
-typedef CSkinCtrlsT< CEditT<KSG::SkinWindow> >      CSkinEdit;
-typedef CSkinCtrlsT< CScrollBarT<KSG::SkinWindow> > CSkinScrollBar;
+typedef CSkinCtrlsT< CListBoxT<KSGUI::SkinWindow> >   CSkinListBox;
+typedef CSkinCtrlsT< CComboBoxT<KSGUI::SkinWindow> >  CSkinComboBox;
+typedef CSkinCtrlsT< CEditT<KSGUI::SkinWindow> >      CSkinEdit;
+typedef CSkinCtrlsT< CScrollBarT<KSGUI::SkinWindow> > CSkinScrollBar;
 
 
-typedef CSkinCtrlsT< CListViewCtrlT<KSG::SkinWindow> > CSkinListViewCtrl;
-typedef CSkinCtrlsT< CTreeViewCtrlT<KSG::SkinWindow> > CSkinTreeViewCtrl;
+typedef CSkinCtrlsT< CListViewCtrlT<KSGUI::SkinWindow> > CSkinListViewCtrl;
+typedef CSkinCtrlsT< CTreeViewCtrlT<KSGUI::SkinWindow> > CSkinTreeViewCtrl;
 
-typedef CSkinCtrlsT< CTabCtrlT<KSG::SkinWindow> >       CSkinTabCtrl;
-typedef CSkinCtrlsT< CUpDownCtrlT<KSG::SkinWindow> >    CSkinUpDownCtrl;
+typedef CSkinCtrlsT< CTabCtrlT<KSGUI::SkinWindow> >       CSkinTabCtrl;
+typedef CSkinCtrlsT< CUpDownCtrlT<KSGUI::SkinWindow> >    CSkinUpDownCtrl;
 
-typedef CSkinCtrlsT< CProgressBarCtrlT<KSG::SkinWindow> > CSkinProgressBarCtrl;
-typedef CSkinCtrlsT< CHotKeyCtrlT<KSG::SkinWindow> >      CSkinHotKeyCtrl;
-typedef CSkinCtrlsT< CAnimateCtrlT<KSG::SkinWindow> >     CSkinAnimateCtrl;
-typedef CSkinCtrlsT< CRichEditCtrlT<KSG::SkinWindow> >    CSkinRichEditCtrl;
+typedef CSkinCtrlsT< CProgressBarCtrlT<KSGUI::SkinWindow> > CSkinProgressBarCtrl;
+typedef CSkinCtrlsT< CHotKeyCtrlT<KSGUI::SkinWindow> >      CSkinHotKeyCtrl;
+typedef CSkinCtrlsT< CAnimateCtrlT<KSGUI::SkinWindow> >     CSkinAnimateCtrl;
+typedef CSkinCtrlsT< CRichEditCtrlT<KSGUI::SkinWindow> >    CSkinRichEditCtrl;
 
-typedef CSkinCtrlsT< CDateTimePickerCtrlT<KSG::SkinWindow> > CSkinDateTimePickerCtrl;
-typedef CSkinCtrlsT< CMonthCalendarCtrlT<KSG::SkinWindow> >  CSkinMonthCalendarCtrl;
+typedef CSkinCtrlsT< CDateTimePickerCtrlT<KSGUI::SkinWindow> > CSkinDateTimePickerCtrl;
+typedef CSkinCtrlsT< CMonthCalendarCtrlT<KSGUI::SkinWindow> >  CSkinMonthCalendarCtrl;
 
-typedef CSkinCtrlsT< CIPAddressCtrlT<KSG::SkinWindow> >    CSkinIPAddressCtrl;
-typedef CSkinCtrlsT< CTrackBarCtrlT<KSG::SkinWindow> >     CSkinTrackBarCtrl;
+typedef CSkinCtrlsT< CIPAddressCtrlT<KSGUI::SkinWindow> >    CSkinIPAddressCtrl;
+typedef CSkinCtrlsT< CTrackBarCtrlT<KSGUI::SkinWindow> >     CSkinTrackBarCtrl;
 
 
 
 //////////////////////////////////////////////////////////////////////////
 
-}; // namespace KSG
+}; // namespace KSGUI

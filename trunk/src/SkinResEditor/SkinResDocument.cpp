@@ -37,11 +37,11 @@ BOOL SkinResDocument::NewDocument()
     return bResult;
 }
 
-BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
+BOOL SkinResDocument::OpenDocument(const KSGUI::CString& strFileName)
 {
     BOOL bResult = FALSE;
 
-    KSG::SkinXmlDocument doc;
+    KSGUI::SkinXmlDocument doc;
 
     bResult = doc.LoadFile(strFileName);
     if (!bResult)
@@ -60,7 +60,7 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
 
     _Module.init_skin(strFileName.Mid(path.m_strPath.GetLength() ), m_pskinconfig);
 
-    KSG::CString strOnlyFileName = path.FindFileName();
+    KSGUI::CString strOnlyFileName = path.FindFileName();
 
     m_strFileName = strFileName;
     m_bModify     = FALSE;
@@ -68,7 +68,7 @@ BOOL SkinResDocument::OpenDocument(const KSG::CString& strFileName)
     return bResult;
 }
 
-BOOL SkinResDocument::OpenDocument(KSG::SkinXmlDocument& doc)
+BOOL SkinResDocument::OpenDocument(KSGUI::SkinXmlDocument& doc)
 {
     m_resStrDoc.OpenResDoc(doc);
     m_resImageDoc.OpenResDoc(doc);
@@ -78,11 +78,11 @@ BOOL SkinResDocument::OpenDocument(KSG::SkinXmlDocument& doc)
 }
 
 
-BOOL SkinResDocument::SaveDocument(const KSG::CString& strFileName)
+BOOL SkinResDocument::SaveDocument(const KSGUI::CString& strFileName)
 {
     BOOL bResult = FALSE;
 
-    KSG::SkinXmlDocument doc;
+    KSGUI::SkinXmlDocument doc;
     
     bResult = SaveDocument(doc);
     if (!bResult)
@@ -96,11 +96,11 @@ BOOL SkinResDocument::SaveDocument(const KSG::CString& strFileName)
     return bResult;
 }
 
-BOOL SkinResDocument::SaveDocument(KSG::SkinXmlDocument& doc)
+BOOL SkinResDocument::SaveDocument(KSGUI::SkinXmlDocument& doc)
 {
     BOOL bResult = FALSE;
 
-    LPCTSTR pszDefResXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSG></KSG>");
+    LPCTSTR pszDefResXML = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?><KSGUI></KSGUI>");
 
     bResult = doc.LoadXML(pszDefResXML);
     if (!bResult)
@@ -114,7 +114,7 @@ BOOL SkinResDocument::SaveDocument(KSG::SkinXmlDocument& doc)
 }
 
 
-const KSG::CString& SkinResDocument::GetFileName() const
+const KSGUI::CString& SkinResDocument::GetFileName() const
 {
     return m_strFileName;
 }

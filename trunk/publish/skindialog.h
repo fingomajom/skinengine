@@ -17,14 +17,14 @@
 #include "skinwincreator.h"
 
 
-namespace KSG{
+namespace KSGUI{
 
 
-class CSkinDlgChildList : public KSG::skinxmldialog::enumchildwincallback
+class CSkinDlgChildList : public KSGUI::skinxmldialog::enumchildwincallback
 {
 public:
     
-    //KSG::skinxmldialog::enumchildwincallback
+    //KSGUI::skinxmldialog::enumchildwincallback
 
     BOOL onchildwin( skinxmlwin& xmlWin )
     {
@@ -33,12 +33,12 @@ public:
 
     void DestroyChilds()
     {
-        std::map<KSG::CString, SkinWindow*>::iterator iter = 
+        std::map<KSGUI::CString, SkinWindow*>::iterator iter = 
             m_mapIDS2Win.begin();
 
         for ( ; iter != m_mapIDS2Win.end(); iter++)
         {
-            KSG::SkinWindow* pSkinWindow = NULL;
+            KSGUI::SkinWindow* pSkinWindow = NULL;
             
             pSkinWindow = iter->second;
 
@@ -54,12 +54,12 @@ public:
         m_mapIDS2Win.clear();
     }
 
-    KSG::SkinWindow* GetDlgItem(const KSG::CString& strIdName)
+    KSGUI::SkinWindow* GetDlgItem(const KSGUI::CString& strIdName)
     {
-        KSG::SkinWindow* pSkinWindow = NULL;
+        KSGUI::SkinWindow* pSkinWindow = NULL;
         
 
-        std::map<KSG::CString, SkinWindow*>::iterator iter = 
+        std::map<KSGUI::CString, SkinWindow*>::iterator iter = 
             m_mapIDS2Win.find(strIdName);
 
         if (iter != m_mapIDS2Win.end())
@@ -70,14 +70,14 @@ public:
 
     BOOL AddChildWindow( skinxmlwin& xmlWin )
     {
-        KSG::SkinWindow* pSinWindow = NULL;
+        KSGUI::SkinWindow* pSinWindow = NULL;
 
-        pSinWindow = KSG::SkinWindowCreator::Instance().SkinCreate(xmlWin, m_hWndParent);
+        pSinWindow = KSGUI::SkinWindowCreator::Instance().SkinCreate(xmlWin, m_hWndParent);
 
         if (pSinWindow == NULL)
             return FALSE;
 
-        KSG::CString strIdName;
+        KSGUI::CString strIdName;
         DWORD dwId = 0;
 
         HFONT hFont = NULL;
@@ -102,12 +102,12 @@ public:
 
     BOOL DestroyChildWindow( LPCTSTR pszIdName )
     {
-        std::map<KSG::CString, SkinWindow*>::iterator iter = 
+        std::map<KSGUI::CString, SkinWindow*>::iterator iter = 
             m_mapIDS2Win.find(pszIdName);
 
         if (iter != m_mapIDS2Win.end())
         {
-            KSG::SkinWindow* pSkinWindow = NULL;
+            KSGUI::SkinWindow* pSkinWindow = NULL;
 
             pSkinWindow = iter->second;
 
@@ -127,7 +127,7 @@ public:
 
 public:
     
-    std::map<KSG::CString, SkinWindow*> m_mapIDS2Win;
+    std::map<KSGUI::CString, SkinWindow*> m_mapIDS2Win;
 
     HWND m_hWndParent;
 };
@@ -370,7 +370,7 @@ public:
         
         RECT rcClient = rcDefault;
 
-        KSG::CString strCaption;
+        KSGUI::CString strCaption;
 
         xmldialog.GetStyle(dwStyle);
         xmldialog.GetExStyle(dwExStyle);
@@ -488,4 +488,4 @@ public:
     CSkinDlgChildList m_childList;
 };
 
-};// namespace KSG
+};// namespace KSGUI

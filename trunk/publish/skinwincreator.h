@@ -16,7 +16,7 @@
 #include "skinxmlctrls.h"
 #include <skinctrlx.h>
 
-namespace KSG{
+namespace KSGUI{
 
 
 template<class SkinWindowType>
@@ -57,12 +57,12 @@ public:
         SkinWindow * pSkinWindow = NULL;
 
         skinxmlwin   xmlWin(xmlElement);
-        KSG::CString strClassName;
+        KSGUI::CString strClassName;
 
         if (!xmlWin.GetSkinClassName(strClassName))
             return pSkinWindow;
 
-        std::map<KSG::CString, pfnSkinCreateFunc*>::const_iterator iter = 
+        std::map<KSGUI::CString, pfnSkinCreateFunc*>::const_iterator iter = 
             m_mapCreator.find(strClassName);
 
         if (iter == m_mapCreator.end())
@@ -83,7 +83,7 @@ public:
         return g_skinWinCreator;
     }
 
-    void AddSkinCreator( const KSG::CString& strWndClass, 
+    void AddSkinCreator( const KSGUI::CString& strWndClass, 
         pfnSkinCreateFunc* pfnCreator)
     {
         m_mapCreator[strWndClass] = pfnCreator;
@@ -95,80 +95,80 @@ protected:
 
     SkinWindowCreator()
     {
-        AddSkinCreator(KSG::skinxmlstatic::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlstatic::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinStatic>);
-        AddSkinCreator(KSG::skinxmlpicture::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlpicture::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinStatic>);
         
-        AddSkinCreator(KSG::skinxmlgroupbox::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlgroupbox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
-        AddSkinCreator(KSG::skinxmlbutton::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlbutton::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
-        AddSkinCreator(KSG::skinxmlcheckbox::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlcheckbox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
-        AddSkinCreator(KSG::skinxmlradiobox::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlradiobox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
 
 
-        AddSkinCreator(KSG::skinxmlcombobox::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlcombobox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinComboBox>);
 
-        AddSkinCreator(KSG::skinxmllistbox::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmllistbox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinListBox>);
 
-        AddSkinCreator(KSG::skinxmllistctrl::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmllistctrl::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinListViewCtrl>);
 
-        AddSkinCreator(KSG::skinxmltreectrl::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmltreectrl::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinTreeViewCtrl>);
 
-        AddSkinCreator(KSG::skinxmltablectrl::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmltablectrl::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinTabCtrl>);
 
-        AddSkinCreator(KSG::skinxmledit::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmledit::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinEdit>);
 
-        AddSkinCreator(KSG::skinxmlhotkey::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlhotkey::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinHotKeyCtrl>);
 
-        AddSkinCreator(KSG::skinxmlrichedit::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlrichedit::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinRichEditCtrl>);
 
-        AddSkinCreator(KSG::skinxmldatetime::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmldatetime::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinDateTimePickerCtrl>);
 
-        AddSkinCreator(KSG::skinxmlmonthcalendar::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlmonthcalendar::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinMonthCalendarCtrl>);
 
-        AddSkinCreator(KSG::skinxmlhscrollbar::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlhscrollbar::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinScrollBar>);
 
-        AddSkinCreator(KSG::skinxmlvscrollbar::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlvscrollbar::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinScrollBar>);
 
-        AddSkinCreator(KSG::skinxmlslider::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlslider::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinTrackBarCtrl>);
 
-        AddSkinCreator(KSG::skinxmlspin::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlspin::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinUpDownCtrl>);
 
-        AddSkinCreator(KSG::skinxmlprogress::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlprogress::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinProgressBarCtrl>);
-        AddSkinCreator(KSG::skinxmlanimation::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlanimation::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinAnimateCtrl>);
-        AddSkinCreator(KSG::skinxmlipaddress::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlipaddress::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinIPAddressCtrl>);
 
         //////////////////////////////////////////////////////////////////////////
         // ctrlx
-        AddSkinCreator(KSG::skinxmlstaticex::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlstaticex::GetSkinWndClassName(), 
             CSkinStaticEx::SkinCreate_Static);
-        AddSkinCreator(KSG::skinxmlbmpbtn::GetSkinWndClassName(), 
+        AddSkinCreator(KSGUI::skinxmlbmpbtn::GetSkinWndClassName(), 
             CSkinBitmapButton::SkinCreate_Static);
 
     }
 
-    std::map<KSG::CString, pfnSkinCreateFunc*> m_mapCreator;
+    std::map<KSGUI::CString, pfnSkinCreateFunc*> m_mapCreator;
 };
 
 

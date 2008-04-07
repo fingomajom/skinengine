@@ -18,15 +18,15 @@ public:
         m_pathFileName.Append(IDS_CONFIG_FILENAME);
     }
 
-    BOOL GetHeaderFileName(LPCTSTR pszFileName, KSG::CString& strHeaderFile );
-    BOOL SetHeaderFileName(LPCTSTR pszFileName, KSG::CString& strHeaderFile );
+    BOOL GetHeaderFileName(LPCTSTR pszFileName, KSGUI::CString& strHeaderFile );
+    BOOL SetHeaderFileName(LPCTSTR pszFileName, KSGUI::CString& strHeaderFile );
 
 private:
     ATL::CPath m_pathFileName;
 };
 
 
-inline BOOL SREConfigMgt::GetHeaderFileName(LPCTSTR pszFileName, KSG::CString& strHeaderFile )
+inline BOOL SREConfigMgt::GetHeaderFileName(LPCTSTR pszFileName, KSGUI::CString& strHeaderFile )
 {
     SkinXmlDocument doc;
 
@@ -41,7 +41,7 @@ inline BOOL SREConfigMgt::GetHeaderFileName(LPCTSTR pszFileName, KSG::CString& s
     if (!hfconfig.IsValid())
         return FALSE;
 
-    KSG::CString strResFile;
+    KSGUI::CString strResFile;
 
     SkinXmlElement hfitem = hfconfig.FirstChildElement();
     while (hfitem.IsValid())
@@ -63,7 +63,7 @@ inline BOOL SREConfigMgt::GetHeaderFileName(LPCTSTR pszFileName, KSG::CString& s
     return hfitem.GetValue(_T("HeaderFile"), strHeaderFile);
 }
 
-inline BOOL SREConfigMgt::SetHeaderFileName(LPCTSTR pszFileName, KSG::CString& strHeaderFile )
+inline BOOL SREConfigMgt::SetHeaderFileName(LPCTSTR pszFileName, KSGUI::CString& strHeaderFile )
 {
     SkinXmlDocument doc;
 
@@ -84,7 +84,7 @@ inline BOOL SREConfigMgt::SetHeaderFileName(LPCTSTR pszFileName, KSG::CString& s
     if (!hfconfig.IsValid())
         return FALSE;
 
-    KSG::CString strResFile;
+    KSGUI::CString strResFile;
 
     SkinXmlElement hfitem = hfconfig.FirstChildElement();
     while (hfitem.IsValid())

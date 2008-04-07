@@ -14,7 +14,7 @@
 #include <atlgdi.h>
 
 
-namespace KSG{
+namespace KSGUI{
 
 template <bool t_bManaged>
 class CSkinDCT : public CDCT<t_bManaged>
@@ -436,4 +436,4 @@ inline COLORREF HLS_TRANSFORM (COLORREF rgb, int percent_L, int percent_S)
 }
 
 
-} // namespace KSG
+} // namespace KSGUI

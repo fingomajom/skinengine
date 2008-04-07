@@ -13,7 +13,7 @@
 
 #include <map>
 
-namespace KSG{
+namespace KSGUI{
 
 class SkinWindow : public CWindow
 {
@@ -37,7 +37,7 @@ public:
         skinxmlwin xmlWin(xmlElement);
 
         RECT rcClient = rcDefault;
-        KSG::CString strCaption;
+        KSGUI::CString strCaption;
 
         DWORD dwStyle   = 0;
         DWORD dwExStyle = 0;
@@ -68,7 +68,7 @@ public:
     {
         skinxmlwin xmlWin(xmlElement);
 
-        KSG::CString strCaption;
+        KSGUI::CString strCaption;
 
         if (xmlWin.GetCaption(strCaption))
             SetWindowText(strCaption);
@@ -131,4 +131,4 @@ class SkinWindowImpl : public CWindowImpl<T, TBase>
 
 
 
-}; // namespace KSG
+}; // namespace KSGUI

@@ -17,7 +17,7 @@
 #include <skinxmlctrlx.h>
 
 
-namespace KSG{
+namespace KSGUI{
 
 //class CSkinStaticEx;
 
@@ -28,7 +28,7 @@ enum {
     KTLS_USEPARENTBKBRUSH = 1,
 };
 
-template <class T, class TBase = KSG::SkinWindow, class TWinTraits = ATL::CControlWinTraits>
+template <class T, class TBase = KSGUI::SkinWindow, class TWinTraits = ATL::CControlWinTraits>
 class  __declspec(novtable) CSkinStaticExT : 
     public ATL::CWindowImpl< T, TBase, TWinTraits >,
     public WTL::CDoubleBufferImpl<CSkinStaticExT<T> >
@@ -40,7 +40,7 @@ public:
     COLORREF     m_clrBkGnd;
     COLORREF     m_clrTextColor;
     CFont        m_hTextFont;   
-    KSG::CString m_strCaption;
+    KSGUI::CString m_strCaption;
     DWORD        m_uDrawTextFlags;
 
 public:
@@ -322,7 +322,7 @@ public:
 
         skinxmlbmpbtn xmlWin(xmlElement);
         
-        KSG::CString strBmpResName;
+        KSGUI::CString strBmpResName;
         int nBmpResCount = 3;
         
         xmlWin.GetBmpResName(strBmpResName);
