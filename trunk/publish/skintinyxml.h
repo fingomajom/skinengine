@@ -6,11 +6,16 @@
 #include <skinstr.h>
 #include <ostream>
 
+#ifndef KSGUI_NOLINK_TINYXMLLIB
+
 #ifdef _DEBUG
     #pragma comment(lib, "tinyxmld.lib")
 #else
     #pragma comment(lib, "tinyxml.lib")
 #endif
+
+#endif
+
 
 namespace KSGUI{
 
