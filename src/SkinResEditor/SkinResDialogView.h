@@ -43,7 +43,7 @@ public:
 
     CImageList m_imagelist;
 
-    static std::map<KSG::CString, KSG::CString> m_mapUsedIdName;
+    static std::map<KSGUI::CString, KSGUI::CString> m_mapUsedIdName;
 
     SkinDialogRes& GetResDialog()
     {
@@ -90,7 +90,7 @@ public:
         if (dialogRes.m_dlgWndProperty.m_vtPropertyList.size() == 0)
         {
             SkinResWndDefProperty::GetResClassWndDefProperty(
-                KSG::CString(), dialogRes.m_dlgWndProperty);
+                KSGUI::CString(), dialogRes.m_dlgWndProperty);
 
             dialogRes.m_dlgWndProperty.SetProperty(_T("IdName"), dialogRes.m_dlgWndProperty.GetIdName());
             dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("200"));
@@ -112,12 +112,12 @@ public:
 
             //////////////////////////////////////////////////////////////////////////
             
-            KSG::CString strItemId;
+            KSGUI::CString strItemId;
 
             if (!dialogRes.m_vtChildWndList[i].GetProperty(_T("ItemId"), strItemId))
                 continue;
 
-            std::map<KSG::CString, KSG::CString>::const_iterator iter =
+            std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
                 m_mapUsedIdName.find(dialogRes.m_vtChildWndList[i].GetIdName());
 
             if (iter == m_mapUsedIdName.end())
@@ -132,7 +132,7 @@ public:
             //////////////////////////////////////////////////////////////////////////
         }
 
-        std::vector<KSG::CString> vtClassName;
+        std::vector<KSGUI::CString> vtClassName;
 
         SkinResWndDefProperty::GetDefClassNameList(vtClassName);
 
@@ -211,9 +211,9 @@ public:
         
         std::vector<SkinWndPropertyList>& vtChildWndList = dialogRes.m_vtChildWndList;
 
-        KSG::CString strItemIdNew;
-        KSG::CString strItemId;
-        KSG::CString strIDName;
+        KSGUI::CString strItemIdNew;
+        KSGUI::CString strItemId;
+        KSGUI::CString strIDName;
 
         for ( ; true; m_nNewItemId++ )
         {
@@ -287,14 +287,14 @@ public:
 
         int nNewItemId = GetNextItemId();
 
-        KSG::CString strItemId;
+        KSGUI::CString strItemId;
 
         strItemId.Format(_T("%d"), nNewItemId);
 
         WndProperty.GetIdName().Format(_T("IDN_%d"), nNewItemId);
 
         //////////////////////////////////////////////////////////////////////////
-        std::map<KSG::CString, KSG::CString>::const_iterator iter =
+        std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
             m_mapUsedIdName.find(WndProperty.GetIdName());
 
         if (iter != m_mapUsedIdName.end())
@@ -312,8 +312,8 @@ public:
         WndProperty.SetProperty(_T("ItemId"), strItemId);
 
 
-        KSG::CString strStyle;
-        KSG::CString strExStyle;
+        KSGUI::CString strStyle;
+        KSGUI::CString strExStyle;
 
         SkinResWndDefProperty::GetWndStyle(szBuffer, strStyle);
         SkinResWndDefProperty::GetWndExStyle(szBuffer, strExStyle);
@@ -370,7 +370,7 @@ public:
 
             m_wndPreView.DelSkinWindow(dialogRes.m_vtChildWndList[nindex]) ;
             
-            KSG::CString strIdName = dialogRes.m_vtChildWndList[nindex].GetIdName();
+            KSGUI::CString strIdName = dialogRes.m_vtChildWndList[nindex].GetIdName();
 
             dialogRes.m_vtChildWndList.erase(
                 dialogRes.m_vtChildWndList.begin() + nindex);
@@ -426,7 +426,7 @@ public:
                 
                 pPropertyList = &dialogRes.m_vtChildWndList[nindex].m_vtPropertyList;
 
-                KSG::CString strClassName;
+                KSGUI::CString strClassName;
 
                 dialogRes.m_vtChildWndList[nindex].GetProperty(_T("SkinClassName") , strClassName);
 
@@ -614,7 +614,7 @@ public:
                 ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
                     pszOldValue);
 
-                KSG::CString strMsg;
+                KSGUI::CString strMsg;
 
                 strMsg.Format(
                     _T("[%s]不是合法的项名\n必顺以 IDN_ 开头的字符串。"),
@@ -635,7 +635,7 @@ public:
                         ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
                             pszOldValue);
 
-                        KSG::CString strMsg;
+                        KSGUI::CString strMsg;
 
                         strMsg.Format(
                             _T("[%s]项名已存在。请输入其它的名称。"),
@@ -662,7 +662,7 @@ public:
 
                 //////////////////////////////////////////////////////////////////////////
 
-                std::map<KSG::CString, KSG::CString>::const_iterator iter =
+                std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
                     m_mapUsedIdName.find(WndPropertyList.GetIdName());
 
                 if (iter != m_mapUsedIdName.end())
@@ -674,7 +674,7 @@ public:
                 }
                 else
                 {
-                    KSG::CString strItemId;
+                    KSGUI::CString strItemId;
 
                     WndPropertyList.GetProperty(_T("ItemId"), strItemId);
                     
@@ -714,16 +714,16 @@ public:
 
         if ( !_tcscmp(pszPropertyName, _T("Font")) )
         {
-            KSG::CString strOldFont;
+            KSGUI::CString strOldFont;
             TCHAR szNewBuffer[1024] = { 0 };
             
             GetResDialog().m_dlgWndProperty.GetProperty(_T("Font"), strOldFont);
 
             LOGFONT logFont = { 0 };
 
-            KSG::skinxmlfont xmlfont;
+            KSGUI::skinxmlfont xmlfont;
 
-            (KSG::CString&)xmlfont = (strOldFont);
+            (KSGUI::CString&)xmlfont = (strOldFont);
 
             xmlfont >> logFont;
 

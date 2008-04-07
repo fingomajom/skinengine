@@ -15,7 +15,7 @@
 #include <skinimageres.h>
 
 
-class SkinImageResDoc : public KSG::skinimageres
+class SkinImageResDoc : public KSGUI::skinimageres
 {
 public:
 
@@ -27,8 +27,8 @@ public:
 
     typedef struct _ImageItemInfo 
     {
-        KSG::CString strIDName;
-        KSG::CString strFileName;
+        KSGUI::CString strIDName;
+        KSGUI::CString strFileName;
 
     }IMAGE_ITEMINFO;
 
@@ -41,31 +41,31 @@ public:
         return bResult;
     }
 
-    BOOL OpenResDoc(KSG::SkinXmlDocument& doc)
+    BOOL OpenResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
         NewResDoc();
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
 
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skinimageres::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skinimageres::GetResKeyName());
 
         if (!strnode.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement node = strnode.FirstChildElement();
+        KSGUI::SkinXmlElement node = strnode.FirstChildElement();
 
         while ( node.IsValid() )
         {
             SkinImageResDoc::IMAGE_ITEMINFO itemInfo;
 
             node.Name(itemInfo.strIDName);
-            node.GetValue(KSG::skinimageres::GetValueAttName(), itemInfo.strFileName);
+            node.GetValue(KSGUI::skinimageres::GetValueAttName(), itemInfo.strFileName);
             m_vtItemList.push_back(itemInfo);
 
             node = node.NextSiblingElement();
@@ -76,27 +76,27 @@ public:
         return bResult;
     }
 
-    BOOL SaveResDoc(KSG::SkinXmlDocument& doc)
+    BOOL SaveResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skinimageres::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skinimageres::GetResKeyName());
 
         if (strnode.IsValid())
         {
             root.RemoveElement(strnode);
         }
 
-        strnode = root.AppendElement(KSG::skinimageres::GetResKeyName());
+        strnode = root.AppendElement(KSGUI::skinimageres::GetResKeyName());
 
         for (size_t i = 0; i < m_vtItemList.size(); i++)
         {
-            KSG::SkinXmlElement node = strnode.AppendElement(m_vtItemList[i].strIDName);
+            KSGUI::SkinXmlElement node = strnode.AppendElement(m_vtItemList[i].strIDName);
 
             node.SetValue(skinimageres::GetValueAttName(), m_vtItemList[i].strFileName);
         }
@@ -118,6 +118,6 @@ public:
 
     std::vector<SkinImageResDoc::IMAGE_ITEMINFO> m_vtItemList;
 
-    KSG::skinconfig m_config;
+    KSGUI::skinconfig m_config;
 };
 

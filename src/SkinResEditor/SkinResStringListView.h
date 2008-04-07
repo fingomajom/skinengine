@@ -223,7 +223,7 @@ public:
                 if ( _tcslen(szNewBuffer) <= _tcslen(_T("IDS_")) ||
                     _tcsncmp(szNewBuffer, _T("IDS_"), _tcslen(_T("IDS_")) ) ) // 不合法的项名
                 {
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(
                         _T("[%s]不是合法的项名\n必顺以 IDS_ 开头的字符串。"),
@@ -237,7 +237,7 @@ public:
 
                 if ( FindSameKeyItem(szNewBuffer, m_neditindex) >= 0)
                 {
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
                     strMsg.Format(_T("重复的项[%s]"), szNewBuffer);
                     MessageBox(strMsg, _T("错误"), MB_OK);
                     return TRUE;

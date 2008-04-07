@@ -27,12 +27,12 @@ public:
     ~SkinResDocument(void);
 
     BOOL NewDocument();
-    BOOL OpenDocument(const KSG::CString& strFileName);
-    BOOL OpenDocument(KSG::SkinXmlDocument& doc);
-    BOOL SaveDocument(const KSG::CString& strFileName);
-    BOOL SaveDocument(KSG::SkinXmlDocument& doc);
+    BOOL OpenDocument(const KSGUI::CString& strFileName);
+    BOOL OpenDocument(KSGUI::SkinXmlDocument& doc);
+    BOOL SaveDocument(const KSGUI::CString& strFileName);
+    BOOL SaveDocument(KSGUI::SkinXmlDocument& doc);
     
-    const KSG::CString& GetFileName() const;
+    const KSGUI::CString& GetFileName() const;
 
     BOOL Modify() const;
     void Modify(BOOL bModify);
@@ -46,7 +46,7 @@ public:
     skinconfig* m_pskinconfig;
 private:
 
-    KSG::CString m_strFileName;   
+    KSGUI::CString m_strFileName;   
     BOOL m_bModify;
 
 };

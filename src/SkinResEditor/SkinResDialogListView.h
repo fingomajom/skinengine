@@ -167,7 +167,7 @@ public:
         if ( _tcslen(szBuffer) <= _tcslen(_T("IDD_")) ||
             _tcsncmp(szBuffer, _T("IDD_"), _tcslen(_T("IDD_")) ) ) // 不合法的项名
         {
-            KSG::CString strMsg;
+            KSGUI::CString strMsg;
 
             strMsg.Format(
                 _T("[%s]不是合法的项名\n必顺以 IDD_ 开头的字符串。"),
@@ -293,7 +293,7 @@ public:
         if ( _tcslen(szBuffer) <= _tcslen(_T("IDD_")) ||
             _tcsncmp(szBuffer, _T("IDD_"), _tcslen(_T("IDD_")) ) ) // 不合法的项名
         {
-            KSG::CString strMsg;
+            KSGUI::CString strMsg;
 
             strMsg.Format(
                 _T("[%s]不是合法的项名\n必顺以 IDD_ 开头的字符串。"),

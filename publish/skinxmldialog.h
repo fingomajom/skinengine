@@ -15,7 +15,7 @@
 #include <atldlgs.h>
 
 
-namespace KSG{
+namespace KSGUI{
 
 class skinxmldialog : public skinxmlwin
 {

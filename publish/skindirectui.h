@@ -1,7 +1,7 @@
 
 #pragma once 
 
-namespace KSG{
+namespace KSGUI{
 
 
 class skindirectuibase
@@ -18,4 +18,4 @@ public:
     
 };
 
-} // namespace KSG
+} // namespace KSGUI

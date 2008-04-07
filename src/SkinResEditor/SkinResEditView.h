@@ -17,7 +17,7 @@
 
 
 class SkinResEditView : 
-    public KSG::SkinDialogImpl<SkinResEditView>, //CWindowImpl<SkinResEditView, CPaneContainer>,
+    public KSGUI::SkinDialogImpl<SkinResEditView>, //CWindowImpl<SkinResEditView, CPaneContainer>,
     public SkinTreeItemControl
 {
 
@@ -66,10 +66,10 @@ public:
 
         //if (ControlsMgt.m_resDocument.Modify())
         {
-            KSG::SkinXmlDocument doc;
+            KSGUI::SkinXmlDocument doc;
             ControlsMgt.m_resDocument.SaveDocument(doc);
 
-            KSG::CString strXmlText;
+            KSGUI::CString strXmlText;
 
             doc.ToXMLString(strXmlText);
 
@@ -87,7 +87,7 @@ public:
 
             m_wndEdit.GetWindowText(strXmlText);
 
-            KSG::SkinXmlDocument doc;
+            KSGUI::SkinXmlDocument doc;
 
             if ( doc.LoadXML( strXmlText ) )
             {

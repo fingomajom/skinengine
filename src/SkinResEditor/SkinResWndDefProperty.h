@@ -17,7 +17,7 @@ class SkinResWndDefProperty
 {
 public:
     
-    static void GetResClassWndDefProperty(KSG::CString strClassName,
+    static void GetResClassWndDefProperty(KSGUI::CString strClassName,
         SkinWndPropertyList& WndProperty)
     {
         GetResWndDefProperty(WndProperty);
@@ -25,7 +25,7 @@ public:
     
 
 
-    static int GetResWndPropertyEditType(KSG::CString strProperty)
+    static int GetResWndPropertyEditType(KSGUI::CString strProperty)
     {
         int nresult = SkinPropertyView::it_text;
 
@@ -48,7 +48,7 @@ public:
     }
 
 
-    static void GetDefClassNameList(std::vector<KSG::CString>& vtClassName)
+    static void GetDefClassNameList(std::vector<KSGUI::CString>& vtClassName)
     {
         vtClassName.clear();
 
@@ -65,7 +65,7 @@ public:
 
 
 
-    static void GetWndStyle(KSG::CString strClassName, KSG::CString& strStyle)
+    static void GetWndStyle(KSGUI::CString strClassName, KSGUI::CString& strStyle)
     {        
         DWORD dwStyle = (DWORD)_ttoi64(strStyle);
 
@@ -86,7 +86,7 @@ public:
         strStyle.Format(_T("0x%08x"), dwStyle);
     }
 
-    static void GetWndExStyle(KSG::CString strClassName, KSG::CString& strStyle)
+    static void GetWndExStyle(KSGUI::CString strClassName, KSGUI::CString& strStyle)
     {
         DWORD dwStyle = (DWORD)_ttoi64(strStyle);
 

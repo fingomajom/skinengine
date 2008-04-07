@@ -14,7 +14,7 @@
 #include <skinxmlobject.h>
 #include <skinxmlgdi.h>
 
-namespace KSG{
+namespace KSGUI{
 
 
 class skinxmlwin : public skinxmlobject
@@ -36,9 +36,9 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // ±ê×¼ÊôÐÔ
 
-    BOOL GetIdName (KSG::CString& strIdName );
-    BOOL GetCaption(KSG::CString& strCaption);
-    BOOL GetSkinClassName(KSG::CString& strClassName );
+    BOOL GetIdName (KSGUI::CString& strIdName );
+    BOOL GetCaption(KSGUI::CString& strCaption);
+    BOOL GetSkinClassName(KSGUI::CString& strClassName );
 
     BOOL GetItemId ( DWORD& dwId     );
     BOOL GetStyle  ( DWORD& dwStype  );
@@ -69,17 +69,17 @@ public:
 };
 
 
-inline BOOL skinxmlwin::GetIdName(KSG::CString& strIdName )
+inline BOOL skinxmlwin::GetIdName(KSGUI::CString& strIdName )
 {
     return m_xmlResElement.Name(strIdName); //GetObject(_T("IdName"), strIdName);
 }
 
-inline BOOL skinxmlwin::GetCaption(KSG::CString& strCaption)
+inline BOOL skinxmlwin::GetCaption(KSGUI::CString& strCaption)
 {
     return GetObject(_T("Caption"), strCaption);
 }
 
-inline BOOL skinxmlwin::GetSkinClassName(KSG::CString& strClassName )
+inline BOOL skinxmlwin::GetSkinClassName(KSGUI::CString& strClassName )
 {
     return GetObject(_T("SkinClassName"), strClassName);
 }
@@ -178,4 +178,4 @@ inline BOOL skinxmlwin::GetPen  ( LPCTSTR Name, HPEN & pen   )
 }
 
 
-} // amespace KSG{
+} // amespace KSGUI{

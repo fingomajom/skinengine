@@ -12,7 +12,7 @@
     #pragma comment(lib, "tinyxml.lib")
 #endif
 
-namespace KSG{
+namespace KSGUI{
 
 //typedef TiXmlNode           SkinXmlNode;
 //typedef TiXmlDocument       SkinXmlDocument;
@@ -83,18 +83,18 @@ public:
 
 public:
 
-    KSG::CString Name()
+    KSGUI::CString Name()
     {
         if (m_tixmlelement == 0)
-            return KSG::CString();
+            return KSGUI::CString();
 
         CA2TEX<> Value(m_tixmlelement->Value(), CP_DEFAULT);
 
-        return KSG::CString(Value.m_psz);
+        return KSGUI::CString(Value.m_psz);
     }
 
 
-    BOOL Name(KSG::CString& name)
+    BOOL Name(KSGUI::CString& name)
     {
         if (m_tixmlelement == 0)
             return FALSE;
@@ -106,7 +106,7 @@ public:
         return TRUE;
     }
 
-    BOOL SetName(const KSG::CString& name)
+    BOOL SetName(const KSGUI::CString& name)
     {
         if (m_tixmlelement == 0)
             return FALSE;
@@ -132,19 +132,19 @@ public:
 
     void SetValue(LPCTSTR valueName, int value)
     {
-        KSG::CString str;
+        KSGUI::CString str;
         str.Format(_T("%ld"),value);
         SetValue(valueName, str);
     }
 
     void SetValue(LPCTSTR valueName, float   value)
     {
-        KSG::CString str;
+        KSGUI::CString str;
         str.Format(_T("%f"),value);
         SetValue(valueName,str);
     }
 
-    BOOL GetValue(LPCTSTR valueName, KSG::CString& value)
+    BOOL GetValue(LPCTSTR valueName, KSGUI::CString& value)
     {
         if (m_tixmlelement == 0)    
             return FALSE;
@@ -164,7 +164,7 @@ public:
 
     BOOL GetValue(LPCTSTR valueName, int& value)
     {
-        KSG::CString strvalue;
+        KSGUI::CString strvalue;
 
         if (!GetValue(valueName, strvalue))
             return FALSE;
@@ -176,7 +176,7 @@ public:
 
     BOOL GetValue(LPCTSTR valueName, float&  value)
     {
-        KSG::CString strvalue;
+        KSGUI::CString strvalue;
 
         if (!GetValue(valueName, strvalue))
             return FALSE;
@@ -343,7 +343,7 @@ public:
         return m_tixmldoc.ErrorId() == 0;
     }
 
-    BOOL ToXMLString(KSG::CString& strXmlString)
+    BOOL ToXMLString(KSGUI::CString& strXmlString)
     {
         TiXmlPrinter xmlPrinter;
 

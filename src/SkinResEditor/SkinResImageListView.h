@@ -145,8 +145,8 @@ public:
     typedef struct image_item_info
     {
         int ntype;
-        KSG::CString strIDName;
-        KSG::CString strFileName;
+        KSGUI::CString strIDName;
+        KSGUI::CString strFileName;
     };
 
     std::vector<image_item_info> m_vtItems;
@@ -256,7 +256,7 @@ public:
                     ControlsMgt.m_skinResPropertyView.SetProperty(_T("ID"),
                         pszOldValue);
 
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(
                         _T("[%s]不是合法的项名\n必顺以 ID 开头的字符串。"),
@@ -272,7 +272,7 @@ public:
                 {
                     if ( !m_vtItems[i].strIDName.CollateNoCase( pszNewValue ) )
                     {
-                        KSG::CString strMsg;
+                        KSGUI::CString strMsg;
 
                         strMsg.Format(
                             _T("[%s]项名已存在。请输入其它的名称。"),
@@ -360,14 +360,14 @@ public:
 
             CPath path = strPathFile;
 
-            KSG::CString strFileName = path.m_strPath.Mid(path.FindFileName());
-            KSG::CString strIDName   = path.m_strPath.Mid(path.FindFileName());
+            KSGUI::CString strFileName = path.m_strPath.Mid(path.FindFileName());
+            KSGUI::CString strIDName   = path.m_strPath.Mid(path.FindFileName());
 
             skinconfigbase* pskinconfig = ControlsMgt.m_resDocument.m_resImageDoc.m_pskinconfig;
 
             if (pskinconfig != 0)
             {
-                KSG::CString strImagePath = pskinconfig->GetSkinImagePath();
+                KSGUI::CString strImagePath = pskinconfig->GetSkinImagePath();
 
                 path.RemoveFileSpec();
 
@@ -459,8 +459,8 @@ public:
 
         const image_item_info& itemInfo = m_vtItems[nItem];
 
-        KSG::CString strDisplayName;
-        KSG::CString strFileName;
+        KSGUI::CString strDisplayName;
+        KSGUI::CString strFileName;
 
         if (itemInfo.ntype == em_image_new)
         {
@@ -639,8 +639,8 @@ public:
     }
 
 
-    BOOL AppendImage(const KSG::CString& strIDName,
-        const KSG::CString& strFileName)
+    BOOL AppendImage(const KSGUI::CString& strIDName,
+        const KSGUI::CString& strFileName)
     {
         image_item_info item;
 
@@ -655,8 +655,8 @@ public:
         return TRUE;
     }
 
-    BOOL AppendImageBefNew(const KSG::CString& strIDName,
-        const KSG::CString& strFileName)
+    BOOL AppendImageBefNew(const KSGUI::CString& strIDName,
+        const KSGUI::CString& strFileName)
     {
         image_item_info item;
 
@@ -675,8 +675,8 @@ public:
 
 
     BOOL SetImage(int nIndex, 
-        const KSG::CString& strIDName,
-        const KSG::CString& strFileName)
+        const KSGUI::CString& strIDName,
+        const KSGUI::CString& strFileName)
     {
         for (int i = 0; i < GetCount(); i++)
         {
@@ -714,7 +714,7 @@ public:
     }
 
 
-    int GetType(const KSG::CString& strFileName)
+    int GetType(const KSGUI::CString& strFileName)
     {
         int nresult = em_image_unknown;
 

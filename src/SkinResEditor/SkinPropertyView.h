@@ -385,9 +385,9 @@ public:
                 CListViewCtrl::GetItemText(m_nbtnindex, 1,
                     szOldBuffer, 1024);
 
-                KSG::skinxmlcolor xmlcolor;
+                KSGUI::skinxmlcolor xmlcolor;
                 
-                (KSG::CString&)xmlcolor = (szOldBuffer);
+                (KSGUI::CString&)xmlcolor = (szOldBuffer);
 
                 xmlcolor >> clr;
                 
@@ -428,9 +428,9 @@ public:
                 CListViewCtrl::GetItemText(m_nbtnindex, 1,
                     szOldBuffer, 1024);
 
-                KSG::skinxmlfont xmlfont;
+                KSGUI::skinxmlfont xmlfont;
 
-                (KSG::CString&)xmlfont = (szOldBuffer);
+                (KSGUI::CString&)xmlfont = (szOldBuffer);
 
                 xmlfont >> logFont;
 

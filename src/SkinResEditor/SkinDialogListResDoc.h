@@ -19,8 +19,8 @@ public:
 
     struct WndPropertyItem
     {
-        KSG::CString strProperty;
-        KSG::CString strValue;
+        KSGUI::CString strProperty;
+        KSGUI::CString strValue;
     };
     
     BOOL NewResDoc()
@@ -61,7 +61,7 @@ public:
     
     BOOL SetProperty(LPCTSTR pszProperty, int nNum)
     {
-        KSG::CString strName;
+        KSGUI::CString strName;
         
         strName.Format(_T("%d"), nNum);
 
@@ -77,7 +77,7 @@ public:
         return TRUE;
     }
 
-    BOOL GetProperty(LPCTSTR pszProperty, KSG::CString& strValue)
+    BOOL GetProperty(LPCTSTR pszProperty, KSGUI::CString& strValue)
     {
         for (size_t i = 0; i < m_vtPropertyList.size(); i++)
         {
@@ -117,7 +117,7 @@ public:
 
 
 
-    BOOL OpenResDoc( KSG::SkinXmlElement& xmlElement )
+    BOOL OpenResDoc( KSGUI::SkinXmlElement& xmlElement )
     {
         BOOL bResult = FALSE;
 
@@ -147,18 +147,18 @@ public:
         return bResult;
     }
 
-    KSG::SkinXmlElement SaveResDoc( KSG::SkinXmlElement& xmlParentElement )
+    KSGUI::SkinXmlElement SaveResDoc( KSGUI::SkinXmlElement& xmlParentElement )
     {
         BOOL bResult = FALSE;
         
         if (!xmlParentElement.IsValid())
-            return KSG::SkinXmlElement();
+            return KSGUI::SkinXmlElement();
 
-        KSG::SkinXmlElement xmlElement = 
+        KSGUI::SkinXmlElement xmlElement = 
             xmlParentElement.AppendElement(m_strIdName);
 
         if (!xmlElement.IsValid())
-            return KSG::SkinXmlElement();
+            return KSGUI::SkinXmlElement();
 
         for (size_t i = 0; i < m_vtPropertyList.size(); i++)
         {
@@ -170,7 +170,7 @@ public:
         return xmlElement;
     }
 
-    KSG::CString& GetIdName()
+    KSGUI::CString& GetIdName()
     {
         return m_strIdName;
     }
@@ -180,7 +180,7 @@ public:
 public:
     
     std::vector<WndPropertyItem> m_vtPropertyList;
-    KSG::CString m_strIdName;
+    KSGUI::CString m_strIdName;
 };
 
 class SkinDialogRes
@@ -197,7 +197,7 @@ public:
         return bResult;
     }
 
-    BOOL OpenResDoc( KSG::SkinXmlElement& xmlElement )
+    BOOL OpenResDoc( KSGUI::SkinXmlElement& xmlElement )
     {
         BOOL bResult = FALSE;
 
@@ -210,13 +210,13 @@ public:
         if (!m_dlgWndProperty.OpenResDoc(xmlElement))
             return FALSE;
 
-        KSG::SkinXmlElement strnode = 
-            xmlElement.FirstChildElement(KSG::skinxmldialog::GetChildWinKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            xmlElement.FirstChildElement(KSGUI::skinxmldialog::GetChildWinKeyName());
 
         if (!strnode.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement node = strnode.FirstChildElement();
+        KSGUI::SkinXmlElement node = strnode.FirstChildElement();
 
         while ( node.IsValid() )
         {
@@ -235,17 +235,17 @@ public:
         return bResult;
     }
 
-    BOOL SaveResDoc(KSG::SkinXmlElement& xmlParentElement)
+    BOOL SaveResDoc(KSGUI::SkinXmlElement& xmlParentElement)
     {
         BOOL bResult = FALSE;
 
-        KSG::SkinXmlElement xmlElement = 
+        KSGUI::SkinXmlElement xmlElement = 
             m_dlgWndProperty.SaveResDoc(xmlParentElement);
         if (!xmlElement.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            xmlElement.AppendElement(KSG::skinxmldialog::GetChildWinKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            xmlElement.AppendElement(KSGUI::skinxmldialog::GetChildWinKeyName());
 
         for (size_t i = 0; i < m_vtChildWndList.size(); i++)
         {
@@ -297,24 +297,24 @@ public:
         return bResult;
     }
 
-    BOOL OpenResDoc(KSG::SkinXmlDocument& doc)
+    BOOL OpenResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
         NewResDoc();
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
 
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skindlgres::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skindlgres::GetResKeyName());
 
         if (!strnode.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement node = strnode.FirstChildElement();
+        KSGUI::SkinXmlElement node = strnode.FirstChildElement();
 
         while ( node.IsValid() )
         {
@@ -334,23 +334,23 @@ public:
         return bResult;
     }
 
-    BOOL SaveResDoc(KSG::SkinXmlDocument& doc)
+    BOOL SaveResDoc(KSGUI::SkinXmlDocument& doc)
     {
         BOOL bResult = FALSE;
 
-        KSG::SkinXmlElement root = doc.RootElement();
+        KSGUI::SkinXmlElement root = doc.RootElement();
         if (!root.IsValid())
             return bResult;
 
-        KSG::SkinXmlElement strnode = 
-            root.FirstChildElement(KSG::skindlgres::GetResKeyName());
+        KSGUI::SkinXmlElement strnode = 
+            root.FirstChildElement(KSGUI::skindlgres::GetResKeyName());
 
         if (strnode.IsValid())
         {
             root.RemoveElement(strnode);
         }
 
-        strnode = root.AppendElement(KSG::skindlgres::GetResKeyName());
+        strnode = root.AppendElement(KSGUI::skindlgres::GetResKeyName());
 
         for (size_t i = 0; i < m_vtDialogList.size(); i++)
         {
@@ -376,20 +376,20 @@ public:
     BOOL CheckValid( BOOL bShowErrorMsg = TRUE )
     {
         typedef struct {
-            KSG::CString strItemId;
-            KSG::CString strDialogName;
+            KSGUI::CString strItemId;
+            KSGUI::CString strDialogName;
         } Valid_Info;
         
-        std::map<KSG::CString, Valid_Info> mapIdName;
-        std::map<KSG::CString, BOOL> mapDlgName;
+        std::map<KSGUI::CString, Valid_Info> mapIdName;
+        std::map<KSGUI::CString, BOOL> mapDlgName;
         
         for (size_t idx = 0; idx < m_vtDialogList.size(); idx++)
         {
             std::vector<SkinWndPropertyList>& vtChildWndList = m_vtDialogList[idx].m_vtChildWndList;
 
-            KSG::CString strDialogName = m_vtDialogList[idx].m_dlgWndProperty.GetIdName();
+            KSGUI::CString strDialogName = m_vtDialogList[idx].m_dlgWndProperty.GetIdName();
 
-            std::map<KSG::CString, BOOL>::const_iterator iter_dlgName =
+            std::map<KSGUI::CString, BOOL>::const_iterator iter_dlgName =
                 mapDlgName.find(strDialogName);
             if ( iter_dlgName == mapDlgName.end() )
             {
@@ -399,7 +399,7 @@ public:
             {
                 // error 出现重复的IDD 对话框名
 
-                KSG::CString strMsg;
+                KSGUI::CString strMsg;
 
                 strMsg.Format(_T("对话框[%s]重名。请检查"), strDialogName);
 
@@ -409,20 +409,20 @@ public:
             }
 
 
-            std::map<KSG::CString, BOOL> mapIdNameExists;
-            std::map<KSG::CString, KSG::CString> mapItemIdExists;
+            std::map<KSGUI::CString, BOOL> mapIdNameExists;
+            std::map<KSGUI::CString, KSGUI::CString> mapItemIdExists;
 
             for (size_t idv = 0; idv < vtChildWndList.size(); idv++)
             {
-                KSG::CString strIdName;
-                KSG::CString strItemId;
+                KSGUI::CString strIdName;
+                KSGUI::CString strItemId;
 
                 strIdName = vtChildWndList[idv].GetIdName();
 
                 if ( _tcslen(strIdName) <= _tcslen(_T("IDN_")) ||
                     _tcsncmp(strIdName, _T("IDN_"), _tcslen(_T("IDN_")) ) ) // 不合法的项名
                 {
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(
                         _T("对话框[%s]中控件名[%s]不合法，\n控件名必顺以 IDN_ 开头的字符串。"),
@@ -434,7 +434,7 @@ public:
                 }
 
                 
-                std::map<KSG::CString, BOOL>::const_iterator iter_IdName =
+                std::map<KSGUI::CString, BOOL>::const_iterator iter_IdName =
                     mapIdNameExists.find(strIdName);
                 if ( iter_IdName == mapIdNameExists.end() )
                 {
@@ -444,7 +444,7 @@ public:
                 {
                     // error  同一个对话框中出现相同的 控件名
 
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(_T("对话框[%s]中。出现相同的控件名[%s]"), strDialogName, strIdName);
 
@@ -457,7 +457,7 @@ public:
                 if (!vtChildWndList[idv].GetProperty(_T("ItemId"), strItemId))
                     continue;
 
-                std::map<KSG::CString, KSG::CString>::const_iterator iter_ItemId =
+                std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter_ItemId =
                     mapItemIdExists.find(strItemId);
                 if ( iter_ItemId == mapItemIdExists.end() )
                 {
@@ -467,7 +467,7 @@ public:
                 {                    
                     // error 同一个对话框中出现相同的 ID 名
 
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(_T("对话框[%s]中。控件[%s]与控件[%s]有相同的ItemId=[%s]"), 
                         strDialogName, iter_ItemId->second , strIdName , strItemId);
@@ -477,7 +477,7 @@ public:
                     return FALSE;
                 }
 
-                std::map<KSG::CString, Valid_Info>::const_iterator iter_vaildinfo =
+                std::map<KSGUI::CString, Valid_Info>::const_iterator iter_vaildinfo =
                     mapIdName.find(strIdName);
 
                 if ( iter_vaildinfo == mapIdName.end() )
@@ -493,7 +493,7 @@ public:
                 {
                     // error 不同对话框间出现相同IDName但是ItemId不同
 
-                    KSG::CString strMsg;
+                    KSGUI::CString strMsg;
 
                     strMsg.Format(_T("对话框[%s]中的控件[%s]与\n对话框[%s]中的控件[%s]\n控件名相同但是ItemId不相同[%s!=%s]。"), 
                         strDialogName, strIdName , iter_vaildinfo->second.strDialogName, strIdName, strItemId, iter_vaildinfo->second.strItemId);

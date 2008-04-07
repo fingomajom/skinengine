@@ -14,7 +14,7 @@
 #include <skinresloader.h>
 
 
-namespace KSG{
+namespace KSGUI{
 
 class CSkinAppModule : public WTL::CAppModule
 {
@@ -54,7 +54,7 @@ public:
 
 public:
 
-    static BOOL LoadString_S(LPCTSTR pszIDName, KSG::CString& strValue)
+    static BOOL LoadString_S(LPCTSTR pszIDName, KSGUI::CString& strValue)
     {
         skinresbase* pskinres = skinresloader::instance().get_skinres();
 
@@ -69,7 +69,7 @@ public:
         return pskinstrres->LoadString(pszIDName, strValue);
     }
 
-    static BOOL LoadString_U(UINT uResID, KSG::CString& strValue)
+    static BOOL LoadString_U(UINT uResID, KSGUI::CString& strValue)
     {
         skinresbase* pskinres = skinresloader::instance().get_skinres();
 
@@ -88,30 +88,30 @@ public:
     skinresloader& m_skinresloader;
 };
 
-} // namespace KSG
+} // namespace KSGUI
 
 
-extern KSG::CSkinAppModule _Module;
+extern KSGUI::CSkinAppModule _Module;
 
 
-inline BOOL SkinLoadString(LPCTSTR pszIDName, KSG::CString& strValue)
+inline BOOL SkinLoadString(LPCTSTR pszIDName, KSGUI::CString& strValue)
 {
-    return KSG::CSkinAppModule::LoadString_S(pszIDName, strValue);
+    return KSGUI::CSkinAppModule::LoadString_S(pszIDName, strValue);
 }
 
-inline BOOL SkinLoadString(UINT uResID, KSG::CString& strValue)
+inline BOOL SkinLoadString(UINT uResID, KSGUI::CString& strValue)
 {
-    return KSG::CSkinAppModule::LoadString_U(uResID, strValue);
+    return KSGUI::CSkinAppModule::LoadString_U(uResID, strValue);
 }
 
 inline HBITMAP SkinLoadBitmap(LPCTSTR pszIDName)
 {
-    KSG::skinresbase* pskinres = KSG::skinresloader::instance().get_skinres();
+    KSGUI::skinresbase* pskinres = KSGUI::skinresloader::instance().get_skinres();
 
     if (!pskinres)
         return NULL;
 
-    KSG::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
+    KSGUI::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
 
     if (!pskinimageres)
         return NULL;
@@ -121,12 +121,12 @@ inline HBITMAP SkinLoadBitmap(LPCTSTR pszIDName)
 
 inline HCURSOR SkinLoadCursor(LPCTSTR pszIDName)
 {
-    KSG::skinresbase* pskinres = KSG::skinresloader::instance().get_skinres();
+    KSGUI::skinresbase* pskinres = KSGUI::skinresloader::instance().get_skinres();
 
     if (!pskinres)
         return NULL;
 
-    KSG::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
+    KSGUI::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
 
     if (!pskinimageres)
         return NULL;
@@ -136,12 +136,12 @@ inline HCURSOR SkinLoadCursor(LPCTSTR pszIDName)
 
 inline HICON SkinLoadIcon(LPCTSTR pszIDName, int cxDesired, int cyDesired)
 {
-    KSG::skinresbase* pskinres = KSG::skinresloader::instance().get_skinres();
+    KSGUI::skinresbase* pskinres = KSGUI::skinresloader::instance().get_skinres();
 
     if (!pskinres)
         return NULL;
 
-    KSG::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
+    KSGUI::skinimageresbase* pskinimageres = pskinres->get_skinimageres();
 
     if (!pskinimageres)
         return NULL;

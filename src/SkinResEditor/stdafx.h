@@ -27,9 +27,9 @@
 #include <vector>
 #include <map>
 
-using namespace KSG;
+using namespace KSGUI;
 
-extern KSG::CSkinAppModule _Module;
+extern KSGUI::CSkinAppModule _Module;
 
 #include <atlwin.h>
 

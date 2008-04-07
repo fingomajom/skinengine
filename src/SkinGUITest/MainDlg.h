@@ -63,7 +63,7 @@ public:
 
 		UIAddChildWindowContainer(m_hWnd);
 
-        KSG::CString strtext;
+        KSGUI::CString strtext;
 
         strtext.LoadString(_T("IDS_ABC11"));
 
