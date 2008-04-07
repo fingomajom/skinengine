@@ -11,6 +11,8 @@
 #define _WIN32_IE	0x0400
 #define _RICHEDIT_VER	0x0100
 
+
+#define KSGUI_NOLINK_TINYXMLLIB
 //#include <atlbase.h>
 //#include <atlapp.h>
 //#include <atlmisc.h>
