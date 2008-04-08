@@ -15,7 +15,7 @@
 
 #include "skinxmldialog.h"
 #include "skinwincreator.h"
-
+#include "skindirectui.h"
 
 namespace KSGUI{
 
@@ -24,10 +24,11 @@ class CSkinDlgChildList : public KSGUI::skinxmldialog::enumchildwincallback
 {
 public:
     
-    //KSGUI::skinxmldialog::enumchildwincallback
-
     BOOL onchildwin( skinxmlwin& xmlWin )
     {
+        if ( m_directui.createdirectui(xmlWin) )
+            return TRUE;
+
         return AddChildWindow(xmlWin);
     }
 
@@ -127,9 +128,11 @@ public:
 
 public:
     
-    std::map<KSGUI::CString, SkinWindow*> m_mapIDS2Win;
-
     HWND m_hWndParent;
+
+    skindirectui m_directui;
+
+    std::map<KSGUI::CString, SkinWindow*> m_mapIDS2Win;
 };
 
 #define DEFINE_DLGXMLRES_NAME(ResName)  \
@@ -188,6 +191,24 @@ public:
     void InitDlgXMLElement( SkinXmlElement xmlDlgElement  )
     {
         m_xmlDlgElement.CopyFrom(xmlDlgElement);
+    }
+
+    void DrawDirectUI( HDC hDC )
+    {
+        m_childList.m_directui.drawdirectui(hDC);
+    }
+
+    BEGIN_MSG_MAP(SkinDialgPreviewWindow)
+        MESSAGE_HANDLER(WM_PAINT, OnPaint)
+    END_MSG_MAP()
+
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CPaintDC dc(m_hWnd);
+
+        DrawDirectUI(dc);
+        
+        return 0;
     }
 
 public:
@@ -484,6 +505,7 @@ public:
 
     
 public:
+
     SkinXmlElement    m_xmlDlgElement;
     CSkinDlgChildList m_childList;
 };

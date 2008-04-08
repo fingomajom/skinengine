@@ -224,6 +224,13 @@ public:
 
             for ( size_t i = 0; i < vtChildWndList.size(); i++ )
             {
+                if (!strIDName.CompareNoCase(vtChildWndList[i].GetIdName()))
+                {
+                    bUsed = TRUE;
+
+                    break;
+                }
+
                 if (!vtChildWndList[i].GetProperty(_T("ItemId"), strItemId) )
                     continue;
                 
@@ -234,12 +241,6 @@ public:
                     break;
                 }
 
-                if (!strIDName.CompareNoCase(vtChildWndList[i].GetIdName()))
-                {
-                    bUsed = TRUE;
-
-                    break;
-                }
             }
 
             if (!bUsed)

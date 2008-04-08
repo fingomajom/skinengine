@@ -196,12 +196,16 @@ public:
 class SkinDialgPreviewWindow : 
     public KSGUI::SkinDialogImpl<SkinDialgPreviewWindow>
 {
+
+    typedef KSGUI::SkinDialogImpl<SkinDialgPreviewWindow> theBase;
+
 public:
     
     BEGIN_MSG_MAP(SkinDialgPreviewWindow)
         //MESSAGE_HANDLER(WM_PAINT, OnPaint)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
         MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
+        CHAIN_MSG_MAP(theBase)
     END_MSG_MAP()
 
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -346,10 +350,16 @@ public:
 
         winxml = doc.RootElement().FirstChildElement();
 
-        m_childList.AddChildWindow(winxml);
+        if (m_childList.m_directui.createdirectui(winxml))
+        {
+            Invalidate();
+        }
+        else
+            m_childList.AddChildWindow(winxml);
 
         return TRUE;
     }
+
     BOOL DelSkinWindow( SkinWndPropertyList& WndProperty )
     {
         m_childList.DestroyChildWindow(WndProperty.m_strIdName);
@@ -385,7 +395,6 @@ public:
             rcBox.right  += SkinSelectFlagWindow::line_space/2;
             rcBox.bottom += SkinSelectFlagWindow::line_space/2;
 
-            ;
 
             m_wndSelectFlag.MoveWindow(&rcBox);
             m_wndSelectFlag.RedrawFlag();
@@ -405,6 +414,7 @@ public:
 
         return TRUE;
     }
+
     BOOL ClearSelectWindow( )
     {
         m_strSelIdName = _T("");
@@ -412,9 +422,26 @@ public:
         if (m_wndSelectFlag.IsWindow())
             m_wndSelectFlag.ShowWindow(SW_HIDE);
 
-        //Invalidate();
 
         return TRUE;
+    }
+
+    BOOL IsDirectUIClassName( LPCTSTR pszclsname )
+    {
+        if (!_tcscmp(pszclsname, _T("skinduidrawtext")))
+        {
+            return TRUE;
+        }
+        else if(!_tcscmp(pszclsname, _T("skinduidrawbmp")))
+        {
+            return TRUE;
+        }
+        else if(!_tcscmp(pszclsname, _T("skinduidrawrect")))
+        {
+            return TRUE;
+        }
+
+        return FALSE;
     }
 
 public:
