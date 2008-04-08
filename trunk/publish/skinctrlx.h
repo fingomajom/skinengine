@@ -78,7 +78,10 @@ public:
     BEGIN_MSG_MAP(CSkinStaticExT)
         MESSAGE_HANDLER(WM_CREATE , OnCreate)
         MESSAGE_HANDLER(WM_COMMAND, OnCommand)
+        MESSAGE_HANDLER(WM_SETTEXT, OnSetText)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBKGnd)
+
+
         CHAIN_MSG_MAP(CDoubleBufferImpl<CSkinStaticExT>)
     END_MSG_MAP()
 
@@ -95,9 +98,11 @@ public:
     }
 
 
-    LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    LRESULT OnSetText(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return 1L;
+        m_strCaption = (LPCTSTR)lParam;
+
+        return DefWindowProc();
     }
     LRESULT OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
