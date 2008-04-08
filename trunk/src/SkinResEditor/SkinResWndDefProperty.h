@@ -174,7 +174,7 @@ private:
         static WndClassDefInfo WndClassDefInfoyList[] = 
         {
             { skinxmlstatic::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | SS_LEFT | SS_NOPREFIX, 0 },
-            { skinxmlpicture::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE | SS_BITMAP, 0 },
+            { skinxmlpicture::GetSkinWndClassName()      , WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_REALSIZEIMAGE, 0 },
 
             { skinxmlgroupbox::GetSkinWndClassName()     , WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 0 },
             { skinxmlbutton::GetSkinWndClassName()       , WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 0 },
