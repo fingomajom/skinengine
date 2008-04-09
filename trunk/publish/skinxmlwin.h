@@ -49,6 +49,8 @@ public:
     BOOL GetWidth ( int& nValue );
     BOOL GetHeight( int& nValue );
 
+    BOOL GetRect  (RECT& rcClient);
+
     BOOL GetTextColor ( COLORREF& clrColor );
     BOOL GetBkColor   ( COLORREF& clrColor );
 
@@ -113,6 +115,20 @@ inline BOOL skinxmlwin::GetHeight( int& nValue )
 {
     return GetObject(_T("Height"), nValue);
 }
+
+inline BOOL skinxmlwin::GetRect(RECT& rcClient)
+{
+    if ( !GetLeft  ( (int&)rcClient.left   ) ) return FALSE;
+    if ( !GetTop   ( (int&)rcClient.top    ) ) return FALSE;
+    if ( !GetWidth ( (int&)rcClient.right  ) ) return FALSE;
+    if ( !GetHeight( (int&)rcClient.bottom ) ) return FALSE;
+
+    rcClient.right  += rcClient.left;
+    rcClient.bottom += rcClient.top;
+
+    return TRUE;
+}
+
 
 inline BOOL skinxmlwin::GetTextColor ( COLORREF& clrColor )
 {

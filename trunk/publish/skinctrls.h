@@ -109,6 +109,50 @@ typedef CSkinCtrlsT< CIPAddressCtrlT<KSGUI::SkinWindow> >    CSkinIPAddressCtrl;
 typedef CSkinCtrlsT< CTrackBarCtrlT<KSGUI::SkinWindow> >     CSkinTrackBarCtrl;
 
 
+class CSkinStaticPicture : public CSkinCtrlsT< CStaticT<KSGUI::SkinWindow> >
+{
+    typedef CSkinCtrlsT< CStaticT<KSGUI::SkinWindow> > theBase;
+public:
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        HWND hWndResult = theBase::SkinCreate(xmlElement, 
+            hWndParent,              
+            MenuOrID);
+
+        skinxmlwin xmlwin(xmlElement);
+
+        KSGUI::CString strBitbmpId;
+
+        if ( xmlwin.GetObject(_T("Bitbmp"), strBitbmpId ) ) 
+        {
+            SetBitmap(strBitbmpId);
+        }
+
+        return hWndResult;
+    }
+
+    BOOL SetBitmap( LPCTSTR pszBmpResName )
+    {
+        if (m_bmp.m_hBitmap != NULL)
+            m_bmp.DeleteObject();
+
+        m_bmp.Attach( SkinLoadBitmap(pszBmpResName) );
+
+        if (m_bmp.m_hBitmap != NULL)
+        { 
+            theBase::SetBitmap(m_bmp);
+        }
+
+        return TRUE;
+    }
+
+public:
+
+    CBitmap m_bmp;
+};
 
 //////////////////////////////////////////////////////////////////////////
 

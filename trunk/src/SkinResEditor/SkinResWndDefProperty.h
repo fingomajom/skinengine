@@ -210,7 +210,7 @@ private:
         /* R*/ { _T("Bitbmp")       , _T("")           , SkinPropertyView::it_text   },
 
         /* S*/ { _T("PenStyle")     , _T("0")          , SkinPropertyView::it_number },
-        /* T*/ { _T("PenWidth")     , _T("0")          , SkinPropertyView::it_number },
+        /* T*/ { _T("PenWidth")     , _T("1")          , SkinPropertyView::it_number },
         /* U*/ { _T("RoundWidth")   , _T("0")          , SkinPropertyView::it_number }
 
         };
@@ -236,7 +236,7 @@ private:
         static WndClassDefInfo WndClassDefInfoyList[] = 
         {
             { skinxmlstatic::GetSkinWndClassName()       , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | SS_LEFT | SS_NOPREFIX, 0 },
-            { skinxmlpicture::GetSkinWndClassName()      , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_REALSIZEIMAGE, 0 },
+            { skinxmlpicture::GetSkinWndClassName()      , _T("ABCDEFGHIJR"), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_REALSIZEIMAGE, 0 },
 
             { skinxmlgroupbox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 0 },
             { skinxmlbutton::GetSkinWndClassName()       , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 0 },
