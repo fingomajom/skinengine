@@ -516,9 +516,67 @@ class SkinTitleDialog
 {
 public:
 
+    enum {
+        em_titlebar_height = 22,
+
+        em_clr_border = 0x00FF00FF,
+        em_clr_bkgnd  = 0x00FFFFFF
+    };
+
     BEGIN_MSG_MAP(SkinTitleDialog)
+
+        MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+
+        MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint)
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize)
+
+        MESSAGE_HANDLER(WM_NCLBUTTONDOWN, OnNcLButtonDown)
+        MESSAGE_HANDLER(WM_LBUTTONDOWN  , OnNcLButtonDown)
+
+        MESSAGE_HANDLER(WM_NCHITTEST    , OnNcHitTest    )
+
     END_MSG_MAP()
+
+    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        RECT rcWindow = { 0 };
+
+        wndThis.GetWindowRect(&rcWindow);
+
+        ::SetWindowPos(wndThis, NULL, 0, 0, 
+            rcWindow.right - rcWindow.left, 
+            rcWindow.bottom - rcWindow.top + em_titlebar_height - 1,
+            SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOZORDER);
+
+        return 0;
+    }
+
+
+    LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        CWindowDC dc(wndThis);
+
+        CSkinDCHandle skinDC(dc.m_hDC);
+
+        LRESULT lResult = DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        RECT rcWindow = { 0 };
+
+        wndThis.GetWindowRect(&rcWindow);
+
+        rcWindow.right  = rcWindow.right  - rcWindow.left;
+        rcWindow.bottom = rcWindow.bottom - rcWindow.top;
+
+        rcWindow.left = rcWindow.top = 0;
+
+        skinDC.SkinDrawRectangle(rcWindow, em_clr_bkgnd, em_clr_border);
+
+        return lResult;
+    }
 
     LRESULT OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -527,7 +585,6 @@ public:
         BOOL bMinimized = wndThis.GetStyle() & WS_MINIMIZE;
         BOOL bMaximized = wndThis.GetStyle() & WS_MAXIMIZE;
 
-
         LPNCCALCSIZE_PARAMS pNCParams = (LPNCCALCSIZE_PARAMS)lParam;
         
         LPRECT lpRect = (LPRECT)lParam;
@@ -535,16 +592,55 @@ public:
 
         if (wParam && !bMinimized)
         {
-            pNCParams->rgrc[2].top = pNCParams->rgrc[0].top + 100;
-
-            pNCParams->rgrc[0].top += 100;
+            pNCParams->rgrc[0].top += em_titlebar_height;
         }
 
-        //LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
+        LRESULT lResult = DefWindowProc(wndThis, uMsg, wParam, lParam);
 
-        return WVR_ALIGNTOP | WVR_ALIGNLEFT | WVR_REDRAW;
+        return lResult;
     }
 
+    LRESULT OnNcLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        int xPos = GET_X_LPARAM(lParam); 
+        int yPos = GET_Y_LPARAM(lParam); 
+
+        LRESULT lResult = DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        RECT rcTitlebar = { 0 };
+
+        wndThis.GetWindowRect(&rcTitlebar);
+
+        rcTitlebar.right  = rcTitlebar.right  - rcTitlebar.left;
+        rcTitlebar.bottom = rcTitlebar.bottom - rcTitlebar.top;
+
+        rcTitlebar.left = rcTitlebar.top = 0;
+
+        return lResult;
+    }
+
+    LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        LRESULT lResult = DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        int xPos = GET_X_LPARAM(lParam); 
+        int yPos = GET_Y_LPARAM(lParam); 
+
+        RECT rcTitlebar = { 0 };
+
+        wndThis.GetWindowRect(&rcTitlebar);
+
+        rcTitlebar.bottom = rcTitlebar.top + em_titlebar_height;
+
+        if (::PtInRect( &rcTitlebar, CPoint(xPos, yPos) ))
+            return HTCAPTION;
+
+        return lResult;
+    }
 };
 
 };// namespace KSGUI

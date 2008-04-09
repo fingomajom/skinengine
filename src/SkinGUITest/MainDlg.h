@@ -28,7 +28,7 @@ public:
 		return FALSE;
 	}
 
-    DEFINE_DLGXMLRES_NAME(_T("IDD_ddd"));
+    DEFINE_DLGXMLRES_NAME(_T("IDD_TEST"));
 
 	BEGIN_UPDATE_UI_MAP(CMainDlg)
 	END_UPDATE_UI_MAP()
@@ -49,7 +49,7 @@ public:
 
     DWORD GetStyle( DWORD dwStyle )
     {
-         dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_BORDER | WS_CAPTION | WS_TILEDWINDOW;
+         dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_BORDER | WS_MINIMIZEBOX;
 
         return dwStyle;
     }
@@ -63,9 +63,10 @@ public:
 
 
 
-	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		// center the dialog on the screen
+        SkinTitleDialog<CMainDlg>::OnInitDialog(uMsg, wParam, lParam, bHandled);
+
 		CenterWindow();
 
 		// set icons
@@ -102,9 +103,6 @@ public:
                 box.AddString(strMsg);
             }
         }
-
-        //SetWindowPos(NULL, 0, 0, 0, 0,
-        //    SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSIZE | SWP_NOZORDER);
 
 		return TRUE;
 	}
