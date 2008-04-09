@@ -70,7 +70,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	hRes = _Module.Init(NULL, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
-    _Module.init_skin(_T("KSG.XML"));
+    _Module.init_skin(_T("test.XML"));
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);
     

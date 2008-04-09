@@ -12,6 +12,8 @@ class CMainDlg :
 	public CMessageFilter, 
     public CIdleHandler
 {
+    typedef KSGUI::SkinDialogImpl<CMainDlg> theBase;
+
 public:
 	enum { IDD = IDD_MAINDLG };
 
@@ -25,7 +27,7 @@ public:
 		return FALSE;
 	}
 
-    DEFINE_DLGXMLRES_NAME(_T("IDD_TEST"));
+    DEFINE_DLGXMLRES_NAME(_T("IDD_ddd"));
 
 	BEGIN_UPDATE_UI_MAP(CMainDlg)
 	END_UPDATE_UI_MAP()
@@ -35,6 +37,7 @@ public:
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+        CHAIN_MSG_MAP(theBase)
 	END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
