@@ -18,6 +18,8 @@ std::map<KSGUI::CString, KSGUI::CString> SkinResDialogView::m_mapUsedIdName;
 
 KSGUI::CSkinAppModule _Module;
 
+KSGUI::SkinRichEditInit _RichEditInit;
+
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
 	CMessageLoop theLoop;

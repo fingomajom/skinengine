@@ -7,8 +7,9 @@
 #include <skindialog.h>
 
 class CMainDlg : 
-    public SkinDialogImpl<CMainDlg>, 
-    public CUpdateUI<CMainDlg>,
+    public SkinDialogImpl<CMainDlg>,
+    public SkinTitleDialog<CMainDlg>,
+    public CUpdateUI<CMainDlg>, 
 	public CMessageFilter, 
     public CIdleHandler
 {
@@ -38,12 +39,29 @@ public:
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
         CHAIN_MSG_MAP(theBase)
+        CHAIN_MSG_MAP(SkinTitleDialog<CMainDlg>)
 	END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 //	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+
+    DWORD GetStyle( DWORD dwStyle )
+    {
+         dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_BORDER | WS_CAPTION | WS_TILEDWINDOW;
+
+        return dwStyle;
+    }
+
+    DWORD GetExStyle( DWORD dwStyle )
+    {
+        dwStyle =  0;
+
+        return dwStyle;
+    }
+
+
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
@@ -85,6 +103,8 @@ public:
             }
         }
 
+        //SetWindowPos(NULL, 0, 0, 0, 0,
+        //    SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSIZE | SWP_NOZORDER);
 
 		return TRUE;
 	}

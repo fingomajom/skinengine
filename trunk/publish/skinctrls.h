@@ -154,6 +154,25 @@ public:
     CBitmap m_bmp;
 };
 
+
+class SkinRichEditInit
+{
+public:
+
+    SkinRichEditInit()
+    {
+        m_hRichEditModule = LoadLibrary(CRichEditCtrl::GetLibraryName());
+    }
+    
+    ~SkinRichEditInit()
+    {
+        if (m_hRichEditModule != NULL)
+            FreeLibrary(m_hRichEditModule);
+    }
+
+public:
+    HMODULE m_hRichEditModule;
+};
 //////////////////////////////////////////////////////////////////////////
 
 }; // namespace KSGUI

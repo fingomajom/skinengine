@@ -12,7 +12,7 @@
 #include "SkinControlsMgt.h"
 #include "SkinResWndDefProperty.h"
 #include "SkinDialgPreviewWindow.h"
-
+#include "SkinUpDownDlg.h"
 
 class SkinResDialogView : 
     public CDialogImpl<SkinResDialogView>,
@@ -36,6 +36,8 @@ public:
     CComboBox      m_wndComboBox;
     CButton        m_wndAddBtn;
     CButton        m_wndDelBtn;
+
+    SkinUpDownDlg  m_wndUpdown;
 
     SkinDialgPreviewWindow m_wndPreView;
 
@@ -160,6 +162,8 @@ public:
 
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
+        //m_wndUpdown.ShowWindow(SW_SHOW);
+
         m_wndTree.SelectItem(m_wndTree.GetRootItem());
     }
 
@@ -173,6 +177,8 @@ public:
 
         m_wndTree.SelectItem(NULL);
         m_wndPreView.m_wndSelectFlag.ShowWindow(SW_HIDE);
+
+        m_wndUpdown.ShowWindow(SW_HIDE);
 
         ShowWindow(SW_HIDE);
     }
@@ -198,6 +204,8 @@ public:
         COMMAND_HANDLER(IDC_ADD   , BN_CLICKED, OnAdd)
         COMMAND_HANDLER(IDC_DELETE, BN_CLICKED, OnDel)
 
+        COMMAND_HANDLER(IDC_UP_BUTTON  , BN_CLICKED, OnUp)
+        COMMAND_HANDLER(IDC_DOWN_BUTTON, BN_CLICKED, OnDown)
 
         NOTIFY_CODE_HANDLER( TVN_SELCHANGED, OnSelChanged)
 
@@ -418,6 +426,8 @@ public:
                 pPropertyList = &dialogRes.m_dlgWndProperty.m_vtPropertyList;
 
                 m_wndPreView.ClearSelectWindow();
+                MoveUpdownWindow(-1);
+
             }
             else
             {
@@ -434,6 +444,8 @@ public:
                 m_wndComboBox.SetWindowText(strClassName);
 
                 m_wndPreView.SelectWindow(dialogRes.m_vtChildWndList[nindex]);
+
+                MoveUpdownWindow(nindex);
             }
             
             ATLASSERT(pPropertyList != NULL);
@@ -463,6 +475,30 @@ public:
         }
 
         return lResult;
+    }
+
+    void MoveUpdownWindow(int index)
+    {
+        if (index < 0)
+        {
+            m_wndUpdown.ShowWindow(SW_HIDE);
+            return;
+        }
+
+        int nheight = m_wndTree.GetItemHeight();
+
+        RECT rcClient = { 0 };
+
+        m_wndTree.GetClientRect(&rcClient);
+        ClientToScreen(&rcClient);
+        
+        rcClient.top += ( (index + 1) * nheight);
+        rcClient.bottom = rcClient.top + 20;
+
+        rcClient.left = rcClient.right - 20;
+    
+        m_wndUpdown.MoveWindow(&rcClient);
+        m_wndUpdown.ShowWindow(SW_SHOW);
     }
 
 
@@ -530,6 +566,12 @@ public:
         m_imagelist.Add(bmp, RGB(255, 0, 255));
 
         m_wndTree.SetImageList(m_imagelist);
+
+        if (!m_wndUpdown.IsWindow())
+        {
+            m_wndUpdown.Create(m_hWnd);
+            m_wndUpdown.m_hWndParent = m_hWnd;
+        }
 
         return TRUE;
     }
@@ -750,4 +792,17 @@ public:
         }
 
     }
+
+    LRESULT OnUp(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        
+        return 0L;
+    }
+
+    LRESULT OnDown(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+
+        return 0L;
+    }
+
 };
