@@ -98,7 +98,7 @@ protected:
         AddSkinCreator(KSGUI::skinxmlstatic::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinStatic>);
         AddSkinCreator(KSGUI::skinxmlpicture::GetSkinWndClassName(), 
-            SkinCreate_Static<CSkinStatic>);
+            SkinCreate_Static<CSkinStaticPicture>);
         
         AddSkinCreator(KSGUI::skinxmlgroupbox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);

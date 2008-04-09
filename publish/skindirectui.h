@@ -42,12 +42,26 @@ public:
         return TRUE;
     }
 
+#ifdef _DIRECTUI_USE_IDNAME_
+
+    KSGUI::CString& GetIdName()
+    {
+        return strIdName;
+    }
+
+#endif
+
+    RECT& GetClientRect() 
+    {
+        return rcClient;
+    }
+
     virtual void drawdc( HDC hDC ) = 0;
 
 protected:
 
 #ifdef _DIRECTUI_USE_IDNAME_
-    KSG::CString strIdName;
+    KSGUI::CString strIdName;
 #endif
 
     RECT rcClient;
@@ -70,7 +84,12 @@ public:
         if (!duidrawbase::initduidraw(xmlwin))
             return FALSE;
 
+#ifdef _DIRECTUI_USE_IDNAME_
+        if ( !xmlwin.GetCaption( strCaption ) ) {};
+#else
         if ( !xmlwin.GetCaption( strCaption ) ) return FALSE;
+#endif
+
         if ( !xmlwin.GetFont( hFont.m_hFont ) ) {};
         if ( !xmlwin.GetTextColor( clrTextColor ) ) {};
         if ( !xmlwin.GetObject(_T("DrawTextFlags"), dwDrawFlag ) ) {};
@@ -121,12 +140,20 @@ public:
 
         KSGUI::CString strBitbmpId;
 
+#ifdef _DIRECTUI_USE_IDNAME_
+        if ( !xmlwin.GetObject(_T("Bitbmp"), strBitbmpId ) ) { };
+#else
         if ( !xmlwin.GetObject(_T("Bitbmp"), strBitbmpId ) ) return FALSE;
+#endif
 
         m_bmp.Attach( SkinLoadBitmap(strBitbmpId) );
 
         if (m_bmp.m_hBitmap == NULL)
+#ifdef _DIRECTUI_USE_IDNAME_
+        { }
+#else
             return FALSE;
+#endif
 
         return TRUE;
     }
@@ -137,7 +164,8 @@ public:
 
         POINT pt = { rcClient.left, rcClient.top };
         
-        dc.SkinDrawBitmap(pt, m_bmp);
+        if (m_bmp.m_hBitmap != NULL)
+            dc.SkinDrawBitmap(pt, m_bmp);
     }
 
 protected:

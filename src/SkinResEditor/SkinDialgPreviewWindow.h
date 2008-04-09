@@ -233,6 +233,27 @@ public:
 
         if (hWndFromPt == NULL || hWndFromPt == m_hWnd)
         {
+            std::vector<duidrawbase*>& vtdrawlist = m_childList.m_directui.vtdrawlist;
+
+            BOOL bDelete = FALSE;
+
+            for (size_t idx = 0; idx < vtdrawlist.size(); idx++)
+            {
+                duidrawbase* pbase = vtdrawlist[idx];
+                ATLASSERT(pbase != NULL);
+                if (pbase == NULL)
+                    continue;
+
+                CRect rcClient = pbase->GetClientRect();
+
+                if (rcClient.PtInRect(pt))
+                {
+                    return ::SendMessage(::GetParent(m_hWndParent), 
+                        WM_SELECTCHILDWINDOW, (WPARAM)(LPCTSTR)pbase->GetIdName(), 0);
+
+                }
+            }
+
             ::SendMessage(::GetParent(m_hWndParent), WM_SELECTCHILDWINDOW, 0, 0);
         }
         else
@@ -362,7 +383,31 @@ public:
 
     BOOL DelSkinWindow( SkinWndPropertyList& WndProperty )
     {
-        m_childList.DestroyChildWindow(WndProperty.m_strIdName);
+        std::vector<duidrawbase*>& vtdrawlist = m_childList.m_directui.vtdrawlist;
+
+        BOOL bDelete = FALSE;
+
+        for (size_t idx = 0; idx < vtdrawlist.size(); idx++)
+        {
+            duidrawbase* pbase = vtdrawlist[idx];
+            ATLASSERT(pbase != NULL);
+            if (pbase == NULL)
+                continue;
+
+            if ( !pbase->GetIdName().CollateNoCase( WndProperty.GetIdName() ) )
+            {
+                bDelete = TRUE;
+
+                delete pbase;
+                
+                vtdrawlist.erase(vtdrawlist.begin() + idx);
+
+                break;
+            }
+        }
+
+        if (!bDelete)
+            m_childList.DestroyChildWindow(WndProperty.m_strIdName);
 
         Invalidate();
 
@@ -370,8 +415,60 @@ public:
     }
     BOOL UpdateSkinWindow( SkinWndPropertyList& WndProperty )
     {
-        DelSkinWindow(WndProperty);
-        AddSkinWindow(WndProperty);
+        std::vector<duidrawbase*>& vtdrawlist = m_childList.m_directui.vtdrawlist;
+
+        BOOL bUpdate = FALSE;
+
+        for (size_t idx = 0; idx < vtdrawlist.size(); idx++)
+        {
+            duidrawbase* pbase = vtdrawlist[idx];
+            ATLASSERT(pbase != NULL);
+            if (pbase == NULL)
+                continue;
+
+            if ( !pbase->GetIdName().CollateNoCase( WndProperty.GetIdName() ) )
+            {
+                bUpdate = TRUE;
+
+                delete pbase;
+
+                SkinXmlDocument doc;
+
+                if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSGUI />")))
+                    return NULL;
+
+                WndProperty.SaveResDoc(doc.RootElement());
+
+                skinxmlwin winxml;
+
+                winxml = doc.RootElement().FirstChildElement();
+
+
+                if (!m_childList.m_directui.createdirectui(winxml))
+                {
+                    vtdrawlist.erase(vtdrawlist.begin() + (vtdrawlist.size() - 1) );
+
+                    break;
+                }
+
+                pbase = vtdrawlist[vtdrawlist.size() - 1];
+
+                vtdrawlist.erase(vtdrawlist.begin() + (vtdrawlist.size() - 1) );
+
+                vtdrawlist[idx] = pbase;
+
+                break;
+            }
+        }
+
+
+        if (!bUpdate)
+        {
+            DelSkinWindow(WndProperty);
+            AddSkinWindow(WndProperty);
+        }
+
+        Invalidate();
 
         UpdateSelectFlag();
 
@@ -380,13 +477,43 @@ public:
 
     void UpdateSelectFlag()
     {
-        SkinWindow* pSelWindow = m_childList.GetDlgItem(m_strSelIdName);
 
-        if (pSelWindow != NULL)
+        std::vector<duidrawbase*>& vtdrawlist = m_childList.m_directui.vtdrawlist;
+
+        duidrawbase* pselduibase = NULL;
+        SkinWindow*  pSelWindow = NULL;
+
+        for (size_t idx = 0; idx < vtdrawlist.size(); idx++)
+        {
+            duidrawbase* pbase = vtdrawlist[idx];
+            ATLASSERT(pbase != NULL);
+            if (pbase == NULL)
+                continue;
+
+            if ( !pbase->GetIdName().CollateNoCase( m_strSelIdName ) )
+            {
+                pselduibase = pbase;
+
+                break;
+            }
+        }
+
+
+        if (pselduibase == NULL)
+            pSelWindow = m_childList.GetDlgItem(m_strSelIdName);
+
+        if (pSelWindow != NULL || pselduibase != NULL)
         {
             RECT rcBox = { 0 };
 
-            pSelWindow->GetWindowRect(&rcBox);
+            if (pselduibase == NULL)
+                pSelWindow->GetWindowRect(&rcBox);
+            else
+            {
+                rcBox = pselduibase->GetClientRect();
+
+                ClientToScreen(&rcBox);
+            }
             //ScreenToClient(&rcBox);
 
             rcBox.left -= SkinSelectFlagWindow::line_space/2;
