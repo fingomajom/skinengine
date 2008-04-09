@@ -94,9 +94,9 @@ public:
 
     void SkinDrawGradualColorRect(
         const RECT& drawRC, 
-        COLORREF    clrFirst   /* = RGB(255, 255 ,255) */,   // 
-        COLORREF    clrEnd     /* = RGB(  0,   0,   0) */,   // 
-        BOOL        bVertical) /*= TRUE*/
+        COLORREF    clrFirst   = RGB(255, 255 ,255) ,   // 
+        COLORREF    clrEnd     = RGB(  0,   0,   0) ,   // 
+        BOOL        bVertical  = TRUE ) 
     {
         BYTE rfv = GetRValue(clrFirst);
         BYTE gfv = GetGValue(clrFirst);
@@ -148,9 +148,9 @@ public:
     void SkinLine(
         POINT pt0, 
         POINT pt1, 
-        COLORREF clrColor /* = RGB(0,0,0) */, 
-        int nPenStyle     /* = BS_SOLID   */, 
-        int nWidth)       /* = 1          */
+        COLORREF clrColor = RGB(0,0,0) , 
+        int nPenStyle     = BS_SOLID   , 
+        int nWidth        = 1 )
     {
         SkinLine(pt0.x, pt0.y, pt1.x, pt1.y, clrColor, nPenStyle, nWidth);
     }
@@ -158,9 +158,9 @@ public:
     void SkinLine(
         int x0, int y0, 
         int x1, int y1, 
-        COLORREF clrColor /* = RGB(0,0,0) */, 
-        int nPenStyle     /* = BS_SOLID   */, 
-        int nWidth)       /* = 1          */
+        COLORREF clrColor = RGB(0,0,0) , 
+        int nPenStyle     = BS_SOLID   , 
+        int nWidth        = 1 )
     {    
         CPen pen;
         pen.CreatePen(nPenStyle, nWidth, clrColor);
@@ -176,9 +176,9 @@ public:
 
     void SkinDrawBorder(
         const RECT& rectBorder, 
-        COLORREF clrColor /* = RGB(0,0,0) */, 
-        int nPenStyle     /* = BS_SOLID   */, 
-        int nWidth)       /* = 1          */
+        COLORREF clrColor  = RGB(0,0,0) , 
+        int nPenStyle      = BS_SOLID   , 
+        int nWidth         = 1 )
     {
         SkinDrawBorder(
             rectBorder.left , rectBorder.top, 
@@ -190,9 +190,9 @@ public:
     void SkinDrawBorder(
         int x0, int y0, 
         int x1, int y1, 
-        COLORREF clrColor /* = RGB(0,0,0) */, 
-        int nPenStyle     /* = BS_SOLID   */, 
-        int nWidth)       /* = 1          */
+        COLORREF clrColor = RGB(0,0,0) , 
+        int nPenStyle     = BS_SOLID   , 
+        int nWidth        = 1 )
     {
         CPen pen;
         pen.CreatePen(nPenStyle, 1, clrColor);
@@ -217,11 +217,11 @@ public:
 
     void SkinDrawRectangle(
         const RECT& rectBorder, 
-        COLORREF clrFillColor   /* = RGB(255, 255, 255) */, 
-        COLORREF clrBorderColor /* = RGB(0, 0, 0) */, 
-        int HatchStyles         /* = -1 */,
-        int nPenStyle           /* = BS_SOLID */, 
-        int nWidth)             /* = 1 */
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0) , 
+        int HatchStyles         = -1 ,
+        int nPenStyle           = BS_SOLID , 
+        int nWidth              = 1 )
     {
         SkinDrawRectangle(
             rectBorder.left , rectBorder.top, 
@@ -233,14 +233,15 @@ public:
             nWidth);
 
     }
+
     void SkinDrawRectangle(
         int x0, int y0, 
         int x1, int y1, 
-        COLORREF clrFillColor   /* = RGB(255, 255, 255) */, 
-        COLORREF clrBorderColor /* = RGB(0, 0, 0) */, 
-        int HatchStyles         /* = -1 */,
-        int nPenStyle           /* = BS_SOLID */, 
-        int nWidth)             /* = 1*/
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0) , 
+        int HatchStyles         = -1 ,
+        int nPenStyle           = BS_SOLID , 
+        int nWidth              = 1 )
     {
         CBrush brush;
         CPen   pen;
@@ -266,12 +267,12 @@ public:
 
     void SkinDraw3DRectangle(
         const RECT& rectBorder, 
-        COLORREF clrFillColor   /* = RGB(255, 255, 255) */, 
-        COLORREF clrBorderColor /* = RGB(0, 0, 0)       */, 
-        COLORREF clrShadowColor /* = RGB(0, 0, 0)       */, 
-        int HatchStyles         /* = -1                 */,
-        int nPenStyle           /* = BS_SOLID           */, 
-        int nWidth)             /* = 1                  */
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0)       , 
+        COLORREF clrShadowColor = RGB(0, 0, 0)       , 
+        int HatchStyles         = -1                 ,
+        int nPenStyle           = BS_SOLID           , 
+        int nWidth              = 1 )
     {
         SkinDraw3DRectangle(
             rectBorder.left , rectBorder.top, 
@@ -286,12 +287,12 @@ public:
     void SkinDraw3DRectangle(
         int x0, int y0, 
         int x1, int y1, 
-        COLORREF clrFillColor   /* = RGB(255, 255, 255) */, 
-        COLORREF clrBorderColor /* = RGB(0, 0, 0)       */, 
-        COLORREF clrShadowColor /* = RGB(0, 0, 0)       */, 
-        int HatchStyles         /* = -1                 */,
-        int nPenStyle           /* = BS_SOLID           */, 
-        int nWidth)             /* = 1                  */
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0)       , 
+        COLORREF clrShadowColor = RGB(0, 0, 0)       , 
+        int HatchStyles         = -1                 ,
+        int nPenStyle           = BS_SOLID           , 
+        int nWidth              = 1   )               
     {
         //int nShadowWidth = y1 - y0 > x1 - x0 ? (x1 - x0) / 15 : (y1 - y0) / 15;
         int nShadowWidth = 3;
