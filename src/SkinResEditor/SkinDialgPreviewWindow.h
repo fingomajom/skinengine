@@ -435,7 +435,10 @@ public:
                 SkinXmlDocument doc;
 
                 if (!doc.LoadXML(_T("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <KSGUI />")))
+                {
+                    vtdrawlist.erase(vtdrawlist.begin() + (vtdrawlist.size() - 1) );
                     return NULL;
+                }
 
                 WndProperty.SaveResDoc(doc.RootElement());
 

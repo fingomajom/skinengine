@@ -12,7 +12,7 @@
 #pragma once 
 
 #include "skinxmlwin.h"
-
+#include <vector>
 
 namespace KSGUI{
 
@@ -108,7 +108,11 @@ public:
         if (hFont.m_hFont != NULL)
             hOldFont = dc.SelectFont(hFont);
 
+        int nbkmode = dc.SetBkMode(TRANSPARENT);
+
         dc.DrawText( strCaption, -1, &rcClient, dwDrawFlag );
+
+        dc.SetBkMode(nbkmode);
 
         if (hFont.m_hFont != NULL)
             dc.SelectFont(hOldFont);
