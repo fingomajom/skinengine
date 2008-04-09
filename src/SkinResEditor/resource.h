@@ -10,6 +10,10 @@
 #define IDD_EDITDLG_DIALOG              203
 #define IDB_RESTYPE_BITMAP              203
 #define IDD_OUTPUTSET_DIALOG            204
+#define IDD_UP_DOWN_DIALOG              205
+#define IDB_UP_BITMAP                   206
+#define IDB_BITMAP2                     207
+#define IDB_DOWN_BITMAP                 207
 #define IDC_LIST1                       1000
 #define IDC_IMAGE_LIST                  1001
 #define IDC_COMBO1                      1002
@@ -25,7 +29,9 @@
 #define IDC_REVIEW_STATIC               1009
 #define IDC_BUTTON1                     1010
 #define IDC_SF_BUTTON1                  1010
+#define IDC_UP_BUTTON                   1010
 #define IDC_RF_EDIT                     1011
+#define IDC_DOWN_BUTTON                 1011
 #define ID_BUILD_OUT                    32774
 #define ID_BUILD_SETTING                32775
 
@@ -33,7 +39,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        205
+#define _APS_NEXT_RESOURCE_VALUE        208
 #define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101

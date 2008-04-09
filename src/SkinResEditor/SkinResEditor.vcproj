@@ -252,6 +252,14 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
+				RelativePath=".\res\bitmap1.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bitmap2.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\imagelistbmp.bmp"
 				>
 			</File>
@@ -453,6 +461,10 @@
 			</File>
 			<File
 				RelativePath=".\SkinTreeControlView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinUpDownDlg.h"
 				>
 			</File>
 		</Filter>

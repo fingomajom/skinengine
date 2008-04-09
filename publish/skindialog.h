@@ -198,7 +198,7 @@ public:
         m_childList.m_directui.drawdirectui(hDC);
     }
 
-    BEGIN_MSG_MAP(SkinDialgPreviewWindow)
+    BEGIN_MSG_MAP(SkinDialogImpl)
         MESSAGE_HANDLER(WM_PAINT, OnPaint)
     END_MSG_MAP()
 
@@ -508,6 +508,43 @@ public:
 
     SkinXmlElement    m_xmlDlgElement;
     CSkinDlgChildList m_childList;
+};
+
+
+template <class T>
+class SkinTitleDialog
+{
+public:
+
+    BEGIN_MSG_MAP(SkinTitleDialog)
+        MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize)
+    END_MSG_MAP()
+
+    LRESULT OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+        
+        BOOL bMinimized = wndThis.GetStyle() & WS_MINIMIZE;
+        BOOL bMaximized = wndThis.GetStyle() & WS_MAXIMIZE;
+
+
+        LPNCCALCSIZE_PARAMS pNCParams = (LPNCCALCSIZE_PARAMS)lParam;
+        
+        LPRECT lpRect = (LPRECT)lParam;
+
+
+        if (wParam && !bMinimized)
+        {
+            pNCParams->rgrc[2].top = pNCParams->rgrc[0].top + 100;
+
+            pNCParams->rgrc[0].top += 100;
+        }
+
+        //LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        return WVR_ALIGNTOP | WVR_ALIGNLEFT | WVR_REDRAW;
+    }
+
 };
 
 };// namespace KSGUI
