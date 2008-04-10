@@ -470,7 +470,7 @@ public:
 
     }
 
-    void _InitXmlDlg()
+    virtual void _InitXmlDlg()
     {
         ATLASSERT(m_hWnd != NULL);
 
@@ -522,23 +522,72 @@ public:
 
         void Paint( CSkinDCHandle& dc , int nflags )
         {
-            dc.FillRect(&rcButton, COLOR_GRAYTEXT);
+            COLORREF clrbkgnd = nflags == 0 ? 
+                HLS_TRANSFORM(pT->m_clrMainColor, 85, 30) :
+                HLS_TRANSFORM(pT->m_clrMainColor, 100, 30);
+
+            dc.SkinDrawRectangle(rcButton, 
+                clrbkgnd, HLS_TRANSFORM(pT->m_clrMainColor, 50, 30));
+
+            if ( uNcHitTestCode == HTCLOSE )
+            {
+                RECT rcBox = rcButton;
+
+                rcBox.left += 3;
+                rcBox.top  += 3;
+                rcBox.right  -= 4;
+                rcBox.bottom -= 3;
+
+                dc.SkinLine( rcBox.left , rcBox.top,
+                    rcBox.right , rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                dc.SkinLine( rcBox.left + 1, rcBox.top,
+                    rcBox.right + 1, rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                dc.SkinLine( rcBox.right, rcBox.top,
+                    rcBox.left , rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                dc.SkinLine( rcBox.right - 1, rcBox.top,
+                    rcBox.left - 1, rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+
+            }
+            else if ( uNcHitTestCode == HTMAXBUTTON )
+            {
+                RECT rcBox = rcButton;
+
+                rcBox.left += 3;
+                rcBox.top  += 3;
+                rcBox.right  -= 3;
+                rcBox.bottom -= 3;
+
+                dc.SkinDrawBorder(rcBox, pT->m_clrMainColor);
+                dc.SkinLine( rcBox.left , rcBox.top + 1,
+                    rcBox.right, rcBox.top + 1, pT->m_clrMainColor);
+            }
+            else if (uNcHitTestCode == HTMINBUTTON )
+            {
+               dc.SkinLine( rcButton.left + 3, rcButton.top + 8,
+                    rcButton.right - 5, rcButton.top + 8, pT->m_clrMainColor, PS_SOLID, 1);
+               dc.SkinLine( rcButton.left + 3, rcButton.top + 9,
+                   rcButton.right - 5, rcButton.top + 9, pT->m_clrMainColor, PS_SOLID, 1);
+            }
         }
 
     public:
-        SkinCaptionButton() :
+        SkinCaptionButton( SkinCaptionDialogT<T>* p ) :
             bUsed(FALSE),
-            uNcHitTestCode(HTCLOSE)
+            uNcHitTestCode(HTCLOSE),
+            pT(p)
         {
         }
         
         BOOL bUsed;
         RECT rcButton;
         UINT uNcHitTestCode;
+
+        SkinCaptionDialogT<T>* pT;
     };
 
 
-    SkinCaptionDialogT()
+    SkinCaptionDialogT() :
+        m_closebtn(this), m_maxbtn(this), m_minbtn(this)
     {
         m_closebtn.uNcHitTestCode = HTCLOSE;
         m_minbtn.uNcHitTestCode   = HTMINBUTTON;
@@ -546,9 +595,22 @@ public:
 
         m_bBtnPressed = FALSE;
         m_uBtnPress   = HTNOWHERE;
+        m_uLastHotBtn = HTNOWHERE;
 
         m_bMaxed      = FALSE;
+
+        m_clrMainColor = RGB(87,117,159);
     }
+
+    void _InitXmlDlg()
+    {
+        T* pskindlg = static_cast<T*>(this);
+
+        skinxmlwin xmlwin = pskindlg->m_xmlDlgElement;
+
+        xmlwin.GetObject(_T("MainColor"), m_clrMainColor);
+    }
+
 
     SkinCaptionButton m_closebtn;
     SkinCaptionButton m_minbtn;
@@ -558,13 +620,18 @@ public:
     BOOL m_bMaxed;
     UINT m_uBtnPress;
 
+    UINT m_uLastHotBtn;
+
     RECT m_rcLastWindow;
 
-    enum {
-        em_titlebar_height = 22,
+    COLORREF m_clrMainColor;
 
-        em_clr_border = 0x00FF00FF,
-        em_clr_bkgnd  = 0x00FFFFFF
+    enum {
+        em_border_width = 3,
+        em_titlebar_height = 21,
+
+        //em_clr_border = RGB(87,117,159),
+        //em_clr_border = RGB(128, 0 , 128),
     };
 
     BEGIN_MSG_MAP(SkinCaptionDialogT)
@@ -574,9 +641,12 @@ public:
         MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint)
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize)
 
+        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
+
         MESSAGE_HANDLER(WM_NCLBUTTONDOWN, OnNcLButtonDown)
         MESSAGE_HANDLER(WM_NCLBUTTONUP  , OnNcLButtonUp  )
         MESSAGE_HANDLER(WM_NCMOUSEMOVE  , OnNcMouseMove  )
+        MESSAGE_HANDLER(WM_NCMOUSELEAVE , OnNcMouseLeave )
 
         MESSAGE_HANDLER(WM_NCLBUTTONDBLCLK, OnNcLButtonDblclk)
 
@@ -590,30 +660,28 @@ public:
     {       
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        //ATLASSERT (wndThis.GetStyle() & WS_CAPTION);
-
         RECT rcClient = { 0 };
 
         wndThis.GetClientRect(&rcClient);
 
+        int width  = rcClient.right - rcClient.left + em_border_width * 2;
+        int height = rcClient.bottom - rcClient.top + em_titlebar_height + em_border_width * 2;
+
         ::SetWindowPos(wndThis, NULL, 0, 0,
-            rcClient.right - rcClient.left + 2,
-            rcClient.bottom - rcClient.top + em_titlebar_height + 1,
+             width, height,
             SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 
         m_rcLastWindow = rcClient;
         wndThis.ClientToScreen(&m_rcLastWindow);
 
-        m_rcLastWindow.right = m_rcLastWindow.left + (rcClient.right - rcClient.left + 2);
-        m_rcLastWindow.bottom = m_rcLastWindow.top + 
-            (rcClient.bottom - rcClient.top + em_titlebar_height + 1);
+        m_rcLastWindow.right = m_rcLastWindow.left + width;
+        m_rcLastWindow.bottom = m_rcLastWindow.top + height;
 
         bHandled = FALSE;
 
 
         return 0;
     }
-
 
     LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -626,6 +694,7 @@ public:
         //LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
 
         RECT rcWindow = { 0 };
+        RECT rcDraw   = { 0 };
 
         wndThis.GetWindowRect(&rcWindow);
 
@@ -635,11 +704,48 @@ public:
         rcWindow.left = 0;
         rcWindow.top  = 0;
 
-        skinDC.SkinDrawBorder(rcWindow, em_clr_border);
+        skinDC.SkinDrawBorder(rcWindow, HLS_TRANSFORM(m_clrMainColor, 80, 0), PS_SOLID, em_border_width);
+        
+        rcDraw = rcWindow;
+        rcDraw.bottom = rcDraw.top;
+
+        skinDC.SkinDrawBorder(rcDraw.left, rcDraw.top, 
+            rcDraw.right, rcDraw.bottom, HLS_TRANSFORM(m_clrMainColor, 95, 0), PS_SOLID, em_border_width);
+
+        skinDC.SkinDrawBorder(rcWindow, m_clrMainColor);
+
+        rcWindow.top   += em_border_width;
+        rcWindow.left  += em_border_width;
+        rcWindow.right -= em_border_width;
 
         rcWindow.bottom = rcWindow.top + em_titlebar_height;
 
-        skinDC.SkinDrawRectangle(rcWindow, em_clr_bkgnd, em_clr_border);
+        skinDC.SkinDrawGradualColorRect(rcWindow, 
+            HLS_TRANSFORM(m_clrMainColor, 85, 30), 
+            HLS_TRANSFORM(m_clrMainColor, 99, 20));
+
+        skinDC.SkinLine( rcWindow.left, rcWindow.bottom - 1,
+            rcWindow.right, rcWindow.bottom - 1, HLS_TRANSFORM(m_clrMainColor, 70, 0));
+
+        int npaintx =  em_border_width * 2;
+
+        HICON hicon = wndThis.GetIcon(FALSE);
+        if (hicon != NULL)
+        {
+            skinDC.DrawIconEx(npaintx, em_border_width , hicon, 
+                ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+
+            npaintx += (::GetSystemMetrics(SM_CXSMICON) + em_border_width);
+        }
+
+
+        TCHAR szCaption[MAX_PATH] = { 0 };
+        wndThis.GetWindowText(szCaption, MAX_PATH);
+
+        if (_tcslen(szCaption) > 0)
+        {
+            skinDC.SkinDrawText(npaintx, em_border_width * 2, szCaption, 0, wndThis.GetFont());
+        }
 
         if (m_closebtn.bUsed)
             m_closebtn.Paint(skinDC, 0);
@@ -651,6 +757,25 @@ public:
         return 0;
     }
 
+    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        CSkinDCHandle skinDC((HDC)wParam);
+
+        RECT rcClient = { 0 };
+
+        wndThis.GetClientRect(&rcClient);
+
+        skinDC.SkinDrawGradualColorRect(rcClient, 
+            HLS_TRANSFORM(m_clrMainColor, 99, 20),
+            HLS_TRANSFORM(m_clrMainColor, 85, 30)); 
+
+
+        return 0L;
+    }
+
+    
     LRESULT OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
@@ -672,10 +797,10 @@ public:
 
             pNCParams->rgrc[0] = rcWindow;
 
-            pNCParams->rgrc[0].top    += (0 + em_titlebar_height);
-            pNCParams->rgrc[0].left   += 1;
-            pNCParams->rgrc[0].right  -= 1;
-            pNCParams->rgrc[0].bottom -= 1;
+            pNCParams->rgrc[0].top    += (em_border_width + em_titlebar_height);
+            pNCParams->rgrc[0].left   += em_border_width;
+            pNCParams->rgrc[0].right  -= em_border_width;
+            pNCParams->rgrc[0].bottom -= em_border_width;
 
         }
 
@@ -689,39 +814,39 @@ public:
         BOOL bMinimized = wndThis.GetStyle() & WS_MINIMIZEBOX;
         BOOL bMaximized = wndThis.GetStyle() & WS_MAXIMIZEBOX;
 
-        int nrightpos = rcWindow.right - rcWindow.left - 10;
+        int nrightpos = rcWindow.right - rcWindow.left - em_border_width * 2;
 
         m_closebtn.bUsed = TRUE;
 
         m_closebtn.rcButton.right  = nrightpos;
-        m_closebtn.rcButton.left   = nrightpos - ( em_titlebar_height * 2 / 3 );
+        m_closebtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
 
-        m_closebtn.rcButton.top    = 0;
+        m_closebtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
         m_closebtn.rcButton.bottom = m_closebtn.rcButton.top + em_titlebar_height * 2 / 3;
 
         if (bMaximized)
         {
-            nrightpos -= em_titlebar_height;
+            nrightpos -= (( em_titlebar_height * 3 / 4 ) + em_border_width ) ;
 
             m_maxbtn.bUsed = TRUE;
 
             m_maxbtn.rcButton.right  = nrightpos;
-            m_maxbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 2 / 3 );
+            m_maxbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
 
-            m_maxbtn.rcButton.top    = 0;
+            m_maxbtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
             m_maxbtn.rcButton.bottom = m_maxbtn.rcButton.top + em_titlebar_height * 2 / 3;
         }
 
         if (bMinimized)
         {
-            nrightpos -= em_titlebar_height;
+            nrightpos -= (( em_titlebar_height * 3 / 4 ) + em_border_width );
 
             m_minbtn.bUsed = TRUE;
 
             m_minbtn.rcButton.right  = nrightpos;
-            m_minbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 2 / 3 );
+            m_minbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
 
-            m_minbtn.rcButton.top    = 0;
+            m_minbtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
             m_minbtn.rcButton.bottom = m_minbtn.rcButton.top + em_titlebar_height * 2 / 3;
         }
 
@@ -738,6 +863,17 @@ public:
         {
             m_bBtnPressed = TRUE;
             m_uBtnPress   = wParam;
+
+            CWindowDC dc(wndThis);
+            CSkinDCHandle skinDC(dc.m_hDC);
+
+            if (m_uBtnPress == HTCLOSE)
+                m_closebtn.Paint(skinDC, 0);
+            else if (m_uBtnPress == HTMINBUTTON)
+                m_minbtn.Paint(skinDC, 0);
+            else if (m_uBtnPress == HTMAXBUTTON)
+                m_maxbtn.Paint(skinDC, 0);
+
         }
         else if ( wParam == HTCAPTION && !m_bMaxed )
         {
@@ -780,7 +916,8 @@ public:
 
                     RECT rt;   
                     SystemParametersInfo(SPI_GETWORKAREA,0,&rt,0);   
-                    wndThis.MoveWindow(&rt);
+                    wndThis.MoveWindow(&rt, TRUE);
+                    wndThis.Invalidate();
                 }
                 break;
             default:
@@ -817,6 +954,7 @@ public:
                 RECT rt;   
                 SystemParametersInfo(SPI_GETWORKAREA,0,&rt,0);   
                 wndThis.MoveWindow(&rt);
+                wndThis.Invalidate();
             }
         }
 
@@ -828,9 +966,116 @@ public:
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        LRESULT lResult = 0; //::DefWindowProc(wndThis, uMsg, wParam, lParam);
+        LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
         
+        int xPos = GET_X_LPARAM(lParam); 
+        int yPos = GET_Y_LPARAM(lParam); 
+
+        RECT rcWindow = { 0 };
+        RECT rcDraw   = { 0 };
+
+        wndThis.GetWindowRect(&rcWindow);
+
+        switch(m_uLastHotBtn)
+        {
+        case HTCLOSE:
+        case HTMINBUTTON:
+        case HTMAXBUTTON:
+            {
+                CWindowDC dc(wndThis);
+                CSkinDCHandle skinDC(dc.m_hDC);
+
+                if (m_uLastHotBtn == HTCLOSE)
+                    m_closebtn.Paint(skinDC, 0);
+                else if (m_uLastHotBtn == HTMINBUTTON)
+                    m_minbtn.Paint(skinDC, 0);
+                else if (m_uLastHotBtn == HTMAXBUTTON)
+                    m_maxbtn.Paint(skinDC, 0);
+               
+                m_uLastHotBtn = HTNOWHERE;
+            }
+            break;
+        }
+
+        UINT uLastHotBtn = m_uLastHotBtn;
+
+        if ( m_closebtn.bUsed && 
+             ::PtInRect( &m_closebtn.rcButton, 
+                CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
+        {
+            CWindowDC dc(wndThis);
+            CSkinDCHandle skinDC(dc.m_hDC);
+            
+            m_closebtn.Paint(skinDC, 1);
+
+            m_uLastHotBtn = HTCLOSE;
+        }
+
+        if ( m_minbtn.bUsed && 
+            ::PtInRect( &m_minbtn.rcButton, 
+            CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
+        {
+            CWindowDC dc(wndThis);
+            CSkinDCHandle skinDC(dc.m_hDC);
+
+            m_minbtn.Paint(skinDC, 1);
+
+            m_uLastHotBtn = HTMINBUTTON;
+        }
+
+        if ( m_maxbtn.bUsed && 
+            ::PtInRect( &m_maxbtn.rcButton, 
+            CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
+        {
+            CWindowDC dc(wndThis);
+            CSkinDCHandle skinDC(dc.m_hDC);
+
+            m_maxbtn.Paint(skinDC, 1);
+
+            m_uLastHotBtn = HTMAXBUTTON;
+        }
+
+        if (uLastHotBtn == HTNOWHERE &&
+            m_uLastHotBtn != HTNOWHERE)
+        {
+            TRACKMOUSEEVENT tme = { 0 };
+
+            tme.cbSize  = sizeof(tme);
+            tme.dwFlags = TME_LEAVE | TME_NONCLIENT;
+            tme.hwndTrack = wndThis;
+
+            _TrackMouseEvent(&tme);
+        }
+
         return lResult;
+    }
+
+    LRESULT OnNcMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        switch(m_uLastHotBtn)
+        {
+        case HTCLOSE:
+        case HTMINBUTTON:
+        case HTMAXBUTTON:
+            {
+                CWindowDC dc(wndThis);
+                CSkinDCHandle skinDC(dc.m_hDC);
+
+                if (m_uLastHotBtn == HTCLOSE)
+                    m_closebtn.Paint(skinDC, 0);
+                else if (m_uLastHotBtn == HTMINBUTTON)
+                    m_minbtn.Paint(skinDC, 0);
+                else if (m_uLastHotBtn == HTMAXBUTTON)
+                    m_maxbtn.Paint(skinDC, 0);
+
+                m_uLastHotBtn = HTNOWHERE;
+            }
+            break;
+        }
+
+        return 0L;
     }
 
 
@@ -883,6 +1128,11 @@ public:
         CHAIN_MSG_MAP(CaptionDialogT)
     END_MSG_MAP()
 
+    void _InitXmlDlg()
+    {
+        SkinDialogImpl<T>::_InitXmlDlg();
+        CaptionDialogT::_InitXmlDlg();
+    }
 };
 
 
