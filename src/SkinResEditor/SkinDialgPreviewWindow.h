@@ -194,10 +194,10 @@ public:
 };
 
 class SkinDialgPreviewWindow : 
-    public KSGUI::SkinDialogImpl<SkinDialgPreviewWindow>
+    public KSGUI::SkinCaptionDialogImpl<SkinDialgPreviewWindow>
 {
 
-    typedef KSGUI::SkinDialogImpl<SkinDialgPreviewWindow> theBase;
+    typedef KSGUI::SkinCaptionDialogImpl<SkinDialgPreviewWindow> theBase;
 
 public:
     

@@ -285,6 +285,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skindirectui.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skindlgres.h"
 				>
 			</File>

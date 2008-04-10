@@ -70,6 +70,9 @@ public:
     {
         if (m_wndPreView.IsWindow())
             m_wndPreView.DestroyWindow();
+        if (m_wndUpdown.IsWindow())
+            m_wndUpdown.DestroyWindow();
+        
     }
 
 public:

@@ -91,6 +91,54 @@ public:
         return TRUE;
     }
 
+    BOOL SkinDrawText( LPRECT lpRect, LPCTSTR pszText, 
+        DWORD dwFlags = DT_LEFT | DT_TOP, COLORREF clrText = 0x0L, HFONT hFont = NULL )
+    {
+        HFONT hOldFont = NULL;        
+
+        COLORREF clrOld = SetTextColor(clrText);
+
+        if (hFont != NULL)
+            hOldFont = SelectFont(hFont);
+
+        int nbkmode = SetBkMode(TRANSPARENT);
+
+        DrawText( pszText, -1, lpRect, dwDrawFlag );
+
+        SetBkMode(nbkmode);
+
+        if (hFont != NULL)
+            SelectFont(hOldFont);
+
+        SetTextColor(clrOld);
+
+        return TRUE;
+    }
+
+    BOOL SkinDrawText( int nx, int ny, LPCTSTR pszText, 
+        COLORREF clrText = 0x0L, HFONT hFont = NULL )
+    {
+        HFONT hOldFont = NULL;        
+
+        COLORREF clrOld = SetTextColor(clrText);
+
+        if (hFont != NULL)
+            hOldFont = SelectFont(hFont);
+
+        int nbkmode = SetBkMode(TRANSPARENT);
+
+        TextOut(nx, ny, pszText);
+
+        SetBkMode(nbkmode);
+
+        if (hFont != NULL)
+            SelectFont(hOldFont);
+
+        SetTextColor(clrOld);
+
+        return TRUE;
+    }
+
 
     void SkinDrawGradualColorRect(
         const RECT& drawRC, 
@@ -115,6 +163,15 @@ public:
             double gstep = (double)((gev - gfv)) / nHeight;
             double bstep = (double)((bev - bfv)) / nHeight;
 
+            CSkinDCT<TRUE> memDC;
+
+            memDC.CreateCompatibleDC(m_hDC);
+
+            CBitmap bmp;
+            bmp.CreateCompatibleBitmap(m_hDC, 1, nHeight);
+
+            HBITMAP hOldBmp = memDC.SelectBitmap(bmp);
+
             for (int i = 0; i < nHeight; i++)
             {
                 BYTE rclr = rfv + BYTE(rstep * i);
@@ -123,8 +180,16 @@ public:
 
                 COLORREF clr = RGB(rclr, gclr, bclr);
 
-                KMCLine(drawRC.left, drawRC.top + i, drawRC.right, drawRC.top + i, clr);
+                memDC.SetPixel( 0, i, clr );
             }
+
+            for (int j =  0; j < nWidth; j++)
+            {
+                BitBlt( drawRC.left + j, drawRC.top, 1, nHeight,
+                    memDC, 0, 0, SRCCOPY);
+            }
+
+            memDC.SelectBitmap(hOldBmp);
         }
         else
         {
@@ -140,7 +205,7 @@ public:
 
                 COLORREF clr = RGB(rclr, gclr, bclr);
 
-                KMCLine(drawRC.left + i, drawRC.top , drawRC.left + i, drawRC.bottom, clr);
+                SkinLine(drawRC.left + i, drawRC.top , drawRC.left + i, drawRC.bottom, clr);
             }
         }
     }

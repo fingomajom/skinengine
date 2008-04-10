@@ -23,7 +23,7 @@ public:
         LPCTSTR pszPropertyDef = GetWndPropertyDef(strClassName);
 
         if ( pszPropertyDef == NULL )
-            pszPropertyDef = _T("ABCDEFGHIJKLM");
+            pszPropertyDef = _T("ABCDEFGHIJKLMV");
 
         GetResWndProperty(WndProperty, pszPropertyDef);
     }
@@ -211,8 +211,11 @@ private:
 
         /* S*/ { _T("PenStyle")     , _T("0")          , SkinPropertyView::it_number },
         /* T*/ { _T("PenWidth")     , _T("1")          , SkinPropertyView::it_number },
-        /* U*/ { _T("RoundWidth")   , _T("0")          , SkinPropertyView::it_number }
+        /* U*/ { _T("RoundWidth")   , _T("0")          , SkinPropertyView::it_number },
 
+        /* V*/ { _T("MainColor")    , _T("0x00FF00FF") , SkinPropertyView::it_color  }
+
+        
         };
         
         pItemList = DefPropertyList;
