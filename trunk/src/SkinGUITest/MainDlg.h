@@ -7,13 +7,12 @@
 #include <skindialog.h>
 
 class CMainDlg : 
-    public SkinDialogImpl<CMainDlg>,
-    public SkinTitleDialog<CMainDlg>,
+    public SkinCaptionDialogImpl<CMainDlg>,
     public CUpdateUI<CMainDlg>, 
 	public CMessageFilter, 
     public CIdleHandler
 {
-    typedef KSGUI::SkinDialogImpl<CMainDlg> theBase;
+    typedef KSGUI::SkinCaptionDialogImpl<CMainDlg> theBase;
 
 public:
 	enum { IDD = IDD_MAINDLG };
@@ -34,12 +33,14 @@ public:
 	END_UPDATE_UI_MAP()
 
 	BEGIN_MSG_MAP(CMainDlg)
-		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+        
+        CHAIN_MSG_MAP(theBase)
+
+        MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
-        CHAIN_MSG_MAP(theBase)
-        CHAIN_MSG_MAP(SkinTitleDialog<CMainDlg>)
+
 	END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
@@ -49,7 +50,7 @@ public:
 
     DWORD GetStyle( DWORD dwStyle )
     {
-         dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_BORDER | WS_MINIMIZEBOX;
+         dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_BORDER;
 
         return dwStyle;
     }
@@ -65,8 +66,6 @@ public:
 
 	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-        SkinTitleDialog<CMainDlg>::OnInitDialog(uMsg, wParam, lParam, bHandled);
-
 		CenterWindow();
 
 		// set icons
