@@ -319,7 +319,7 @@ public:
     DWORD GetStyle( DWORD dwStyle )
     {
         return WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | 
-            WS_DISABLED | WS_CLIPSIBLINGS  ;
+            WS_DISABLED | WS_CLIPSIBLINGS | WS_MINIMIZEBOX ;
     }
 
 //#define WS_CLIPSIBLINGS     0x04000000L
@@ -417,6 +417,8 @@ public:
 
         return TRUE;
     }
+
+
     BOOL UpdateSkinWindow( SkinWndPropertyList& WndProperty )
     {
         std::vector<duidrawbase*>& vtdrawlist = m_childList.m_directui.vtdrawlist;

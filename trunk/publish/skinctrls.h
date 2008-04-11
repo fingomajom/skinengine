@@ -235,20 +235,31 @@ public:
         BOOL bCheck = GetCheck();
 
         RECT rcClient = { 0 };
+        RECT rcCheck  = { 0 };
+
         GetClientRect(&rcClient);
+        
+        rcCheck = rcClient;
 
-        skinDC.SkinDrawText(&rcClient, bCheck ? _T("[1]") : _T("[0]"), 
-            DT_VCENTER | DT_SINGLELINE | DT_LEFT, 0L, GetFont());
+        const int nWidth = 13;
 
+        rcCheck.top    = (rcCheck.bottom - rcCheck.top) / 2 - nWidth/2;
+        rcCheck.bottom = rcCheck.top + nWidth;
+        rcCheck.right  = nWidth;
 
-        rcClient.left += 20;
+        skinDC.DrawFrameControl(&rcCheck, DFC_BUTTON, 
+            DFCS_BUTTONCHECK | bCheck ? DFCS_CHECKED : 0);
+
+        rcClient.left += nWidth * 4 / 3;
 
         TCHAR szBuffer[MAX_PATH] = { 0 };
         GetWindowText(szBuffer, MAX_PATH);
 
         if ( _tcslen(szBuffer) > 0 )
+        {
             skinDC.SkinDrawText(&rcClient, szBuffer, 
                 DT_VCENTER | DT_SINGLELINE | DT_LEFT, 0L, GetFont());
+        }
 
         return 0L;
     }
