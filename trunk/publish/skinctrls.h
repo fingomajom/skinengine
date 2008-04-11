@@ -11,6 +11,7 @@
 
 #include "skinxmlctrls.h"
 #include "skinwin.h"
+#include "skingdi.h"
 #include <atlctrls.h>
 
 
@@ -72,6 +73,9 @@ public:
             hWndParent,              
             GetWndClassName(),
             MenuOrID);
+
+        if (hWndResult == NULL)
+            return hWndResult;
 
         if (hWndResult != NULL && hWndParent != NULL)
             SetFont( TBase(hWndParent).GetFont() );
@@ -153,6 +157,110 @@ public:
 
     CBitmap m_bmp;
 };
+
+
+class CSkinCheckboxButton : public SkinWindowImpl<CSkinCheckboxButton, CButtonT<KSGUI::SkinWindow> >
+{    
+    typedef SkinWindowImpl<CSkinCheckboxButton, CButtonT<KSGUI::SkinWindow> > theBase;
+
+public:
+
+    CSkinCheckboxButton()
+    {
+    }
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        HWND hWndResult = theBase::SkinCreate(xmlElement, 
+            hWndParent,
+            MenuOrID);
+            
+        if (hWndResult == NULL)
+            return hWndResult;
+
+        if (hWndResult != NULL && hWndParent != NULL)
+            SetFont( CButtonT<KSGUI::SkinWindow>(hWndParent).GetFont() );
+        
+        return hWndResult;
+    }
+
+
+    BEGIN_MSG_MAP(CSkinCheckboxButton)
+
+        MESSAGE_HANDLER(WM_PAINT     , OnPaint)
+        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
+        
+        MESSAGE_HANDLER(WM_LBUTTONDOWN    , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_LBUTTONUP      , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_NCLBUTTONDBLCLK, OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_KEYDOWN        , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_KEYUP          , OnRefWindowMsg)
+
+        MESSAGE_HANDLER(WM_MOUSEMOVE      , OnMouseMove   )
+
+    END_MSG_MAP()
+
+    LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 0L;
+    }
+
+    LRESULT OnRefWindowMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {        
+        LRESULT lResult = DefWindowProc();
+
+        CWindow wndParent = GetParent();
+        if (wndParent.m_hWnd == NULL)
+            return lResult;
+        
+
+        RECT rcClient = { 0 };
+
+        GetClientRect(&rcClient);
+        ClientToScreen(&rcClient);
+        wndParent.ScreenToClient(&rcClient);
+        wndParent.InvalidateRect(&rcClient);
+
+        return lResult;        
+    }
+
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CPaintDC dc(m_hWnd);
+
+        CSkinDCHandle skinDC = (dc.m_hDC);
+
+        BOOL bCheck = GetCheck();
+
+        RECT rcClient = { 0 };
+        GetClientRect(&rcClient);
+
+        skinDC.SkinDrawText(&rcClient, bCheck ? _T("[1]") : _T("[0]"), 
+            DT_VCENTER | DT_SINGLELINE | DT_LEFT, 0L, GetFont());
+
+
+        rcClient.left += 20;
+
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+        GetWindowText(szBuffer, MAX_PATH);
+
+        if ( _tcslen(szBuffer) > 0 )
+            skinDC.SkinDrawText(&rcClient, szBuffer, 
+                DT_VCENTER | DT_SINGLELINE | DT_LEFT, 0L, GetFont());
+
+        return 0L;
+    }
+
+
+    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1L;
+    }
+};
+
+
 
 
 class SkinRichEditInit

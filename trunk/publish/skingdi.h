@@ -103,7 +103,7 @@ public:
 
         int nbkmode = SetBkMode(TRANSPARENT);
 
-        DrawText( pszText, -1, lpRect, dwDrawFlag );
+        DrawText( pszText, -1, lpRect, dwFlags );
 
         SetBkMode(nbkmode);
 

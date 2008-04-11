@@ -127,6 +127,39 @@ class SkinWindowCreator;
 template<class T, class TBase , class WinCreator = SkinWindowCreator>
 class SkinWindowImpl : public CWindowImpl<T, TBase>
 {
+
+public:
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        BOOL result;
+
+        ATLASSUME(m_hWnd == NULL);
+
+        // Allocate the thunk structure here, where we can fail gracefully.
+        result = m_thunk.Init(NULL, NULL);
+        if (result == FALSE) {
+            SetLastError(ERROR_OUTOFMEMORY);
+            return NULL;
+        }
+
+        if (T::GetWndClassInfo().m_lpszOrigName == NULL)
+            T::GetWndClassInfo().m_lpszOrigName = GetWndClassName();
+        ATOM atom = T::GetWndClassInfo().Register(&m_pfnSuperWindowProc);
+
+        _AtlWinModule.AddCreateWndData(&m_thunk.cd, this);
+
+        HWND hWndResult = TBase::SkinCreate(xmlElement, 
+            hWndParent,              
+            T::GetWndClassInfo().m_wc.lpszClassName,
+            MenuOrID);
+
+        return hWndResult;
+    }
+
+
 };
 
 

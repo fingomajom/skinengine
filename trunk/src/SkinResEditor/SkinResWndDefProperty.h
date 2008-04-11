@@ -188,7 +188,7 @@ private:
         static WndPropertyEntryItem DefPropertyList[] = 
         {
         /* A*/ { _T("IdName")       , _T("")           , SkinPropertyView::it_text},
-        /* B*/ { _T("Caption")      , _T("")           , SkinPropertyView::it_text},
+        /* B*/ { _T("Caption")      , _T("Caption")    , SkinPropertyView::it_text},
         /* C*/ { _T("SkinClassName"), _T("")           , SkinPropertyView::it_readonly},
         /* D*/ { _T("ItemId")       , _T("0")          , SkinPropertyView::it_number},
         /* E*/ { _T("Style")        , _T("0")          , SkinPropertyView::it_number},
@@ -243,7 +243,8 @@ private:
 
             { skinxmlgroupbox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 0 },
             { skinxmlbutton::GetSkinWndClassName()       , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_TABSTOP, 0 },
-            { skinxmlcheckbox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_CHECKBOX | WS_TABSTOP, 0 },
+            { skinxmlcheckbox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_AUTOCHECKBOX | WS_TABSTOP, WS_EX_TRANSPARENT },
+            { skinxmlcheckboxex::GetSkinWndClassName()   , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_AUTOCHECKBOX | WS_TABSTOP, WS_EX_TRANSPARENT },
             { skinxmlradiobox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | WS_TABSTOP, 0 },
 
             { skinxmlcombobox::GetSkinWndClassName()     , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWN | WS_VSCROLL , 0 },

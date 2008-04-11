@@ -106,6 +106,8 @@ protected:
             SkinCreate_Static<CSkinButton>);
         AddSkinCreator(KSGUI::skinxmlcheckbox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
+        AddSkinCreator(KSGUI::skinxmlcheckboxex::GetSkinWndClassName(), 
+            SkinCreate_Static<CSkinCheckboxButton>);
         AddSkinCreator(KSGUI::skinxmlradiobox::GetSkinWndClassName(), 
             SkinCreate_Static<CSkinButton>);
 

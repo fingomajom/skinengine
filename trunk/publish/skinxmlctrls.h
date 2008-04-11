@@ -110,6 +110,7 @@ define_xml_ctrls(skinxmlpicture);
 define_xml_ctrls(skinxmlgroupbox);
 define_xml_ctrls(skinxmlbutton);
 define_xml_ctrls(skinxmlcheckbox);
+define_xml_ctrls(skinxmlcheckboxex);
 define_xml_ctrls(skinxmlradiobox);
 
 define_xml_ctrls(skinxmlcombobox);
