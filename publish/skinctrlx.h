@@ -30,7 +30,7 @@ enum {
 
 template <class T, class TBase = KSGUI::SkinWindow, class TWinTraits = ATL::CControlWinTraits>
 class  __declspec(novtable) CSkinStaticExT : 
-    public ATL::CWindowImpl< T, TBase, TWinTraits >,
+    public SkinWindowImpl< T, TBase, TWinTraits >,
     public WTL::CDoubleBufferImpl<CSkinStaticExT<T> >
 {
 
@@ -81,8 +81,9 @@ public:
         MESSAGE_HANDLER(WM_SETTEXT, OnSetText)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBKGnd)
 
+        MESSAGE_HANDLER(WM_PAINT  , OnPaint)
 
-        CHAIN_MSG_MAP(CDoubleBufferImpl<CSkinStaticExT>)
+        //CHAIN_MSG_MAP(CDoubleBufferImpl<CSkinStaticExT>)
     END_MSG_MAP()
 
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -91,6 +92,7 @@ public:
         _Init();
         return 1L;
     }
+
 
     LRESULT OnEraseBKGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -130,8 +132,8 @@ public:
         {
         case KTLS_USEPARENTBKBRUSH:
             {
-                CBrushHandle hBrush = (HBRUSH)::SendMessage(GetParent(), WM_CTLCOLORSTATIC, (WPARAM)dc.m_hDC, (LPARAM)m_hWnd);
-                dc.FillRect(&rcClient, hBrush);
+                //CBrushHandle hBrush = (HBRUSH)::SendMessage(GetParent(), WM_CTLCOLORSTATIC, (WPARAM)dc.m_hDC, (LPARAM)m_hWnd);
+                //dc.FillRect(&rcClient, hBrush);
             }
 
             break;
@@ -139,7 +141,6 @@ public:
         default:
             {
                 CBrush brush;
-
                 brush.CreateSolidBrush(m_clrBkGnd);
 
                 dc.FillRect(&rcClient, brush);
@@ -190,6 +191,8 @@ public:
         GetWindowText(pszText, 1023);
 
         m_strCaption = pszText;
+
+        CWindow::ModifyStyleEx(0, WS_EX_TRANSPARENT);
     }
 
     public:
@@ -198,30 +201,15 @@ public:
         const SkinXmlElement& xmlElement,
         HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
     {
-        BOOL result;
+        HWND hWndResult = SkinWindowImpl< T, TBase, TWinTraits >::
+            SkinCreate(xmlElement, hWndParent, MenuOrID);
 
-        ATLASSUME(m_hWnd == NULL);
-
-        // Allocate the thunk structure here, where we can fail gracefully.
-        result = m_thunk.Init(NULL, NULL);
-        if (result == FALSE) {
-            SetLastError(ERROR_OUTOFMEMORY);
-            return NULL;
-        }
-
-        ATOM atom = T::GetWndClassInfo().Register(&m_pfnSuperWindowProc);
-
-        _AtlWinModule.AddCreateWndData(&m_thunk.cd, this);
-
-        HWND hWndResult = TBase::SkinCreate(xmlElement, 
-            hWndParent,              
-            T::GetWndClassInfo().m_wc.lpszClassName,
-            MenuOrID);
+        if (hWndResult == NULL)
+            return hWndResult;
 
         skinxmlstaticex xmlWin(xmlElement);
         
         xmlWin.GetFont(m_hTextFont.m_hFont);
-
 
         xmlWin.GetPaintStyle(m_nPaintStyle);
         xmlWin.GetDrawTextFlags(m_uDrawTextFlags);

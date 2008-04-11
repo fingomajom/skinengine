@@ -50,7 +50,8 @@ public:
 
     DWORD GetStyle( DWORD dwStyle )
     {
-        dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_BORDER;
+        dwStyle =  WS_POPUP | WS_SYSMENU | WS_VISIBLE | 
+            WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_BORDER;
 
         return dwStyle;
     }

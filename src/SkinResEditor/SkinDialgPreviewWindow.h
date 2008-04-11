@@ -318,8 +318,12 @@ public:
 
     DWORD GetStyle( DWORD dwStyle )
     {
-        return WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN ;
+        return WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | 
+            WS_DISABLED | WS_CLIPSIBLINGS  ;
     }
+
+//#define WS_CLIPSIBLINGS     0x04000000L
+//#define WS_CLIPCHILDREN     0x02000000L
 
 
     DWORD GetExStyle( DWORD dwExtyle )
