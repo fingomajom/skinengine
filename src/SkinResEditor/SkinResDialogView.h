@@ -155,7 +155,6 @@ public:
     {
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
-        ShowWindow(SW_SHOW);
 
         m_wndTree.SetItemText(m_wndTree.GetRootItem(), GetResDialog().m_dlgWndProperty.GetIdName());
 
@@ -168,6 +167,9 @@ public:
         //m_wndUpdown.ShowWindow(SW_SHOW);
 
         m_wndTree.SelectItem(m_wndTree.GetRootItem());
+
+        ShowWindow(SW_SHOW);
+
     }
 
     virtual void HideResult(HTREEITEM hTreeItem, LPARAM lParam)
