@@ -29,7 +29,7 @@ public:
 
         if (m_hHookMouse == NULL)
         {
-            m_hHookMouse = SetWindowsHookEx( WH_MOUSE, 
+            m_hHookMouse = SetWindowsHookEx( WH_CALLWNDPROC , 
                 HookMouse, 
                 0, 
                 GetCurrentThreadId());
@@ -58,22 +58,29 @@ public:
     {
         LRESULT lResult = CallNextHookEx( instance().m_hHookMouse, iCode, wParam, lParam );
 
-        if (wParam == WM_LBUTTONDOWN)
-        {
-            LPMOUSEHOOKSTRUCT lpMouseInfo = (LPMOUSEHOOKSTRUCT)lParam;
-            
+        LPCWPSTRUCT cwps  = ( ( LPCWPSTRUCT )lParam );
+
+        if (cwps->message == WM_LBUTTONDOWN)
+        {            
             if (instance().m_hHookWindow == NULL || !::IsWindow(instance().m_hHookWindow))
                 return lResult;
 
             CWindow wndHook = instance().m_hHookWindow;
 
             CRect rcWindow;
+            POINT pt;
+
+            GetCursorPos(&pt);
 
             wndHook.GetWindowRect(&rcWindow);
 
-            if (rcWindow.PtInRect(lpMouseInfo->pt))
+            if (rcWindow.PtInRect( pt ))
             {
-                wndHook.SendMessage(WM_LBUTTONDOWN);
+                wndHook.SendMessage(WM_MBUTTONDBLCLK);
+            }
+            else
+            {
+
             }
         }
         
@@ -204,7 +211,7 @@ public:
     BEGIN_MSG_MAP(SkinDialgPreviewWindow)
         //MESSAGE_HANDLER(WM_PAINT, OnPaint)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
-        MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
+        MESSAGE_HANDLER(WM_MBUTTONDBLCLK, OnLButtonDown)
         CHAIN_MSG_MAP(theBase)
     END_MSG_MAP()
 
@@ -219,7 +226,7 @@ public:
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
         LRESULT lResult = DefWindowProc();
-        
+
         POINT pt = { 0 };
 
         ::GetCursorPos(&pt);
@@ -312,14 +319,15 @@ public:
             skinDC.SkinDrawBorder(rcBox, clrLine, PS_SOLID, nspace);
         }
 
+
         return TRUE;
     }
 
 
     DWORD GetStyle( DWORD dwStyle )
     {
-        return WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | 
-            WS_DISABLED | WS_CLIPSIBLINGS | WS_MINIMIZEBOX ;
+        return WS_CHILD | WS_SYSMENU | WS_VISIBLE | WS_TABSTOP |
+            WS_CLIPSIBLINGS | WS_MINIMIZEBOX ;
     }
 
 //#define WS_CLIPSIBLINGS     0x04000000L
