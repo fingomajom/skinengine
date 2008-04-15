@@ -213,7 +213,7 @@ private:
         /* T*/ { _T("PenWidth")     , _T("1")          , SkinPropertyView::it_number },
         /* U*/ { _T("RoundWidth")   , _T("0")          , SkinPropertyView::it_number },
 
-        /* V*/ { _T("MainColor")    , _T("0x00FF00FF") , SkinPropertyView::it_color  }
+        /* V*/ { _T("MainColor")    , _T("0x00008000") , SkinPropertyView::it_color  }
 
         
         };

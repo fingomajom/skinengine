@@ -26,7 +26,7 @@ public:
 
         GetCharSet(font.lfCharSet, strCharSet);
 
-        Format(_T("%s,%s,%d,%d,%d,%d"), font.lfFaceName, strCharSet, font.lfHeight, font.lfWidth, font.lfWeight, font.lfItalic);
+        Format(_T("%s,%s,%d,%d,%d,%d"), font.lfFaceName, strCharSet, font.lfHeight, font.lfWidth, font.lfWeight, font.lfItalic, font.lfUnderline);
     }
     
     void operator >> ( LOGFONT& font )
@@ -54,12 +54,14 @@ public:
         strRef = (LPCTSTR)strRef.Mid(nDotIndex + 1);
 
         
-        LONG lfItalic = 0;
+        LONG lfItalic    = 0;
+        LONG lfUnderline = 0;
 
-        _stscanf_s((LPCTSTR)strRef, _T(" %d , %d , %d , %d "), 
-            &font.lfHeight, &font.lfWidth, &font.lfWeight, &lfItalic);
+        _stscanf_s((LPCTSTR)strRef, _T(" %d , %d , %d , %d , %d "), 
+            &font.lfHeight, &font.lfWidth, &font.lfWeight, &lfItalic, &lfUnderline);
 
-        font.lfItalic = (BYTE)lfItalic;
+        font.lfItalic    = (BYTE)lfItalic;
+        font.lfUnderline = (BYTE)lfUnderline;
 
         _tcsncpy_s(font.lfFaceName, strFaceName, sizeof(font.lfFaceName));
         

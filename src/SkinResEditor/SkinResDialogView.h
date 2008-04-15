@@ -97,9 +97,12 @@ public:
             SkinResWndDefProperty::GetResClassWndDefProperty(
                 KSGUI::CString(), dialogRes.m_dlgWndProperty);
 
+            
+
             dialogRes.m_dlgWndProperty.SetProperty(_T("IdName"), dialogRes.m_dlgWndProperty.GetIdName());
             dialogRes.m_dlgWndProperty.SetProperty(_T("Width") , _T("200"));
             dialogRes.m_dlgWndProperty.SetProperty(_T("Height"), _T("150"));
+            dialogRes.m_dlgWndProperty.SetProperty(_T("Style") , _T("0x5c0a0000"));
             dialogRes.m_dlgWndProperty.SetProperty(_T("Font"),   _T("ËÎÌו,GB2312_CHARSET,9,1,400,0"));
 
         }
