@@ -14,13 +14,20 @@
 
 #define WM_SELECTCHILDWINDOW (WM_USER + 0x222)
 
+
+#define WM_USER_BUTTONDOWN   (WM_USER + 0x223)
+#define WM_USER_KEYDOWN      (WM_USER + 0x224)
+
+
 class SkinHookMouse
 {
 public:
     SkinHookMouse()
     {
-        m_hHookMouse  = NULL;
-        m_hHookWindow = NULL;
+        m_hHookMouse    = NULL;
+        m_hHookKeyBoard = NULL;
+        m_hHookWindow   = NULL;
+        m_bHookKey      = FALSE;
     }
 
     BOOL InitHookMouse()
@@ -29,13 +36,21 @@ public:
 
         if (m_hHookMouse == NULL)
         {
-            m_hHookMouse = SetWindowsHookEx( WH_CALLWNDPROC , 
+            m_hHookMouse = SetWindowsHookEx( WH_MOUSE , 
                 HookMouse, 
                 0, 
                 GetCurrentThreadId());
 
             if (m_hHookMouse == NULL)
                 bResult = FALSE;
+
+            m_hHookKeyBoard = SetWindowsHookEx( WH_KEYBOARD , 
+                KeyBoardMouse, 
+                0, 
+                GetCurrentThreadId());
+            if (m_hHookKeyBoard == NULL)
+                bResult = FALSE;
+
         }
 
         return bResult;
@@ -49,6 +64,8 @@ public:
         {
             UnhookWindowsHookEx( m_hHookMouse );
             m_hHookMouse = NULL;
+            UnhookWindowsHookEx( m_hHookKeyBoard );
+            m_hHookKeyBoard = NULL;
         }
 
         return bResult;
@@ -58,34 +75,51 @@ public:
     {
         LRESULT lResult = CallNextHookEx( instance().m_hHookMouse, iCode, wParam, lParam );
 
-        LPCWPSTRUCT cwps  = ( ( LPCWPSTRUCT )lParam );
+        if (wParam == WM_LBUTTONDOWN)
+        {
+            LPMOUSEHOOKSTRUCT lpMouseInfo = (LPMOUSEHOOKSTRUCT)lParam;
 
-        if (cwps->message == WM_LBUTTONDOWN)
-        {            
             if (instance().m_hHookWindow == NULL || !::IsWindow(instance().m_hHookWindow))
                 return lResult;
 
             CWindow wndHook = instance().m_hHookWindow;
 
             CRect rcWindow;
-            POINT pt;
-
-            GetCursorPos(&pt);
 
             wndHook.GetWindowRect(&rcWindow);
 
-            if (rcWindow.PtInRect( pt ))
+            if (rcWindow.PtInRect(lpMouseInfo->pt))
             {
-                wndHook.SendMessage(WM_MBUTTONDBLCLK);
+                wndHook.SendMessage(WM_USER_BUTTONDOWN);
+
+                instance().m_bHookKey = TRUE;
             }
             else
-            {
-
-            }
+                instance().m_bHookKey = FALSE;
         }
-        
-        return lResult;
+
+        return lResult;        
     }
+
+    static LRESULT CALLBACK KeyBoardMouse( int iCode, WPARAM wParam, LPARAM lParam )
+    {
+        SkinHookMouse ins = instance();
+
+        if (iCode < HC_ACTION || ins.m_hHookWindow == NULL || !ins.m_bHookKey)
+        {
+            return CallNextHookEx( instance().m_hHookKeyBoard, iCode, wParam, lParam );
+        }
+
+        if ( lParam >> 31 )
+            return CallNextHookEx( instance().m_hHookKeyBoard, iCode, wParam, lParam );
+
+        CWindow wndHook = ins.m_hHookWindow;
+        
+        wndHook.SendMessage(WM_USER_KEYDOWN, wParam, lParam);
+
+        return 1;        
+    }
+
 
     static SkinHookMouse& instance()
     {
@@ -95,7 +129,9 @@ public:
 
 public:
     HHOOK m_hHookMouse;
+    HHOOK m_hHookKeyBoard;
     HWND  m_hHookWindow;
+    BOOL  m_bHookKey;
 };
 
 class SkinSelectFlagWindow : 
@@ -211,7 +247,8 @@ public:
     BEGIN_MSG_MAP(SkinDialgPreviewWindow)
         //MESSAGE_HANDLER(WM_PAINT, OnPaint)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
-        MESSAGE_HANDLER(WM_MBUTTONDBLCLK, OnLButtonDown)
+        MESSAGE_HANDLER(WM_USER_BUTTONDOWN, OnUserButtonDown)
+        MESSAGE_HANDLER(WM_USER_KEYDOWN   , OnUserKeyDown)
         CHAIN_MSG_MAP(theBase)
     END_MSG_MAP()
 
@@ -223,7 +260,15 @@ public:
         return DefWindowProc();
     }
 
-    LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    LRESULT OnUserKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        ::SendMessage(::GetParent(m_hWndParent), WM_USER_KEYDOWN, wParam, lParam);
+
+        return 1L;
+    }
+
+
+    LRESULT OnUserButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
         LRESULT lResult = DefWindowProc();
 

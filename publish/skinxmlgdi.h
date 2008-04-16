@@ -26,7 +26,7 @@ public:
 
         GetCharSet(font.lfCharSet, strCharSet);
 
-        Format(_T("%s,%s,%d,%d,%d,%d"), font.lfFaceName, strCharSet, font.lfHeight, font.lfWidth, font.lfWeight, font.lfItalic, font.lfUnderline);
+        Format(_T("%s,%s,%d,%d,%d,%d,%d"), font.lfFaceName, strCharSet, font.lfHeight, font.lfWidth, font.lfWeight, font.lfItalic, font.lfUnderline);
     }
     
     void operator >> ( LOGFONT& font )

@@ -168,6 +168,10 @@ protected:
         AddSkinCreator(KSGUI::skinxmlbmpbtn::GetSkinWndClassName(), 
             CSkinBitmapButton::SkinCreate_Static);
 
+        AddSkinCreator(KSGUI::skinxmlhyperlink::GetSkinWndClassName(), 
+            SkinHyperLink::SkinCreate_Static);
+        
+
     }
 
     std::map<KSGUI::CString, pfnSkinCreateFunc*> m_mapCreator;

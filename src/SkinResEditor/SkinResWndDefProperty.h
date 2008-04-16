@@ -213,9 +213,11 @@ private:
         /* T*/ { _T("PenWidth")     , _T("1")          , SkinPropertyView::it_number },
         /* U*/ { _T("RoundWidth")   , _T("0")          , SkinPropertyView::it_number },
 
-        /* V*/ { _T("MainColor")    , _T("0x00008000") , SkinPropertyView::it_color  }
+        /* V*/ { _T("MainColor")    , _T("0x00008000") , SkinPropertyView::it_color  },
 
-        
+        /* W*/ { _T("ToolTipText")  , _T("ËÎÌו,GB2312_CHARSET,-12,0,400,0"), SkinPropertyView::it_text },
+        /* X*/ { _T("LinkFont")     , _T("ËÎÌו,GB2312_CHARSET,-12,0,400,0"), SkinPropertyView::it_font }
+
         };
         
         pItemList = DefPropertyList;
@@ -270,8 +272,10 @@ private:
 
             { skinxmlanimation::GetSkinWndClassName()    , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE, 0 },
             { skinxmlipaddress::GetSkinWndClassName()    , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
+            { skinxmlhyperlink::GetSkinWndClassName()    , _T("ABCDEFGHIJMWX"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
 
 
+            
             { skinxmlstaticex::GetSkinWndClassName()     , _T("ABCDEFGHIJKLMNO"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
             { skinxmlbmpbtn::GetSkinWndClassName()       , _T("ABCDEFGHIJPQ"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
             { skinxmlclrbtn::GetSkinWndClassName()       , _T("ABCDEFGHIJLMN"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },

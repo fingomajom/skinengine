@@ -83,6 +83,20 @@ public:
         return TRUE;
     }
     
+    virtual BOOL InvalidateParentClient()
+    {
+        CWindow wndParent = GetParent();
+        if (wndParent.m_hWnd == NULL)
+            return FALSE;
+
+        RECT rcClient = { 0 };
+
+        GetClientRect(&rcClient);
+        ClientToScreen(&rcClient);
+        wndParent.ScreenToClient(&rcClient);
+
+        return wndParent.InvalidateRect(&rcClient);
+    }
 
     /*  */
     virtual BOOL GetRealRect( HWND hWndParent, const SkinXmlElement& xmlElement, RECT& rcClient )

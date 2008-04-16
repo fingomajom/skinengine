@@ -182,6 +182,7 @@ public:
         ControlsMgt.m_skinResPropertyView.Clear();
 
         SkinHookMouse::instance().m_hHookWindow = NULL;
+        SkinHookMouse::instance().m_bHookKey    = FALSE;
 
         m_wndTree.SelectItem(NULL);
         m_wndPreView.m_wndSelectFlag.ShowWindow(SW_HIDE);
@@ -207,6 +208,8 @@ public:
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_SIZE      , OnSize)
         
+        MESSAGE_HANDLER(WM_USER_KEYDOWN   , OnUserKeyDown)
+
         MESSAGE_HANDLER(WM_SELECTCHILDWINDOW, OnSelectWindow)
 
         COMMAND_HANDLER(IDC_ADD   , BN_CLICKED, OnAdd)
@@ -811,6 +814,120 @@ public:
     {
 
         return 0L;
+    }
+
+
+    LRESULT OnUserKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        if ( wParam == VK_LEFT ||
+             wParam == VK_RIGHT ||
+             wParam == VK_UP ||
+             wParam == VK_DOWN )
+        {
+
+            HTREEITEM hTreeItem = m_wndTree.GetSelectedItem();
+
+            if (hTreeItem == NULL || hTreeItem == m_wndTree.GetRootItem())
+                return 1L;
+
+            SkinDialogRes& dialogRes = GetResDialog();
+            SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+            int nindex = GetItemIndex(hTreeItem);
+
+            SkinWndPropertyList& WndProperty = dialogRes.m_vtChildWndList[nindex];
+
+            KSGUI::CString strLeft;
+            KSGUI::CString strTop;
+            KSGUI::CString strWidth;
+            KSGUI::CString strHeight;
+
+            WndProperty.GetProperty(_T("Left"), strLeft);
+            WndProperty.GetProperty(_T("Top") , strTop);
+            WndProperty.GetProperty(_T("Width"), strWidth);
+            WndProperty.GetProperty(_T("Height"), strHeight);
+
+            int nleft   = _ttoi(strLeft);
+            int ntop    = _ttoi(strTop);
+            int nwidth  = _ttoi(strWidth);
+            int nheight = _ttoi(strHeight);
+
+            char bShiftState   = ( GetKeyState(VK_SHIFT) >> 8 ) & 0x01;
+            char bControlState = ( GetKeyState(VK_CONTROL) >> 8) & 0x01;
+
+            int nstep = bControlState ? 5 : 1;
+
+            switch(wParam)
+            {
+            case VK_LEFT:
+                if (!bShiftState)
+                {
+                    nleft -= nstep; nleft = nleft > 0 ? nleft : 0;
+                }
+                else
+                {
+                    nwidth -= nstep; nwidth = nwidth > 0 ? nwidth : 0;
+                }
+                break;
+
+            case VK_UP:
+                if (!bShiftState)
+                {
+                    ntop -= nstep; ntop = ntop > 0 ? ntop : 0;
+                }
+                else
+                {
+                    nheight -= nstep; nheight = nheight > 0 ? nheight : 0;
+                }
+                break;
+
+            case VK_RIGHT:
+                if (!bShiftState)
+                {
+                    nleft += nstep; nleft = nleft > 0 ? nleft : 0;
+                }
+                else
+                {
+                    nwidth += nstep; nwidth = nwidth > 0 ? nwidth : 0;
+                }
+                break;
+
+            case VK_DOWN:
+                if (!bShiftState)
+                {
+                    ntop += nstep; ntop = ntop > 0 ? ntop : 0;
+                }
+                else
+                {
+                    nheight += nstep; nheight = nheight > 0 ? nheight : 0;
+                }
+                break;
+            }
+
+            strLeft.Format(_T("%d"), nleft);
+            strTop.Format(_T("%d"), ntop);
+            strWidth.Format(_T("%d"), nwidth);
+            strHeight.Format(_T("%d"), nheight);
+
+            WndProperty.SetProperty(_T("Left"), strLeft);
+            WndProperty.SetProperty(_T("Top") , strTop);
+            WndProperty.SetProperty(_T("Width"), strWidth);
+            WndProperty.SetProperty(_T("Height"), strHeight);
+
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("Left"),
+                strLeft);
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("Top"),
+                strTop);
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("Width"),
+                strWidth);
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("Height"),
+                strHeight);
+
+            m_wndPreView.UpdateSkinWindow(WndProperty);
+
+        }
+
+        return 1L;
     }
 
 };
