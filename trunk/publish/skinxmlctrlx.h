@@ -102,4 +102,39 @@ public:
 
 };
 
+class skinxmlhyperlink : public skinxmlwin
+{
+public:
+
+    skinxmlhyperlink(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmlhyperlink& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetSkinWndClassName() 
+    {
+        return _T("skinxmlhyperlink");
+    }
+
+
+    BOOL GetToolTipText( KSGUI::CString& strText)
+    {
+        return GetObject(_T("ToolTipText"), strText);
+    }
+
+    BOOL GetLinkFont( HFONT& hLinkFont )
+    {
+        return GetFont( _T("LinkFont"), hLinkFont );
+    }
+
+};
+
+
 };

@@ -104,8 +104,11 @@ public:
     {
         m_strCaption = (LPCTSTR)lParam;
 
+        InvalidateParentClient();
+
         return DefWindowProc();
     }
+
     LRESULT OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         return SendMessage(GetParent(), uMsg, wParam, lParam);
@@ -359,6 +362,127 @@ private:
 
     CImageList m_imagelist;
 };
+
+
+class SkinHyperLink : public CHyperLinkImpl<SkinHyperLink, SkinWindow>
+{
+    typedef CHyperLinkImpl<SkinHyperLink, SkinWindow> theBase;
+
+public:
+    DECLARE_WND_CLASS(_T("Skin_HyperLink"))
+
+    CFont m_NormalFont;
+
+    BEGIN_MSG_MAP(CSkinCheckboxButton)
+
+        MESSAGE_HANDLER(WM_LBUTTONDOWN    , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_LBUTTONUP      , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_NCLBUTTONDBLCLK, OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_KEYDOWN        , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_KEYUP          , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_SETFOCUS       , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_KILLFOCUS      , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_MOUSEMOVE      , OnRefWindowMsg)
+        MESSAGE_HANDLER(WM_MOUSELEAVE     , OnRefWindowMsg)
+
+        CHAIN_MSG_MAP(theBase)
+
+    END_MSG_MAP()
+
+    LRESULT OnRefWindowMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {        
+        LRESULT lResult = DefWindowProc();
+        bHandled = FALSE;
+
+        if ( uMsg == WM_MOUSEMOVE && m_bHover )
+            return lResult;
+
+        InvalidateParentClient();
+
+
+        return lResult;        
+    }
+
+    void DoEraseBackground(CDCHandle dc)
+    {
+    }
+
+
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        BOOL result;
+
+        ATLASSUME(m_hWnd == NULL);
+
+        // Allocate the thunk structure here, where we can fail gracefully.
+        result = m_thunk.Init(NULL, NULL);
+        if (result == FALSE) {
+            SetLastError(ERROR_OUTOFMEMORY);
+            return NULL;
+        }
+
+        ATOM atom = GetWndClassInfo().Register(&m_pfnSuperWindowProc);
+
+        _AtlWinModule.AddCreateWndData(&m_thunk.cd, this);
+
+        HWND hWndResult = SkinWindow::SkinCreate(xmlElement, 
+            hWndParent,              
+            GetWndClassInfo().m_wc.lpszClassName,
+            MenuOrID);
+
+        SetHyperLinkExtendedStyle(HLINK_COMMANDBUTTON | HLINK_UNDERLINED | HLINK_UNDERLINEHOVER);
+        
+        skinxmlhyperlink xmlwin(xmlElement);
+        
+
+        HFONT hLinkFont = NULL;
+        KSGUI::CString strTooltipText;
+
+        xmlwin.GetFont( m_NormalFont.m_hFont );
+
+        if (m_NormalFont.m_hFont != NULL)
+            SetFont(m_NormalFont);
+
+        xmlwin.GetLinkFont( hLinkFont );
+        if (hLinkFont != NULL)
+            SetLinkFont(hLinkFont);
+
+        xmlwin.GetToolTipText(strTooltipText);
+        if (strTooltipText.GetLength() > 0)
+            SetToolTipText(strTooltipText);
+
+        CalcLabelRect();
+
+        return hWndResult;
+    }
+
+    static SkinWindow* SkinCreate_Static(
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U )
+    {
+        SkinHyperLink * pSkinWindow = new SkinHyperLink;
+
+        if (pSkinWindow == NULL)
+            return pSkinWindow;
+
+
+        if (pSkinWindow->SkinCreate(xmlElement, 
+            hWndParent, 
+            MenuOrID) == NULL)
+        {
+            delete pSkinWindow;
+
+            pSkinWindow = NULL;
+        }
+
+        return pSkinWindow;
+    }
+
+};
+
 
 
 };

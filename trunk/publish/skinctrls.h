@@ -191,6 +191,7 @@ public:
 
         MESSAGE_HANDLER(WM_PAINT     , OnPaint)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
+        MESSAGE_HANDLER(WM_SETTEXT   , OnSetText)
         
         MESSAGE_HANDLER(WM_LBUTTONDOWN    , OnRefWindowMsg)
         MESSAGE_HANDLER(WM_LBUTTONUP      , OnRefWindowMsg)
@@ -211,19 +212,16 @@ public:
     {        
         LRESULT lResult = DefWindowProc();
 
-        CWindow wndParent = GetParent();
-        if (wndParent.m_hWnd == NULL)
-            return lResult;
-        
-
-        RECT rcClient = { 0 };
-
-        GetClientRect(&rcClient);
-        ClientToScreen(&rcClient);
-        wndParent.ScreenToClient(&rcClient);
-        wndParent.InvalidateRect(&rcClient);
+        InvalidateParentClient();
 
         return lResult;        
+    }
+
+    LRESULT OnSetText(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        InvalidateParentClient();
+
+        return DefWindowProc();
     }
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
