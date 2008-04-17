@@ -394,8 +394,23 @@ public:
         LRESULT lResult = DefWindowProc();
         bHandled = FALSE;
 
-        if ( uMsg == WM_MOUSEMOVE && m_bHover )
+        if ( uMsg == WM_MOUSEMOVE )
+        {
+            bool bHover = m_bHover;
+
+            theBase::ProcessWindowMessage( m_hWnd, uMsg, wParam, lParam, lResult, 0 );
+            bHandled = TRUE;
+
+            if ( bHover != m_bHover )
+                InvalidateParentClient();
+
             return lResult;
+        }
+        else if ( uMsg == WM_MOUSELEAVE )
+        {
+            theBase::ProcessWindowMessage( m_hWnd, uMsg, wParam, lParam, lResult, 0 );
+            bHandled = TRUE;
+        }
 
         InvalidateParentClient();
 

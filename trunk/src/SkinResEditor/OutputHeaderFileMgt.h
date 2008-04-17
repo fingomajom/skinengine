@@ -337,7 +337,7 @@ private:
 
     enum
     {
-        em_value_linepos = 35
+        em_value_linepos = 45
     };
 
     KSGUI::CString GetFormatText(LPCTSTR pszText)
@@ -360,6 +360,8 @@ private:
         {
             strOutLine += _T(" ");
         }
+
+        strOutLine += _T(" ");
 
         strOutLine += pszDefValue;
 
