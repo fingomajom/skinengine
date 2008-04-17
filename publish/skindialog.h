@@ -199,7 +199,8 @@ public:
     }
 
     BEGIN_MSG_MAP(SkinDialogImpl)
-        MESSAGE_HANDLER(WM_PAINT, OnPaint)
+        MESSAGE_HANDLER(WM_PAINT     , OnPaint      )
+        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd )
     END_MSG_MAP()
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -209,6 +210,30 @@ public:
         DrawDirectUI(dc);
         
         return 0;
+    }
+
+    LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CDCHandle dc( (HDC)wParam );
+        if (dc.m_hDC == NULL)
+            return DefWindowProc();
+
+        COLORREF clrBkGnd = GetSysColor(COLOR_BTNFACE);
+
+
+        skinxmlwin xmlWin(m_xmlDlgElement);
+        xmlWin.GetBkColor(clrBkGnd);
+
+        CBrush brush;
+        brush.CreateSolidBrush(clrBkGnd);
+        
+        RECT rcClient = { 0 };
+
+        GetClientRect(&rcClient);
+
+        dc.FillRect(&rcClient, brush);
+
+        return 1L;
     }
 
 public:
@@ -771,6 +796,7 @@ public:
             HLS_TRANSFORM(m_clrMainColor, 99, 20),
             HLS_TRANSFORM(m_clrMainColor, 85, 30)); 
 
+        bHandled = TRUE;
 
         return 0L;
     }
@@ -1124,7 +1150,10 @@ class SkinCaptionDialogImpl :
 public:
 
     BEGIN_MSG_MAP(SkinCaptionDialogImpl)
+        
+        if ( uMsg == WM_PAINT )
         CHAIN_MSG_MAP(SkinDialogImpl<T>)
+
         CHAIN_MSG_MAP(CaptionDialogT)
     END_MSG_MAP()
 
