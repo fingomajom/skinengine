@@ -855,7 +855,7 @@ public:
             char bShiftState   = ( GetKeyState(VK_SHIFT) >> 8 ) & 0x01;
             char bControlState = ( GetKeyState(VK_CONTROL) >> 8) & 0x01;
 
-            int nstep = bControlState ? 5 : 1;
+            int nstep = bControlState ? 1 : 5;
 
             switch(wParam)
             {
@@ -863,10 +863,12 @@ public:
                 if (!bShiftState)
                 {
                     nleft -= nstep; nleft = nleft > 0 ? nleft : 0;
+                    nleft = nleft / nstep * nstep;
                 }
                 else
                 {
                     nwidth -= nstep; nwidth = nwidth > 0 ? nwidth : 0;
+                    nwidth = nwidth / nstep * nstep;
                 }
                 break;
 
@@ -874,10 +876,12 @@ public:
                 if (!bShiftState)
                 {
                     ntop -= nstep; ntop = ntop > 0 ? ntop : 0;
+                    ntop = ntop / nstep * nstep;
                 }
                 else
                 {
                     nheight -= nstep; nheight = nheight > 0 ? nheight : 0;
+                    nheight = nheight / nstep * nstep;
                 }
                 break;
 
@@ -885,10 +889,12 @@ public:
                 if (!bShiftState)
                 {
                     nleft += nstep; nleft = nleft > 0 ? nleft : 0;
+                    nleft = nleft / nstep * nstep;
                 }
                 else
                 {
                     nwidth += nstep; nwidth = nwidth > 0 ? nwidth : 0;
+                    nwidth = nwidth / nstep * nstep;
                 }
                 break;
 
@@ -896,13 +902,16 @@ public:
                 if (!bShiftState)
                 {
                     ntop += nstep; ntop = ntop > 0 ? ntop : 0;
+                    ntop = ntop / nstep * nstep;
                 }
                 else
                 {
                     nheight += nstep; nheight = nheight > 0 ? nheight : 0;
+                    nheight = nheight / nstep * nstep;
                 }
                 break;
             }
+
 
             strLeft.Format(_T("%d"), nleft);
             strTop.Format(_T("%d"), ntop);
