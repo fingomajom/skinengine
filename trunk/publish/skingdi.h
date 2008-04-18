@@ -330,6 +330,61 @@ public:
         pen.DeleteObject(); 
     }
 
+
+    void SkinDrawRoundRect(
+        const RECT& rectBorder, 
+        int nRound,
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0) , 
+        int HatchStyles         = -1 ,
+        int nPenStyle           = BS_SOLID , 
+        int nWidth              = 1 )
+    {
+        SkinDrawRoundRect(
+            rectBorder.left , rectBorder.top, 
+            rectBorder.right, rectBorder.bottom, 
+            nRound,
+            clrFillColor,
+            clrBorderColor,
+            HatchStyles,
+            nPenStyle,
+            nWidth);
+
+    }
+
+    void SkinDrawRoundRect(
+        int x0, int y0, 
+        int x1, int y1, 
+        int nRound,
+        COLORREF clrFillColor   = RGB(255, 255, 255) , 
+        COLORREF clrBorderColor = RGB(0, 0, 0) , 
+        int HatchStyles         = -1 ,
+        int nPenStyle           = BS_SOLID , 
+        int nWidth              = 1 )
+    {
+        CBrush brush;
+        CPen   pen;
+
+        pen.CreatePen(nPenStyle, nWidth, clrBorderColor);
+
+        if (HatchStyles >= 0)
+            brush.CreateHatchBrush(HatchStyles, clrFillColor);
+        else
+            brush.CreateSolidBrush(clrFillColor);
+
+        HBRUSH hOldBrush = SelectBrush(brush);
+        HPEN   hOldPen   = SelectPen(pen);
+
+        RoundRect(x0, y0, x1, y1, nRound, nRound);
+
+        SelectPen(hOldPen);
+        SelectBrush(hOldBrush);
+
+        brush.DeleteObject();
+        pen.DeleteObject(); 
+    }
+
+
     void SkinDraw3DRectangle(
         const RECT& rectBorder, 
         COLORREF clrFillColor   = RGB(255, 255, 255) , 
