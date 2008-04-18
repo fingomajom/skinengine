@@ -708,6 +708,9 @@ public:
             }
         }
 
+        if (nHovIndex < 0)
+            return lResult;
+
         m_nselectedindex = nHovIndex;
 
 //        RedrawWindow();
@@ -819,7 +822,11 @@ public:
 
         int nOldMode = dc.SetBkMode(TRANSPARENT);
 
+        HFONT hOldFont = dc.SelectFont( m_hHotFont.m_hFont != NULL ? m_hHotFont : hDefaultFont);
+
         CalcAllItemRect(dc);
+
+        dc.SelectFont(hOldFont);
 
         for (int i = 0; i < int(m_vtItems.size()); i++)
         {
@@ -882,7 +889,9 @@ public:
 
         if (nFlag == 0)
         {
-            dc.SkinDrawBorder(rcItem, m_clrLine);
+            dc.SkinDrawRoundRect(rcItem, 3 , 0, m_clrLine);
+            dc.SkinLine(rcItem.left , rcItem.bottom - 1, 
+                rcItem.right - 1, rcItem.bottom - 1, m_clrLine);
 
             rcBox.left++;
             rcBox.top++;
@@ -892,16 +901,17 @@ public:
         }
         else if (nFlag == 1)
         {
-            dc.SkinLine(rcItem.left , rcItem.top, rcItem.right - 1, rcItem.top    , m_clrLine);
-            dc.SkinLine(rcItem.left , rcItem.top, rcItem.left , rcItem.bottom - 1 , m_clrLine);
-            dc.SkinLine(rcItem.right - 1, rcItem.top, rcItem.right - 1, rcItem.bottom - 1 , m_clrLine);
+            dc.SkinLine(rcItem.left + 1, rcItem.top, rcItem.right - 2, rcItem.top    , m_clrLine);
+            dc.SkinLine(rcItem.left , rcItem.top + 1, rcItem.left , rcItem.bottom - 1 , m_clrLine);
+            dc.SkinLine(rcItem.right - 1, rcItem.top + 1, rcItem.right - 1, rcItem.bottom - 1 , m_clrLine);
 
             rcBox.left++;
             rcBox.top++;
             rcBox.right--;
-            //rcBox.bottom--;
-            dc.SkinDrawRectangle(rcBox, m_clrBkGnd, m_clrBkGnd);
-            
+            rcBox.bottom += 10;
+
+            dc.SkinDrawRoundRect(rcItem, 3 , m_clrBkGnd, m_clrLine);
+           
         }
     }
 
@@ -917,6 +927,12 @@ public:
 
         if (hWndResult != NULL && hWndParent != NULL)
             SetFont( TBase(hWndParent).GetFont() );
+
+#ifdef _SKINRESEDITOR_MODE_   // for SkinResEditor
+        InsertItem(0, _T("KSGUI"));
+        InsertItem(1, _T("SkinResEditor Test"));
+        InsertItem(2, _T("..."));
+#endif
 
         skinxmltablectrlex xmlWin(xmlElement);
 
