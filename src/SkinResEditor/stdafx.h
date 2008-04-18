@@ -12,6 +12,7 @@
 #define _WIN32_IE	0x0500
 #define _RICHEDIT_VER	0x0100
 
+#define _SKINRESEDITOR_MODE_
 #define _DIRECTUI_USE_IDNAME_
 
 #include <atlbase.h>
