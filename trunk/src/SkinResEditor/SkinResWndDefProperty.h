@@ -215,8 +215,11 @@ private:
 
         /* V*/ { _T("MainColor")    , _T("0x00008000") , SkinPropertyView::it_color  },
 
-        /* W*/ { _T("ToolTipText")  , _T("宋体,GB2312_CHARSET,-12,0,400,0"), SkinPropertyView::it_text },
-        /* X*/ { _T("LinkFont")     , _T("宋体,GB2312_CHARSET,-12,0,400,0"), SkinPropertyView::it_font }
+        /* W*/ { _T("ToolTipText")  , _T("")           , SkinPropertyView::it_text },
+        /* X*/ { _T("LinkFont")     , _T("宋体,GB2312_CHARSET,-12,0,400,0,0"), SkinPropertyView::it_font },
+
+        /* Y*/ { _T("HotTextColor") , _T("0x00000000") , SkinPropertyView::it_color},
+        /* Z*/ { _T("HotTextFont")  , _T("宋体,GB2312_CHARSET,-12,0,800,0,0"), SkinPropertyView::it_font }
 
         };
         
@@ -273,6 +276,7 @@ private:
             { skinxmlanimation::GetSkinWndClassName()    , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE, 0 },
             { skinxmlipaddress::GetSkinWndClassName()    , _T("ABCDEFGHIJ"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, WS_EX_CLIENTEDGE },
             { skinxmlhyperlink::GetSkinWndClassName()    , _T("ABCDEFGHIJMWX"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
+            { skinxmltablectrlex::GetSkinWndClassName()  , _T("ABCDEFGHIJKLVYZ"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0 },
 
 
             

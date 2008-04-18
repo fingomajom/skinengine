@@ -250,6 +250,7 @@ public:
         MESSAGE_HANDLER(WM_USER_BUTTONDOWN, OnUserButtonDown)
         MESSAGE_HANDLER(WM_USER_KEYDOWN   , OnUserKeyDown)
         CHAIN_MSG_MAP(theBase)
+        REFLECT_NOTIFICATIONS()
     END_MSG_MAP()
 
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
