@@ -136,5 +136,42 @@ public:
 
 };
 
+class skinxmltablectrlex: public skinxmlwin
+{
+public:
+
+    skinxmltablectrlex(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmltablectrlex& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetSkinWndClassName() 
+    {
+        return _T("skinxmltablectrlex");
+    }
+
+    BOOL GetHotTextFont( HFONT& hFont )
+    {
+        return GetFont( _T("HotTextFont"), hFont );
+    }
+    BOOL GetHotTextColor( COLORREF& clr )
+    {
+        return GetColor( _T("HotTextColor"), clr );
+    }
+
+    BOOL GetMainColor( COLORREF& clr )
+    {
+        return GetColor( _T("MainColor"), clr );
+    }
+
+};
+
 
 };

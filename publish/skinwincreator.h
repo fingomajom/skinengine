@@ -170,6 +170,8 @@ protected:
 
         AddSkinCreator(KSGUI::skinxmlhyperlink::GetSkinWndClassName(), 
             SkinHyperLink::SkinCreate_Static);
+        AddSkinCreator(KSGUI::skinxmltablectrlex::GetSkinWndClassName(), 
+            SkinTableCtrlEx::SkinCreate_Static);
         
 
     }
