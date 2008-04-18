@@ -83,6 +83,24 @@ public:
         return hWndResult;
     }
 
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, LPCTSTR szClassName, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        HWND hWndResult = TBase::SkinCreate(xmlElement, 
+            hWndParent,              
+            szClassName,
+            MenuOrID);
+
+        if (hWndResult == NULL)
+            return hWndResult;
+
+        if (hWndResult != NULL && hWndParent != NULL)
+            SetFont( TBase(hWndParent).GetFont() );
+
+        return hWndResult;
+    }
+
 };
 
 
