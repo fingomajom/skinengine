@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "SkinResDocument.h"
+#include "SkinItemIdMgt.h"
 
 SkinResDocument::SkinResDocument(void)
 {
@@ -14,6 +15,8 @@ SkinResDocument::~SkinResDocument(void)
 BOOL SkinResDocument::NewDocument()
 {
     BOOL bResult = FALSE;
+
+    SkinItemIdMgt::instance().Clear();
 
     bResult = m_resStrDoc.NewResDoc();
     if (!bResult)
@@ -51,6 +54,8 @@ BOOL SkinResDocument::OpenDocument(const KSGUI::CString& strFileName)
     if (!bResult)
         return bResult;
     
+    SkinItemIdMgt::instance().Clear();
+
     OpenDocument(doc);
 
     CPath path = strFileName;
@@ -133,4 +138,15 @@ BOOL SkinResDocument::Modify() const
 void SkinResDocument::Modify(BOOL bModify)
 {
     m_bModify = bModify;
+}
+
+
+BOOL SkinResDocument::CheckValid( BOOL bShowErrorMsg )
+{
+    if (!m_resDialogDoc.CheckValid(bShowErrorMsg))
+        return FALSE;
+
+
+
+    return TRUE;
 }

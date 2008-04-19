@@ -41,6 +41,12 @@ public:
     {
     }
 
+    CString(const WTL::CString& stringSrc) :
+        WTL::CString(stringSrc)
+    {   
+    }
+
+
 #ifdef _UNICODE
     CString(LPCSTR lpsz) :
         WTL::CString(lpsz)

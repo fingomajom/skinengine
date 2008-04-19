@@ -1,6 +1,9 @@
 
 #pragma once
 
+
+#include "SkinItemIdMgt.h"
+
 class SkinMenuItem 
 {
 
@@ -28,6 +31,8 @@ public:
             node.GetValue(_T("Caption"), MenuItemInfo.strItemText);
             node.GetValue(_T("ItemId") , MenuItemInfo.strItemId);
             node.GetValue(_T("IsPopup"), MenuItemInfo.strIsPopupMenu);
+
+            SkinItemIdMgt::instance().UsedItemId( MenuItemInfo.strIdName, MenuItemInfo.strItemId );
 
             if (!MenuItemInfo.strIsPopupMenu.CompareNoCase(_T("true")))
             {
