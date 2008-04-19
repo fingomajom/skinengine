@@ -72,6 +72,19 @@ public:
 
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
+        
+        ControlsMgt.m_piSkinFrame->SetActiveResultWindow(NULL);
+        if (m_wndResStringListView.IsWindow())
+            m_wndResStringListView.ShowWindow(SW_HIDE);
+        if (m_wndResDialogListView.IsWindow())
+            m_wndResDialogListView.ShowWindow(SW_HIDE);
+        if (m_wndResImageDlg.IsWindow())
+            m_wndResImageDlg.ShowWindow(SW_HIDE);
+        if (m_wndResEditView.IsWindow())
+            m_wndResEditView.ShowWindow(SW_HIDE);
+        if (m_wndResMenuView.IsWindow())
+            m_wndResMenuView.ShowWindow(SW_HIDE);
+
         ControlsMgt.m_skinTreeControlView.DeleteAllItems();
 
 

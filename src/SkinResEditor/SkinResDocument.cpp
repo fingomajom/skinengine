@@ -23,6 +23,10 @@ BOOL SkinResDocument::NewDocument()
     if (!bResult)
         return bResult;
 
+    bResult = m_resMenuDoc.NewResDoc();
+    if (!bResult)
+        return bResult;
+
     bResult = m_resDialogDoc.NewResDoc();
     if (!bResult)
         return bResult;
@@ -72,6 +76,7 @@ BOOL SkinResDocument::OpenDocument(KSGUI::SkinXmlDocument& doc)
 {
     m_resStrDoc.OpenResDoc(doc);
     m_resImageDoc.OpenResDoc(doc);
+    m_resMenuDoc.OpenResDoc(doc);
     m_resDialogDoc.OpenResDoc(doc);
 
     return TRUE;
@@ -108,6 +113,7 @@ BOOL SkinResDocument::SaveDocument(KSGUI::SkinXmlDocument& doc)
 
     m_resStrDoc.SaveResDoc(doc);
     m_resImageDoc.SaveResDoc(doc);
+    m_resMenuDoc.SaveResDoc(doc);
     m_resDialogDoc.SaveResDoc(doc);
 
     return bResult;
