@@ -34,7 +34,23 @@ public:
 
     BOOL GetMenuItemText( KSGUI::CString& strMenuItemText )
     {
-        return GetObject(_T("Caption"), strMenuItemText);
+        if (!GetObject(_T("Caption"), strMenuItemText))
+            return FALSE;
+
+        LPCTSTR psz = _T("\\t");
+        TCHAR   ch  = '\t';
+
+        int nPos = strMenuItemText.FindOneOf(psz);
+
+        while ( nPos >= 0 )
+        {
+            strMenuItemText.Delete( nPos );
+            strMenuItemText.SetAt ( nPos, ch);
+            
+            nPos = strMenuItemText.FindOneOf(psz);
+        }
+
+        return TRUE;
     }
 
     BOOL GetIsSeparator( BOOL& bIsSeparator )
@@ -110,7 +126,28 @@ public:
 
     virtual HMENU LoadMenu(LPCTSTR pszIDName)
     {
-        return NULL;
+        SkinXmlElement node = m_xmlResElement.FirstChildElement(pszIDName);
+
+        if (!node.IsValid())
+            return NULL;
+
+        CMenuHandle menu;
+
+        skinxmlmenuitem xmlMenu = node;
+
+        BOOL bIsPopupMenu = FALSE;
+        xmlMenu.GetIsPopupMenu(bIsPopupMenu);
+
+        if (bIsPopupMenu)
+            menu.CreateMenu();
+        else
+            menu.CreatePopupMenu();
+
+        if (menu.m_hMenu == NULL)
+            return menu.m_hMenu;
+
+
+        return LoadMenu( menu, node );
     }
 
 protected:

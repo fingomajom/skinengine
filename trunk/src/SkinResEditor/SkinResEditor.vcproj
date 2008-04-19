@@ -292,6 +292,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SkinMenuResDoc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SkinResDocument.cpp"
 				>
 			</File>

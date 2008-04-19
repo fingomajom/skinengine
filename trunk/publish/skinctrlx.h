@@ -16,6 +16,8 @@
 #include <atlctrlx.h>
 #include <skinxmlctrlx.h>
 
+#include <vector>
+
 
 namespace KSGUI{
 

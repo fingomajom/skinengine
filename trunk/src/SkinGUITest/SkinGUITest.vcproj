@@ -301,6 +301,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\publish\skinmenu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\publish\skinmenures.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\publish\skinres.h"
 				>
 			</File>

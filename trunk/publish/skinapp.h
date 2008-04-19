@@ -150,3 +150,19 @@ inline HICON SkinLoadIcon(LPCTSTR pszIDName, int cxDesired, int cyDesired)
 
     return pskinimageres->LoadIcon(pszIDName, cxDesired, cyDesired);
 }
+
+
+inline HMENU SkinLoadMenu( LPCTSTR pszIDName )
+{
+    KSGUI::skinresbase* pskinres = KSGUI::skinresloader::instance().get_skinres();
+
+    if (!pskinres)
+        return NULL;
+
+    KSGUI::skinmenuresbase* pskinmenures = pskinres->get_skinmenures();
+
+    if (!pskinmenures)
+        return NULL;
+
+    return pskinmenures->LoadMenu(pszIDName);
+}

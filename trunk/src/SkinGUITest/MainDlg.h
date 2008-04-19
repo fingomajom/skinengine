@@ -34,6 +34,8 @@ public:
 
 	BEGIN_MSG_MAP(CMainDlg)
         
+        MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+        MESSAGE_HANDLER(WM_RBUTTONDOWN, OnRButtonDown)
         CHAIN_MSG_MAP(theBase)
 
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
@@ -104,6 +106,7 @@ public:
             }
         }
 
+
 		return TRUE;
 	}
 
@@ -132,4 +135,28 @@ public:
 		DestroyWindow();
 		::PostQuitMessage(nVal);
 	}
+
+    LRESULT OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        // TODO: Add your message handler code here and/or call default
+
+        return 0;
+    }
+
+    LRESULT OnRButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        // TODO: Add your message handler code here and/or call default
+
+        CMenu menu;
+
+        POINT pt;
+        GetCursorPos(&pt);
+
+        menu.m_hMenu = ( SkinLoadMenu(_T("IDM_TEST")) );
+
+        if (menu.IsMenu())
+            menu.TrackPopupMenu(0, pt.x, pt.y, m_hWnd);
+
+        return DefWindowProc();
+    }
 };
