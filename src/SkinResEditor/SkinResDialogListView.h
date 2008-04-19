@@ -95,7 +95,6 @@ public:
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
         ShowWindow(SW_SHOW);
-
         ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
     }
@@ -353,17 +352,17 @@ public:
         if (m_wndListBox.m_hWnd != NULL)
         {
             RECT rcClient  = { 0 };
-            RECT rcListBox = { 0 };
+            RECT rcMoveTo  = { 0 };
 
             GetClientRect(&rcClient);
 
-            m_wndListBox.GetClientRect(&rcListBox);
-            m_wndListBox.ClientToScreen(&rcListBox);
-            ScreenToClient(&rcListBox);
+            rcMoveTo.left = 10;
+            rcMoveTo.right = 250;
+            rcMoveTo.top  = 10;
+            rcMoveTo.bottom = rcClient.bottom - 10;
 
-            rcListBox.bottom = rcClient.bottom - rcListBox.top ;
 
-            m_wndListBox.MoveWindow(&rcListBox);
+            m_wndListBox.MoveWindow(&rcMoveTo);
         }
 
 

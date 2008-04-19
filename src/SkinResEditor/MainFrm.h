@@ -11,6 +11,7 @@
 #include "SkinResImageListView.h"
 #include "SkinResEditView.h"
 #include "SkinResDialogListView.h"
+#include "SkinResMenuView.h"
 #include "COutputSetDlg.h"
 #include "OutputHeaderFileMgt.h"
 
@@ -38,7 +39,7 @@ public:
     SkinResDialogListView m_wndResDialogListView;
     CImageResEditDlg      m_wndResImageDlg;
     SkinResEditView       m_wndResEditView;
-    
+    SkinResMenuView       m_wndResMenuView;
 
     CMainFrame() : m_wndResEditView(this)
     {    
@@ -79,12 +80,17 @@ public:
 
         HTREEITEM hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("StringTable"), 1, &m_wndResStringListView, 0);
+            _T("String"), 1, &m_wndResStringListView, 0);
 
         hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
-            _T("Images"), 1, &m_wndResImageDlg.m_wndResImageList, 0);
+            _T("Image"), 1, &m_wndResImageDlg.m_wndResImageList, 0);
 
+        hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
+            ControlsMgt.m_skinTreeControlView.GetRootItem(),
+            _T("Menu"), 1, &m_wndResMenuView, 0);
+
+        
         hTreeItem = ControlsMgt.m_skinTreeControlView.InsertControlItem(
             ControlsMgt.m_skinTreeControlView.GetRootItem(),
             _T("Dialog"), 1, &m_wndResDialogListView, 0);

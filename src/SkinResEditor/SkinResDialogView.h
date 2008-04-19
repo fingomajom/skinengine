@@ -165,14 +165,13 @@ public:
 
         SkinHookMouse::instance().m_hHookWindow = m_wndPreView;
 
-        ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
         //m_wndUpdown.ShowWindow(SW_SHOW);
 
         m_wndTree.SelectItem(m_wndTree.GetRootItem());
 
         ShowWindow(SW_SHOW);
-
+        ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
     }
 
     virtual void HideResult(HTREEITEM hTreeItem, LPARAM lParam)
@@ -528,7 +527,8 @@ public:
 
             m_wndTree.GetClientRect(&rcTree);
 
-            rcTree.bottom = rcClient.bottom - 50;;
+            rcTree.bottom = rcClient.bottom - 50;
+            rcTree.right  = 160;
             
             rcComboBox = rcTree;
             rcComboBox.top = rcComboBox.bottom + 2;
