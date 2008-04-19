@@ -16,6 +16,7 @@
 #include <skindlgres.h>
 #include <skinconfig.h>
 #include <skinimageres.h>
+#include <skinmenures.h>
 #include <atlpath.h>
 
 namespace KSGUI{
@@ -32,6 +33,8 @@ public:
     virtual skindlgresbase* get_skindlgres() = 0;
     
     virtual skinimageresbase* get_skinimageres() = 0;
+
+    virtual skinmenuresbase* get_skinmenures() = 0;
 };
 
 
@@ -45,7 +48,8 @@ public:
         m_pskinconfig(NULL),
         m_pskinstrres(NULL),
         m_pskindlgres(NULL),
-        m_pskinimageresbase(NULL)
+        m_pskinimageres(NULL),
+        m_pskinmenures(NULL)
     {
     }
 
@@ -58,14 +62,16 @@ public:
         skinconfigbase* pskinconfig = NULL,
         skinstrresbase* pskinstrres = NULL,
         skindlgresbase* pskindlgres = NULL,
-        skinimageresbase* pskinimageresbase = NULL)
+        skinimageresbase* pskinimageres = NULL,
+        skinmenuresbase*  pskinmenures = NULL)
     {
         uinit_skin();
 
-        m_pskinconfig = pskinconfig;
-        m_pskinstrres = pskinstrres;
-        m_pskindlgres = pskindlgres;
-        m_pskinimageresbase = pskinimageresbase;
+        m_pskinconfig   = pskinconfig;
+        m_pskinstrres   = pskinstrres;
+        m_pskindlgres   = pskindlgres;
+        m_pskinimageres = pskinimageres;
+        m_pskinmenures  = pskinmenures;
 
         if (pszSkinXmlFile == NULL || _tcslen(pszSkinXmlFile) == NULL)
         {
@@ -98,7 +104,7 @@ public:
             if (!root.IsValid())
                 break;
 
-            if (m_pskinstrres == NULL)
+            while (m_pskinstrres == NULL)
             {
                 m_pskinstrres = new skinstrres();
                 if (m_pskinstrres == NULL)
@@ -109,7 +115,7 @@ public:
 
             }
 
-            if (m_pskindlgres == NULL)
+            while (m_pskindlgres == NULL)
             {
                 m_pskindlgres = new skindlgres();
                 if (m_pskindlgres == NULL)
@@ -120,16 +126,28 @@ public:
 
             }
 
-            if (m_pskinimageresbase == NULL)
+            while (m_pskinimageres == NULL)
             {
-                m_pskinimageresbase = new skinimageres(m_pskinconfig);
-                if (m_pskinimageresbase == NULL)
+                m_pskinimageres = new skinimageres(m_pskinconfig);
+                if (m_pskinimageres == NULL)
                     break;
-                SkinXmlElement strdimgnode = root.FirstChildElement(skinimageresbase::GetResKeyName());
-                if (strdimgnode.IsValid())
-                    ((skinimageres*)m_pskinimageresbase)->AttachXmlElement( strdimgnode );
+                SkinXmlElement strimagenode = root.FirstChildElement(skinimageresbase::GetResKeyName());
+                if (strimagenode.IsValid())
+                    ((skinimageres*)m_pskinimageres)->AttachXmlElement( strimagenode );
 
             }
+
+            while (m_pskinmenures == NULL)
+            {
+                m_pskinmenures = new skinmenures();
+                if (m_pskinmenures == NULL)
+                    break;
+                SkinXmlElement strmenunode = root.FirstChildElement(skinmenuresbase::GetResKeyName());
+                if (strmenunode.IsValid())
+                    ((skinmenures*)m_pskinmenures)->AttachXmlElement( strmenunode );
+
+            }
+
 
             return true;
         }
@@ -147,7 +165,8 @@ public:
         skin_delete_p(m_pskinconfig);
         skin_delete_p(m_pskinstrres);
         skin_delete_p(m_pskindlgres);
-        skin_delete_p(m_pskinimageresbase);
+        skin_delete_p(m_pskinimageres);
+        skin_delete_p(m_pskinmenures);
     }
 
 public:
@@ -175,11 +194,17 @@ public:
 
     virtual skinimageresbase* get_skinimageres()
     {
-        ATLASSERT( m_pskinimageresbase != NULL );
+        ATLASSERT( m_pskinimageres != NULL );
 
-        return m_pskinimageresbase;
+        return m_pskinimageres;
     }
 
+    virtual skinmenuresbase* get_skinmenures() 
+    {
+        ATLASSERT( m_pskinmenures != NULL );
+
+        return m_pskinmenures;
+    }
 
 public:
 
@@ -188,7 +213,8 @@ public:
     skinconfigbase* m_pskinconfig;
     skinstrresbase* m_pskinstrres;
     skindlgresbase* m_pskindlgres;
-    skinimageresbase* m_pskinimageresbase;
+    skinimageresbase* m_pskinimageres;
+    skinmenuresbase*  m_pskinmenures;
 };
 
 } // namespace KSGUI

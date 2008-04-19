@@ -37,7 +37,8 @@ public:
         skinconfigbase* pskinconfig = NULL,
         skinstrresbase* pskinstrres = NULL,
         skindlgresbase* pskindlgres = NULL,
-        skinimageresbase* pskinimageresbase = NULL)
+        skinimageresbase* pskinimageres = NULL,
+        skinmenuresbase*  pskinmenures = NULL)
     {
         destroy_skin();
 
@@ -50,7 +51,8 @@ public:
            pskinconfig,
            pskinstrres,
            pskindlgres,
-           pskinimageresbase);
+           pskinimageres,
+           pskinmenures);
         
         return bresult;
     }
