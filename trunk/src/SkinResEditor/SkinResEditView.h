@@ -60,9 +60,6 @@ public:
     {
         SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
 
-        ShowWindow(SW_SHOW);
-
-        ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
         //if (ControlsMgt.m_resDocument.Modify())
         {
@@ -75,6 +72,9 @@ public:
 
             m_wndEdit.SetWindowText( strXmlText );
         }
+
+        ShowWindow(SW_SHOW);
+        ControlsMgt.m_piSkinFrame->SetActiveResultWindow(m_hWnd);
 
         m_bEdited = FALSE;
     }
