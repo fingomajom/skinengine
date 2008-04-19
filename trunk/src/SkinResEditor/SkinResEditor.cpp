@@ -14,8 +14,6 @@
 #include "MainFrm.h"
 
 
-std::map<KSGUI::CString, KSGUI::CString> SkinResDialogView::m_mapUsedIdName;
-
 KSGUI::CSkinAppModule _Module;
 
 KSGUI::SkinRichEditInit _RichEditInit;

@@ -13,6 +13,7 @@
 #include "SkinResWndDefProperty.h"
 #include "SkinDialgPreviewWindow.h"
 #include "SkinUpDownDlg.h"
+#include "SkinItemIdMgt.h"
 
 class SkinResDialogView : 
     public CDialogImpl<SkinResDialogView>,
@@ -45,7 +46,6 @@ public:
 
     CImageList m_imagelist;
 
-    static std::map<KSGUI::CString, KSGUI::CString> m_mapUsedIdName;
 
     SkinDialogRes& GetResDialog()
     {
@@ -125,17 +125,21 @@ public:
             if (!dialogRes.m_vtChildWndList[i].GetProperty(_T("ItemId"), strItemId))
                 continue;
 
-            std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
-                m_mapUsedIdName.find(dialogRes.m_vtChildWndList[i].GetIdName());
+            SkinItemIdMgt::instance().UsedItemId( 
+                dialogRes.m_vtChildWndList[i].GetIdName(), strItemId);
 
-            if (iter == m_mapUsedIdName.end())
-            {
-                m_mapUsedIdName[dialogRes.m_vtChildWndList[i].GetIdName()] = strItemId;
-            }
-            else if (strItemId != iter->second)
-            {
-                // error
-            }
+
+            //std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
+            //    m_mapUsedIdName.find(dialogRes.m_vtChildWndList[i].GetIdName());
+
+            //if (iter == m_mapUsedIdName.end())
+            //{
+            //    m_mapUsedIdName[dialogRes.m_vtChildWndList[i].GetIdName()] = strItemId;
+            //}
+            //else if (strItemId != iter->second)
+            //{
+            //    // error
+            //}
 
             //////////////////////////////////////////////////////////////////////////
         }
@@ -313,17 +317,21 @@ public:
         WndProperty.GetIdName().Format(_T("IDN_%d"), nNewItemId);
 
         //////////////////////////////////////////////////////////////////////////
-        std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
-            m_mapUsedIdName.find(WndProperty.GetIdName());
 
-        if (iter != m_mapUsedIdName.end())
-        {
-            strItemId = iter->second;
-        }
-        else
-        {
-            m_mapUsedIdName[WndProperty.GetIdName()] = strItemId;
-        }
+        SkinItemIdMgt::instance().UsedItemId(
+            WndProperty.GetIdName(), strItemId);
+
+        //std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
+        //    m_mapUsedIdName.find(WndProperty.GetIdName());
+
+        //if (iter != m_mapUsedIdName.end())
+        //{
+        //    strItemId = iter->second;
+        //}
+        //else
+        //{
+        //    m_mapUsedIdName[WndProperty.GetIdName()] = strItemId;
+        //}
         //////////////////////////////////////////////////////////////////////////
 
         WndProperty.SetProperty(_T("IdName"), WndProperty.GetIdName());
@@ -394,8 +402,10 @@ public:
             dialogRes.m_vtChildWndList.erase(
                 dialogRes.m_vtChildWndList.begin() + nindex);
 
-            if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(strIdName))
-                m_mapUsedIdName.erase(strIdName);
+            SkinItemIdMgt::instance().DelItemId( strIdName );
+
+            //if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(strIdName))
+            //    m_mapUsedIdName.erase(strIdName);
 
 
             m_wndTree.DeleteItem(hTreeItem);
@@ -716,27 +726,46 @@ public:
 
                 //////////////////////////////////////////////////////////////////////////
 
-                std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
-                    m_mapUsedIdName.find(WndPropertyList.GetIdName());
+                KSGUI::CString strItemId;
+                WndPropertyList.GetProperty(_T("ItemId"), strItemId);
+                
+                KSGUI::CString strUsedItemId = strItemId;
 
-                if (iter != m_mapUsedIdName.end())
+                SkinItemIdMgt::instance().UsedItemId(
+                    WndPropertyList.GetIdName(), strUsedItemId);
+
+                if (strUsedItemId != strItemId)
                 {
-                    WndPropertyList.SetProperty( _T("ItemId"), iter->second );
+                    WndPropertyList.SetProperty( _T("ItemId"), strUsedItemId );
 
                     ControlsMgt.m_skinResPropertyView.SetProperty(_T("ItemId"),
-                        iter->second);
-                }
-                else
-                {
-                    KSGUI::CString strItemId;
+                        strUsedItemId);
 
-                    WndPropertyList.GetProperty(_T("ItemId"), strItemId);
-                    
-                    m_mapUsedIdName[WndPropertyList.GetIdName()] = strItemId;
                 }
+                
+                SkinItemIdMgt::instance().DelItemId( pszOldValue );
 
-                if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(pszOldValue))
-                    m_mapUsedIdName.erase(pszOldValue);
+                //std::map<KSGUI::CString, KSGUI::CString>::const_iterator iter =
+                //    m_mapUsedIdName.find(WndPropertyList.GetIdName());
+
+                //if (iter != m_mapUsedIdName.end())
+                //{
+                //    WndPropertyList.SetProperty( _T("ItemId"), iter->second );
+
+                //    ControlsMgt.m_skinResPropertyView.SetProperty(_T("ItemId"),
+                //        iter->second);
+                //}
+                //else
+                //{
+                //    KSGUI::CString strItemId;
+
+                //    WndPropertyList.GetProperty(_T("ItemId"), strItemId);
+                //    
+                //    m_mapUsedIdName[WndPropertyList.GetIdName()] = strItemId;
+                //}
+
+                //if (!ControlsMgt.m_resDocument.m_resDialogDoc.IsChildIdNameExists(pszOldValue))
+                //    m_mapUsedIdName.erase(pszOldValue);
                 //////////////////////////////////////////////////////////////////////////
            }
 
@@ -744,7 +773,8 @@ public:
         } 
         else if ( !_tcscmp(pszPropertyName, _T("ItemId") ) )
         {
-            m_mapUsedIdName[WndPropertyList.GetIdName()] = pszNewValue;
+            SkinItemIdMgt::instance().ChangeItemId(
+                WndPropertyList.GetIdName(), pszNewValue);
         }
 
 

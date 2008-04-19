@@ -67,7 +67,6 @@ public:
 
         m_wndEdit.SetWindowText(_T(""));
 
-        SkinResDialogView::m_mapUsedIdName.clear();
 
         std::vector<SkinDialogRes>& vtList =
             ControlsMgt.m_resDocument.m_resDialogDoc.m_vtDialogList;

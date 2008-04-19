@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "SkinItemIdMgt.h"
+
 class SkinResMenuView : 
     public CDialogImpl<SkinResMenuView>,
     public SkinTreeItemControl,
@@ -358,6 +360,14 @@ public:
         return 0;
     }
 
+
+    int GetNextMenuIdName()
+    {
+        static int nnextid = 5000;
+
+        return nnextid++;
+    }
+
     LRESULT OnAddMenuItem(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
         HTREEITEM hSelItem = m_wndMenuTree.GetSelectedItem();
@@ -379,6 +389,10 @@ public:
             SkinMenuItem newMenuItem;
 
             newMenuItem.strItemText = _T("NewMenuItem");
+            newMenuItem.strItemId.Format(_T("%d"), GetNextMenuIdName());
+            newMenuItem.strIdName.Format(_T("IDC_MENUID_%s"), newMenuItem.strItemId);
+
+            SkinItemIdMgt::instance().UsedItemId( newMenuItem.strIdName, newMenuItem.strItemId );
 
             pMenuItemInfo->m_vtChildPopupMenu.push_back(newMenuItem);
 
@@ -393,6 +407,17 @@ public:
 
         return 0;
     }
+
+    void OnDelUsedItemId( SkinMenuItem& MenuItemInfo )
+    {
+        SkinItemIdMgt::instance().DelItemId( MenuItemInfo.strIdName );
+
+        for (size_t idx = 0; idx < MenuItemInfo.m_vtChildPopupMenu.size(); idx++)
+        {
+            OnDelUsedItemId( MenuItemInfo.m_vtChildPopupMenu[idx] );
+        }
+    }
+
     LRESULT OnDelMenuItem(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
         HTREEITEM hSelItem = m_wndMenuTree.GetSelectedItem();
@@ -413,13 +438,12 @@ public:
 
         if (pMenuItemInfo != NULL)
         {
+            OnDelUsedItemId(*pMenuItemInfo);
             
             pParentItem->m_vtChildPopupMenu.erase(
                 pParentItem->m_vtChildPopupMenu.begin() + idx);
 
             m_wndMenuTree.DeleteItem(hSelItem);
-
-            m_wndMenuTree.Expand(hSelItem);
 
             ControlsMgt.m_resDocument.Modify(TRUE);
 
@@ -454,11 +478,37 @@ public:
         }
         else if (!_tcscmp(pszPropertyName, _T("IdName")))
         {
+            if ( _tcslen(pszNewValue) <= _tcslen(_T("IDC_")) ||
+                _tcsncmp(pszNewValue, _T("IDC_"), _tcslen(_T("IDC_")) ) ) // 不合法的项名
+            {
+
+                ControlsMgt.m_skinResPropertyView.SetProperty(_T("IdName"),
+                    pszOldValue);
+
+                KSGUI::CString strMsg;
+
+                strMsg.Format(
+                    _T("[%s]不是合法的项名\n必顺以 IDC_ 开头的字符串。"),
+                    pszNewValue);
+
+                MessageBox(strMsg, _T("错误"));
+
+                return ;
+            }
+
+            pMenuItemInfo->strIdName = pszNewValue;
+
+            SkinItemIdMgt::instance().UsedItemId( pMenuItemInfo->strIdName, pMenuItemInfo->strItemId );
+            SkinItemIdMgt::instance().DelItemId( pszOldValue );
+
+            ControlsMgt.m_skinResPropertyView.SetProperty(_T("ItemId"),
+                pMenuItemInfo->strItemId);
 
         }
         else if (!_tcscmp(pszPropertyName, _T("ItemId")))
         {
-
+            pMenuItemInfo->strItemId = pszNewValue;
+            SkinItemIdMgt::instance().ChangeItemId( pMenuItemInfo->strIdName, pMenuItemInfo->strItemId );
         }
 
 

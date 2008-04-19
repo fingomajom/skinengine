@@ -38,6 +38,8 @@ public:
     BOOL Modify() const;
     void Modify(BOOL bModify);
 
+    BOOL CheckValid( BOOL bShowErrorMsg = TRUE );
+
 public:
 
     SkinStrResDoc   m_resStrDoc;

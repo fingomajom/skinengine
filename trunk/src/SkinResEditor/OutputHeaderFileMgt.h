@@ -55,6 +55,10 @@ public:
     }
     
 
+    std::map<KSGUI::CString, BOOL> mapIdName;
+    std::map<KSGUI::CString, BOOL> mapItemId;
+
+
     BOOL OutputHeadFile()
     {
         SREConfigMgt config;
@@ -93,6 +97,9 @@ public:
 
         //////////////////////////////////////////////////////////////////////////
 
+        mapIdName.clear();
+        mapItemId.clear();
+
         if (!OutCommentHeaer())
             return FALSE;
 
@@ -101,6 +108,9 @@ public:
 
         if (!OutImageResDef())
             return FALSE;
+
+        if (!OutMenuResDef())
+            return FALSE;        
 
         if (!OutDialogListResDef())
             return FALSE;
@@ -203,6 +213,69 @@ public:
         return TRUE;
     }
 
+    BOOL OutMenuResDef()
+    {
+        SkinControlsMgt& ControlsMgt = SkinControlsMgt::Instance();
+
+        std::vector<SkinMenuItem>& vtMenuList = 
+            ControlsMgt.m_resDocument.m_resMenuDoc.m_vtMenuList;
+
+        m_outfile.WriteLineEnd();
+        m_outfile.WriteLineEnd();
+        m_outfile.WriteLine(_T("//////////////////////////////////////////////////////////////////////////"));
+        m_outfile.WriteLine(_T("// "));
+        m_outfile.WriteLine(_T("// Menu define "));
+        m_outfile.WriteLine(_T("// "));
+        m_outfile.WriteLineEnd();
+
+        for (size_t index = 0; index < vtMenuList.size(); index++)
+        {
+            KSGUI::CString strOutLine;
+
+            strOutLine = _T("// Menu "); 
+            strOutLine += vtMenuList[index].strIdName;
+
+            m_outfile.WriteLineEnd();
+            m_outfile.WriteLine(_T("//////////////////////////////////////////////////////////////////////////"));
+            m_outfile.WriteLine(strOutLine);
+            m_outfile.WriteLineEnd();
+
+            WriteDefineLine( vtMenuList[index].strIdName,
+                GetFormatText(vtMenuList[index].strIdName ));
+            m_outfile.WriteLineEnd();
+
+            OutMenuItemResDef( vtMenuList[index].m_vtChildPopupMenu );
+
+        }
+
+        return TRUE;
+    }
+
+    void OutMenuItemResDef( std::vector<SkinMenuItem>& vtMenuItem )
+    {
+        for (size_t index = 0; index < vtMenuItem.size(); index++)
+        {
+            BOOL bComment = FALSE;
+
+            std::map<KSGUI::CString, BOOL>::const_iterator iter_ItemId =
+                mapItemId.find(vtMenuItem[index].strIdName);
+            if ( iter_ItemId == mapItemId.end() )
+            {
+                mapItemId[vtMenuItem[index].strIdName] = TRUE;
+
+                bComment = FALSE;
+            }
+            else
+            {                    
+                bComment = TRUE;
+            }
+
+            WriteDefineLine( vtMenuItem[index].strIdName, vtMenuItem[index].strItemId, bComment);
+
+            OutMenuItemResDef( vtMenuItem[index].m_vtChildPopupMenu );
+        }
+
+    }
 
     BOOL OutDialogListResDef()
     {
@@ -217,8 +290,6 @@ public:
         m_outfile.WriteLine(_T("// DialogList define "));
         m_outfile.WriteLine(_T("// "));
 
-        std::map<KSGUI::CString, BOOL> mapIdName;
-        std::map<KSGUI::CString, BOOL> mapItemId;
 
         for (size_t i = 0; i < vtDialogList.size(); i++)
         {

@@ -86,6 +86,8 @@ public:
             m_wndResMenuView.ShowWindow(SW_HIDE);
 
         ControlsMgt.m_skinTreeControlView.DeleteAllItems();
+        ControlsMgt.m_skinResPropertyView.Clear();
+        ControlsMgt.m_skinResPropertyView.SetPropertyEditNotify(NULL);
 
 
         ControlsMgt.m_skinTreeControlView.InsertControlItem(
