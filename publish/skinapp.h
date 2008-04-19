@@ -30,14 +30,16 @@ public:
         skinconfigbase* pskinconfig = NULL,
         skinstrresbase* pskinstrres = NULL,
         skindlgresbase* pskindlgres = NULL,
-        skinimageresbase* pskinimageresbase = NULL)
+        skinimageresbase* pskinimageres = NULL,
+        skinmenuresbase*  pskinmenures = NULL)
     {
         bool bskininit = m_skinresloader.load_skin(
             pszSkinXmlFile,
             pskinconfig,
             pskinstrres,
             pskindlgres,
-            pskinimageresbase);
+            pskinimageres,
+            pskinmenures);
 
         ATLASSERT(bskininit);
 
