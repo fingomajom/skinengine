@@ -965,7 +965,7 @@ public:
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        if (wParam == HTCAPTION)
+        if (wParam == HTCAPTION && wndThis.GetStyle() & WS_MAXIMIZE)
         {
             if ( m_bMaxed )
             {
