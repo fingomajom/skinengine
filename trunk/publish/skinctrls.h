@@ -9,6 +9,8 @@
 * Purpose:
 *********************************************************************/
 
+#pragma once
+
 #include "skinxmlctrls.h"
 #include "skinwin.h"
 #include "skingdi.h"
