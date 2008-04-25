@@ -277,6 +277,17 @@ public:
         if (bmp.m_hBitmap == NULL)
             return FALSE;
 
+        return LoadBitmap(bmp.m_hBitmap, uBmpCount);
+    }
+
+    BOOL LoadBitmap(HBITMAP hBmpRes, UINT uBmpCount = 3)
+    {
+        CBitmapHandle bmp;
+
+        bmp.Attach( hBmpRes );
+        if (bmp.m_hBitmap == NULL)
+            return FALSE;
+
         BITMAP bm = { 0 };
 
         if(!bmp.GetBitmap(&bm))
@@ -291,6 +302,7 @@ public:
 
         return TRUE;
     }
+
 
     HWND SkinCreate( 
         const SkinXmlElement& xmlElement,
@@ -622,7 +634,7 @@ public:
         return m_nselectedindex;
     }
 
-    BEGIN_MSG_MAP(KanTableCtrlImpl)
+    BEGIN_MSG_MAP(SkinTableCtrlExImpl)
 
         MESSAGE_HANDLER(WM_PAINT      , OnPaint)
         MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBKGnd)
