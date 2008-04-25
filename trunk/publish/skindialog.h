@@ -679,6 +679,8 @@ public:
 
         MESSAGE_HANDLER(WM_NCHITTEST    , OnNcHitTest    )
 
+        MESSAGE_HANDLER(WM_SETTEXT, OnSetText)
+
     END_MSG_MAP()
 
     LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -965,7 +967,7 @@ public:
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        if (wParam == HTCAPTION && wndThis.GetStyle() & WS_MAXIMIZE)
+        if (wParam == HTCAPTION && (wndThis.GetStyle() & WS_MAXIMIZEBOX))
         {
             if ( m_bMaxed )
             {
@@ -1139,6 +1141,19 @@ public:
 
         return lResult;
     }
+
+    LRESULT OnSetText(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        ::SetWindowPos(wndThis, NULL, 0, 0, 0, 0,
+            SWP_DRAWFRAME | SWP_NOMOVE | SWP_NOZORDER | SWP_NOSIZE );
+
+        return lResult;
+    }
+
 };
 
 
