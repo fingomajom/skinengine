@@ -7,6 +7,21 @@
 import "oaidl.idl";
 import "ocidl.idl";
 
+
+enum { 
+
+    CALLERID_UNKNOWN = -1,
+    CALLERID_FULL = 0,
+    CALLERID_SAFECENTER = 1,
+    CALLERID_KIS = 2,
+    CALLERID_KOS = 3,
+    
+
+    //
+    CALLERID_USER = 100    
+};
+
+
 [
 	object,
 	uuid(2E2D8BA6-3CB1-4927-A999-1064B7347D06),
@@ -16,7 +31,7 @@ import "ocidl.idl";
 	pointer_default(unique)
 ]
 interface ISvrCaller : IDispatch{
-    [id(1), helpstring("method InitCaller")] HRESULT Initialize([in] ULONG uCallerId);
+    [id(1), helpstring("method InitCaller")] HRESULT Initialize([in] ULONG uCallerId, [in] BSTR bstrJsCallbackMethod);
     [id(2), helpstring("method Uninitialize")] HRESULT Uninitialize(void);
     [id(3), helpstring("method NotifyMessage")] HRESULT CallSvrFunc([in] ULONG uDesModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out,retval] BSTR* bstrResult);
     [id(4), helpstring("method RegisterCallback")] HRESULT RegisterCallback([in] IUnknown* piCallback);

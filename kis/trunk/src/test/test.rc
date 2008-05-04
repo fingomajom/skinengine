@@ -40,7 +40,6 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "1 TYPELIB ""comExe.tlb""\r\n"
     "\0"
 END
 
@@ -268,7 +267,6 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-1 TYPELIB "comExe.tlb"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

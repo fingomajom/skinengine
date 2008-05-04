@@ -87,12 +87,14 @@ public:
         LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult,
         EXCEPINFO* pexcepinfo, UINT* puArgErr)
     {
-        *pvarResult = CComVariant(_T("12313123123131231231312312313123123131231231312312313123123131231231312312313123"));
+        VariantCopy(pvarResult, &pdispparams->rgvarg[1]);
 
-        BSTR bstrResult = NULL;
+        //BSTR bstrResult = NULL;
 
-        Fire_NotifyMessage( 0, 0, pvarResult->bstrVal, pvarResult->bstrVal,
-            &bstrResult);
+        //Fire_NotifyMessage( 0, 0, pvarResult->bstrVal, pvarResult->bstrVal,
+        //    &bstrResult);
+
+        //if (pdispparams->rgvarg[0])
 
         return S_OK;
     }

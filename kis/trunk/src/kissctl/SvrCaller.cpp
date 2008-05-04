@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "SvrCaller.h"
+#include <shlguid.h>
 #include "../kissvr/kissvr.h"
 
 // CSvrCaller
@@ -20,40 +21,13 @@ void CSvrCaller::FinalRelease()
 }
 
 
-STDMETHODIMP CSvrCaller::Advise(IUnknown* pUnkSink, DWORD* pdwCookie)
+STDMETHODIMP CSvrCaller::Initialize(ULONG uCallerId, BSTR bstrJsCallbackMethod)
 {
-    HRESULT hr = CProxy_ISvrCallerEvents<CSvrCaller>::Advise( pUnkSink, pdwCookie );
-
-    if (SUCCEEDED(hr) && m_spSvrObject.p != NULL)
-        m_svrCallerSink.DispEventAdvise(m_spSvrObject);
-
-    return hr;
-}
-
-STDMETHODIMP CSvrCaller::Unadvise(DWORD dwCookie)
-{
-    HRESULT hr = CProxy_ISvrCallerEvents<CSvrCaller>::Unadvise( dwCookie );
-
-    if (SUCCEEDED(hr) && m_spSvrObject.p != NULL && m_spCallback.p == NULL )
-    {
-        Lock();
-        int nsize = m_vec.GetSize();
-        Unlock();
-
-        if (nsize == 0)
-            m_svrCallerSink.DispEventUnadvise(m_spSvrObject);
-    }
-
-    return hr;
-}
-
-
-STDMETHODIMP CSvrCaller::Initialize(ULONG uCallerId)
-{
-    if (m_uCallerId != -1)
+    if (m_uCallerId != CALLERID_UNKNOWN)
         return S_OK;
 
     m_uCallerId = uCallerId;
+    m_bstrJsCallBackMethod = bstrJsCallbackMethod;
 
     CComPtr<IClassFactory> spFactory;
 
@@ -62,33 +36,49 @@ STDMETHODIMP CSvrCaller::Initialize(ULONG uCallerId)
         IID_IClassFactory, (void**)&spFactory );
 
     if (FAILED(hr))
-        return hr;
+        goto Exit0;
 
     hr = spFactory->CreateInstance(NULL, 
         __uuidof(IDispatch), (void**)&m_spSvrObject );
 
     if (FAILED(hr))
-        return hr;
+        goto Exit0;
 
-    Lock();
-    int nsize = m_vec.GetSize();
-    Unlock();
+    if (bstrJsCallbackMethod != NULL && 
+        SysStringLen(bstrJsCallbackMethod) > 0)
+    {
+        hr = ParaseJSFun();
+        if (FAILED(hr))
+            goto Exit0;
+    }
 
-    if (m_spCallback.p != NULL || nsize > 0)
+
+    if (m_spCallback.p != NULL || m_jsCallbackId != DISPID_UNKNOWN )
         m_svrCallerSink.DispEventUnadvise(m_spSvrObject);
 
     return S_OK;
+
+Exit0:
+
+    Uninitialize();
+
+    return E_FAIL;
 }
 
 STDMETHODIMP CSvrCaller::Uninitialize(void)
 {
-    m_uCallerId = -1;
+    m_uCallerId = CALLERID_UNKNOWN;
 
     if (m_spSvrObject.p != NULL)
     {
         m_svrCallerSink.DispEventUnadvise(m_spSvrObject);
 
         m_spSvrObject.Detach()->Release();
+    }
+
+    if (m_spScriptDisp.p != NULL)
+    {
+        m_spScriptDisp.Detach()->Release();
     }
 
     return S_OK;
@@ -102,23 +92,28 @@ STDMETHODIMP CSvrCaller::CallSvrFunc(
 {
     if ( m_spSvrObject.p != NULL )
     {
-        CComVariant avarParams[5];
+        CComVariant avarParams[4];
         CComVariant varResult;
 
-        avarParams[4] = uDesModuleId;
-        avarParams[4].vt = VT_UI4;
-        avarParams[3] = m_uCallerId;
+        avarParams[3] = uDesModuleId;
         avarParams[3].vt = VT_UI4;
-        avarParams[2] = bstrFunctionName;
-        avarParams[2].vt = VT_BSTR;
-        avarParams[1] = bstrParameter;
+        avarParams[2] = m_uCallerId;
+        avarParams[2].vt = VT_UI4;
+        avarParams[1] = bstrFunctionName;
         avarParams[1].vt = VT_BSTR;
-        avarParams[0].byref = bstrResult;
-        avarParams[0].vt = VT_BSTR|VT_BYREF;
+        avarParams[0] = bstrParameter;
+        avarParams[0].vt = VT_BSTR;
 
-        DISPPARAMS params = { avarParams, NULL, 5, 0 };
+        DISPPARAMS params = { avarParams, NULL, 4, 0 };
         
         HRESULT hr = m_spSvrObject->Invoke(1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &varResult, NULL, NULL);
+        
+        if (SUCCEEDED(hr) && bstrResult != NULL && varResult.vt == VT_BSTR)
+        {
+            *bstrResult = varResult.bstrVal;
+            
+            varResult.vt = VT_EMPTY;
+        }
 
         return hr;
     }
@@ -143,15 +138,56 @@ STDMETHODIMP CSvrCaller::RegisterCallback(IUnknown* piCallback)
 
         if (m_spSvrObject.p != NULL)
         {
-            Lock();
-            int nsize = m_vec.GetSize();
-            Unlock();
-
-            if (nsize == 0)
+            if (m_jsCallbackId == DISPID_UNKNOWN)
                 m_svrCallerSink.DispEventUnadvise(m_spSvrObject);
         }
     }
 
 
     return S_OK;
+}
+
+HRESULT CSvrCaller::ParaseJSFun()
+{	
+    HRESULT hr = E_FAIL;
+
+    if (m_spUnkSite.p == NULL)
+        return hr;
+
+    CComPtr<IUnknown> spUnkSite;
+    //得到脚本对象以及域名
+    CComQIPtr<IServiceProvider> spSvrProvider(m_spUnkSite);		
+    if (spSvrProvider == NULL)
+        return hr;
+
+    CComPtr<IWebBrowser2> spWebBrowser;
+    hr = spSvrProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (void**)&spWebBrowser);
+    if (FAILED(hr))
+        return hr;
+
+
+    CComPtr<IDispatch> spDocDisp;
+    hr = spWebBrowser->get_Document(&spDocDisp);
+    if (FAILED(hr))
+        return hr;
+
+    CComQIPtr<IHTMLDocument2> spHTML(spDocDisp);
+    if (m_spScriptDisp != NULL)
+        m_spScriptDisp.Release();
+
+    hr = spHTML->get_Script(&m_spScriptDisp);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_spScriptDisp->GetIDsOfNames(IID_NULL, 
+        &m_bstrJsCallBackMethod, 1, 
+        LOCALE_SYSTEM_DEFAULT, &m_jsCallbackId);
+    if (FAILED(hr))
+        return hr;
+
+    hr = spHTML->get_domain(&m_bstrDomain);
+    if (FAILED(hr))
+        return hr;
+
+    return hr;
 }

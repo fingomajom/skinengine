@@ -12,6 +12,33 @@ CSvrCallerSink::~CSvrCallerSink(void)
 {
 }
 
+STDMETHODIMP CSvrCallerSink::GetTypeInfoCount(UINT* pctinfo)
+{	
+    if (pctinfo != NULL && m_pSvrCaller != NULL)
+        *pctinfo = m_pSvrCaller->m_uCallerId;
+
+    return S_OK;
+}	
+
+STDMETHODIMP CSvrCallerSink::GetTypeInfo(unsigned int,unsigned long,struct ITypeInfo ** )
+{	
+    return E_NOTIMPL;	
+}	
+
+STDMETHODIMP CSvrCallerSink::GetIDsOfNames( 
+                           /* [in] */ REFIID riid,
+                           /* [size_is][in] */ LPOLESTR *rgszNames,
+                           /* [in] */ UINT cNames,
+                           /* [in] */ LCID lcid,
+                           /* [size_is][out] */ DISPID *rgDispId)
+{	
+    if (rgDispId != NULL && m_pSvrCaller != NULL)
+        *rgDispId = m_pSvrCaller->m_uCallerId;
+
+    return E_NOTIMPL;	
+}	
+
+
 STDMETHODIMP CSvrCallerSink::Invoke(
     /* [in] */ DISPID dispIdMember,
     /* [in] */ REFIID riid,
@@ -48,20 +75,18 @@ STDMETHODIMP CSvrCallerSink::Invoke(
     {
         HRESULT hr = S_OK;
 
-        int cConnections = m_pSvrCaller->m_vec.GetSize();
-
-        for (int iConnection = 0; iConnection < cConnections; iConnection++)
+        if (m_pSvrCaller->m_jsCallbackId != DISPID_UNKNOWN &&
+            m_pSvrCaller->m_spScriptDisp.p != NULL)
         {
-            m_pSvrCaller->Lock();
-            CComPtr<IUnknown> punkConnection = m_pSvrCaller->m_vec.GetAt(iConnection);
-            m_pSvrCaller->Unlock();
-
-            IDispatch * pConnection = static_cast<IDispatch *>(punkConnection.p);
-
-            if (pConnection)
-            {
-                hr = pConnection->Invoke(1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, pDispParams, pVarResult, NULL, NULL);
-            }
+            hr = m_pSvrCaller->m_spScriptDisp->Invoke(
+                m_pSvrCaller->m_jsCallbackId, 
+                IID_NULL, 
+                LOCALE_USER_DEFAULT, 
+                DISPATCH_METHOD, 
+                pDispParams, 
+                pVarResult, 
+                NULL, 
+                NULL);
         }
 
     }

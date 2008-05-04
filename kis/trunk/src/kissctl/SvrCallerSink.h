@@ -27,19 +27,16 @@ public:
     ULONG __stdcall Release(void)
     {	return 0;	}	
 
-    STDMETHODIMP GetTypeInfoCount(unsigned int *)
-    {	return E_NOTIMPL;	}	
+    STDMETHODIMP GetTypeInfoCount(UINT *);
 
-    STDMETHODIMP GetTypeInfo(unsigned int,unsigned long,struct ITypeInfo ** )
-    {	return E_NOTIMPL;	}	
+    STDMETHODIMP GetTypeInfo(unsigned int,unsigned long,struct ITypeInfo ** );
 
     STDMETHODIMP GetIDsOfNames( 
         /* [in] */ REFIID riid,
         /* [size_is][in] */ LPOLESTR *rgszNames,
         /* [in] */ UINT cNames,
         /* [in] */ LCID lcid,
-        /* [size_is][out] */ DISPID *rgDispId)
-    {	return E_NOTIMPL;	}	
+        /* [size_is][out] */ DISPID *rgDispId);
 
     STDMETHODIMP Invoke(
         /* [in] */ DISPID dispIdMember,
