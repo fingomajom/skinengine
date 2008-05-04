@@ -34,21 +34,28 @@ public:
 
 			if (pConnection)
 			{
-				CComVariant avarParams[5];
-				avarParams[4] = uDesCallerId;
-				avarParams[4].vt = VT_UI4;
-				avarParams[3] = uSrcModuleId;
+				CComVariant avarParams[4];
+                CComVariant varResult;
+
+                avarParams[3] = uDesCallerId;
 				avarParams[3].vt = VT_UI4;
-				avarParams[2] = bstrFunctionName;
-				avarParams[2].vt = VT_BSTR;
-				avarParams[1] = bstrParameter;
+				avarParams[2] = uSrcModuleId;
+				avarParams[2].vt = VT_UI4;
+				avarParams[1] = bstrFunctionName;
 				avarParams[1].vt = VT_BSTR;
-				avarParams[0].byref = bstrResult;
-				avarParams[0].vt = VT_BSTR|VT_BYREF;
-				CComVariant varResult;
+				avarParams[0] = bstrParameter;
+				avarParams[0].vt = VT_BSTR;
 
 				DISPPARAMS params = { avarParams, NULL, 5, 0 };
 				hr = pConnection->Invoke(1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &varResult, NULL, NULL);
+                
+                if (SUCCEEDED(hr) && bstrResult != NULL && varResult.vt == VT_BSTR)
+                {
+                    *bstrResult = varResult.bstrVal;
+
+                    varResult.vt = VT_EMPTY;
+                }
+
 			}
 		}
 		return hr;

@@ -106,7 +106,7 @@ STDMETHODIMP CSvrCaller::CallSvrFunc(
 
         DISPPARAMS params = { avarParams, NULL, 4, 0 };
         
-        HRESULT hr = m_spSvrObject->Invoke(1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &varResult, NULL, NULL);
+        HRESULT hr = m_spSvrObject->Invoke(0xABCDEF, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &varResult, NULL, NULL);
         
         if (SUCCEEDED(hr) && bstrResult != NULL && varResult.vt == VT_BSTR)
         {

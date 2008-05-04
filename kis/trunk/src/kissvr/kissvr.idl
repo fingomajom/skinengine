@@ -16,6 +16,7 @@ import "ocidl.idl";
 	pointer_default(unique)
 ]
 interface ISvrObject : IDispatch{
+    [id(1), helpstring("method NotifyMessage")] HRESULT CallSvrFunc([in] ULONG uDesModuleId, [in] ULONG uSrcCallerId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out] BSTR* bstrResult);
 };
 [
 	uuid(02C621AD-EED9-4CAD-A5BE-43735BC3B25A),
@@ -33,7 +34,7 @@ library kissvrLib
 	{
 		properties:
 		methods:
-            [id(1), helpstring("method NotifyMessage")] HRESULT NotifyMessage([in] ULONG uDesCallerId, [in] ULONG uSrcModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out] BSTR* bstrResult);
+            [id(1), helpstring("method NotifyMessage")] HRESULT NotifyMessage([in] ULONG uDesCallerId, [in] ULONG uSrcModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out,retval] BSTR* bstrResult);
     };
 	[
 		uuid(902ED49C-E3EF-4930-B50B-9E6A8BA5A671),

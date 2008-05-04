@@ -8,20 +8,6 @@ import "oaidl.idl";
 import "ocidl.idl";
 
 
-enum { 
-
-    CALLERID_UNKNOWN = -1,
-    CALLERID_FULL = 0,
-    CALLERID_SAFECENTER = 1,
-    CALLERID_KIS = 2,
-    CALLERID_KOS = 3,
-    
-
-    //
-    CALLERID_USER = 100    
-};
-
-
 [
 	object,
 	uuid(2E2D8BA6-3CB1-4927-A999-1064B7347D06),

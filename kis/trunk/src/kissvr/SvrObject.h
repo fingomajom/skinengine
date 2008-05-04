@@ -70,34 +70,20 @@ END_CONNECTION_POINT_MAP()
 
 public:
 
-    STDMETHOD(GetTypeInfoCount)(UINT* pctinfo)
-    {
-        return E_NOTIMPL;
-    }
-    STDMETHOD(GetTypeInfo)(UINT itinfo, LCID lcid, ITypeInfo** pptinfo)
-    {
-        return E_NOTIMPL;
-    }
+    STDMETHOD(GetTypeInfoCount)(UINT* pctinfo);
+    STDMETHOD(GetTypeInfo)(UINT itinfo, LCID lcid, ITypeInfo** pptinfo);
     STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR* rgszNames, UINT cNames,
-        LCID lcid, DISPID* rgdispid)
-    {
-        return E_NOTIMPL;
-    }
+        LCID lcid, DISPID* rgdispid);
     STDMETHOD(Invoke)(DISPID dispidMember, REFIID riid,
         LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult,
-        EXCEPINFO* pexcepinfo, UINT* puArgErr)
-    {
-        VariantCopy(pvarResult, &pdispparams->rgvarg[1]);
+        EXCEPINFO* pexcepinfo, UINT* puArgErr);
 
-        //BSTR bstrResult = NULL;
-
-        //Fire_NotifyMessage( 0, 0, pvarResult->bstrVal, pvarResult->bstrVal,
-        //    &bstrResult);
-
-        //if (pdispparams->rgvarg[0])
-
-        return S_OK;
-    }
+    HRESULT STDMETHODCALLTYPE CallSvrFunc( 
+        /* [in] */ ULONG uDesModuleId,
+        /* [in] */ ULONG uSrcCallerId,
+        /* [in] */ BSTR bstrFunctionName,
+        /* [in] */ BSTR bstrParameter,
+        /* [out] */ BSTR *bstrResult);
 
 
 };

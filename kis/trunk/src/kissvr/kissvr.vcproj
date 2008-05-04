@@ -303,6 +303,10 @@
 		<Filter
 			Name="publish"
 			>
+			<File
+				RelativePath="..\..\publish\kismoduleiddef.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="SvrObject"

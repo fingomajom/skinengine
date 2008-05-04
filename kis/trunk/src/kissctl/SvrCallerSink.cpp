@@ -54,22 +54,29 @@ STDMETHODIMP CSvrCallerSink::Invoke(
 
     if (m_pSvrCaller->m_spCallback.p != NULL)
     {
-        if (pDispParams == NULL || pDispParams->cArgs != 5)
+        if (pDispParams == NULL || pDispParams->cArgs != 4)
             return E_FAIL;
 
         if ( pDispParams->rgvarg[4].vt != VT_UI4 ||
              pDispParams->rgvarg[3].vt != VT_UI4 ||
              pDispParams->rgvarg[2].vt != VT_BSTR ||
-             pDispParams->rgvarg[1].vt != VT_BSTR ||
-             pDispParams->rgvarg[0].vt != (VT_BSTR | VT_BYREF) )
+             pDispParams->rgvarg[1].vt != VT_BSTR )
              return E_FAIL;
+
+        BSTR bstrResult = NULL;
 
         m_pSvrCaller->m_spCallback->NotifyMessage(
             pDispParams->rgvarg[4].ulVal,
             pDispParams->rgvarg[3].ulVal,
             pDispParams->rgvarg[2].bstrVal,
             pDispParams->rgvarg[1].bstrVal,
-            (BSTR*)pDispParams->rgvarg[0].byref);
+            &bstrResult);
+
+        if (bstrResult != NULL)
+        {
+            pVarResult->vt = VT_BSTR;
+            pVarResult->bstrVal = bstrResult;
+        }
     }
 
     {
