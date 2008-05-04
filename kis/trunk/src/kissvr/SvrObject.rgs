@@ -1,0 +1,24 @@
+HKCR
+{
+	kissvr.SvrObject.1 = s 'SvrObject Class'
+	{
+		CLSID = s '{902ED49C-E3EF-4930-B50B-9E6A8BA5A671}'
+	}
+	kissvr.SvrObject = s 'SvrObject Class'
+	{
+		CLSID = s '{902ED49C-E3EF-4930-B50B-9E6A8BA5A671}'
+		CurVer = s 'kissvr.SvrObject.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {902ED49C-E3EF-4930-B50B-9E6A8BA5A671} = s 'SvrObject Class'
+		{
+			ProgID = s 'kissvr.SvrObject.1'
+			VersionIndependentProgID = s 'kissvr.SvrObject'
+			ForceRemove 'Programmable'
+			LocalServer32 = s '%MODULE%'
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{02C621AD-EED9-4CAD-A5BE-43735BC3B25A}'
+		}
+	}
+}

@@ -1,0 +1,63 @@
+// kissctl.idl : IDL source for kissctl
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (kissctl.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(2E2D8BA6-3CB1-4927-A999-1064B7347D06),
+	dual,
+	nonextensible,
+	helpstring("ISvrCaller Interface"),
+	pointer_default(unique)
+]
+interface ISvrCaller : IDispatch{
+    [id(1), helpstring("method InitCaller")] HRESULT Initialize([in] ULONG uCallerId);
+    [id(2), helpstring("method Uninitialize")] HRESULT Uninitialize(void);
+    [id(3), helpstring("method NotifyMessage")] HRESULT CallSvrFunc([in] ULONG uDesModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out,retval] BSTR* bstrResult);
+    [id(4), helpstring("method RegisterCallback")] HRESULT RegisterCallback([in] IUnknown* piCallback);
+};
+
+[
+	object,
+	uuid(44E918C4-0540-4d63-BFEA-1BBA0D5CCBFA),
+	nonextensible,
+	helpstring("INotifyCallback Interface"),
+	pointer_default(unique)
+]
+interface INotifyCallback : IUnknown{
+    [id(1), helpstring("method NotifyMessage")] HRESULT NotifyMessage([in] ULONG uDesCallerId, [in] ULONG uSrcModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out] BSTR* bstrResult);
+};
+
+[
+	uuid(0BC7C86A-894D-46A6-9985-64DECF632032),
+	version(1.0),
+	helpstring("kissctl 1.0 Type Library")
+]
+library kissctlLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(31B4C9A0-4D8E-47DE-9B37-452CEC61C257),
+		helpstring("_ISvrCallerEvents Interface")
+	]
+	dispinterface _ISvrCallerEvents
+	{
+		properties:
+		methods:
+            [id(1), helpstring("method NotifyMessage")] HRESULT NotifyMessage([in] ULONG uDesCallerId, [in] ULONG uSrcModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out] BSTR* bstrResult);
+	};
+	[
+		uuid(36663AC3-0D27-4B77-A230-7FD7426BB4D3),
+		helpstring("SvrCaller Class")
+	]
+	coclass SvrCaller
+	{
+		[default] interface ISvrCaller;
+		[default, source] dispinterface _ISvrCallerEvents;
+	};
+};

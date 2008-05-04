@@ -1,0 +1,47 @@
+// kissvr.idl : IDL source for kissvr
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (kissvr.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(1215ABFB-12A2-4201-8F4B-8FBD503C8414),
+	dual,
+	nonextensible,
+	helpstring("ISvrObject Interface"),
+	pointer_default(unique)
+]
+interface ISvrObject : IDispatch{
+};
+[
+	uuid(02C621AD-EED9-4CAD-A5BE-43735BC3B25A),
+	version(1.0),
+	helpstring("kissvr 1.0 Type Library")
+]
+library kissvrLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(A31A43A2-3A43-4B71-8CD5-3AD002370C50),
+		helpstring("_ISvrObjectEvents Interface")
+	]
+	dispinterface _ISvrObjectEvents
+	{
+		properties:
+		methods:
+            [id(1), helpstring("method NotifyMessage")] HRESULT NotifyMessage([in] ULONG uDesCallerId, [in] ULONG uSrcModuleId, [in] BSTR bstrFunctionName, [in] BSTR bstrParameter, [out] BSTR* bstrResult);
+    };
+	[
+		uuid(902ED49C-E3EF-4930-B50B-9E6A8BA5A671),
+		helpstring("SvrObject Class")
+	]
+	coclass SvrObject
+	{
+		[default] interface ISvrObject;
+		[default, source] dispinterface _ISvrObjectEvents;
+	};
+};

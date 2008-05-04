@@ -1,0 +1,27 @@
+HKCR
+{
+	kissctl.SvrCaller.1 = s 'SvrCaller Class'
+	{
+		CLSID = s '{36663AC3-0D27-4B77-A230-7FD7426BB4D3}'
+	}
+	kissctl.SvrCaller = s 'SvrCaller Class'
+	{
+		CLSID = s '{36663AC3-0D27-4B77-A230-7FD7426BB4D3}'
+		CurVer = s 'kissctl.SvrCaller.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {36663AC3-0D27-4B77-A230-7FD7426BB4D3} = s 'SvrCaller Class'
+		{
+			ProgID = s 'kissctl.SvrCaller.1'
+			VersionIndependentProgID = s 'kissctl.SvrCaller'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{0BC7C86A-894D-46A6-9985-64DECF632032}'
+		}
+	}
+}

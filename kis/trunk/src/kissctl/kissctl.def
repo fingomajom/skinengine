@@ -1,0 +1,9 @@
+; kissctl.def : Declares the module parameters.
+
+LIBRARY      "kissctl.DLL"
+
+EXPORTS
+	DllCanUnloadNow		PRIVATE
+	DllGetClassObject	PRIVATE
+	DllRegisterServer	PRIVATE
+	DllUnregisterServer	PRIVATE
