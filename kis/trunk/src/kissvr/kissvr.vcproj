@@ -312,6 +312,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ATLCPImplMT.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SvrObject.cpp"
 				>
 			</File>
