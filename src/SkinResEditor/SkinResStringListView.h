@@ -66,7 +66,7 @@ public:
             m_edit.Create(m_hWnd, 
                 rcDefault, 
                 NULL, 
-                WS_CHILD | WS_BORDER | ES_AUTOHSCROLL);
+                WS_CHILD | WS_BORDER | WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN );
 
             m_edit.SetFont(GetFont());
 
@@ -178,11 +178,49 @@ public:
                     szBuffer, 1024);
 
                 rcSubItem.left += 5;
-                rcSubItem.top  +=1;
                 rcSubItem.right--;
-                rcSubItem.bottom--;
+
+                //rcSubItem.top;
+                //rcSubItem.bottom;
+
+                if (sub == 1)
+                {
+                    //::SetWindowLong(m_edit, GWL_STYLE , 
+                    //    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL );
+
+                    //::SetWindowPos(m_edit, NULL, 0, 0, 0, 0,
+                    //    SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_DEFERERASE);
+
+                    //m_edit.ModifyStyle(WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN,
+                    //    ES_AUTOHSCROLL, SWP_FRAMECHANGED | SWP_DRAWFRAME);
+                }
+                else if (sub == 2)
+                {
+                    //m_edit.ModifyStyle(ES_AUTOHSCROLL,
+                    //    WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN, SWP_FRAMECHANGED | SWP_DRAWFRAME);
+                    //::SetWindowLong(m_edit, GWL_STYLE , 
+                    //    WS_CHILD | WS_BORDER | WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN );
+                    
+                    //::SetWindowPos(m_edit, NULL, 0, 0, 0, 0,
+                    //    SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_DEFERERASE);
+
+                    //rcSubItem.left   += 15;
+                    //rcSubItem.bottom += (160);
+                }
 
                 m_edit.SetWindowText(szBuffer);
+
+                if ( sub == 2 )
+                {
+                    int nHeight = m_edit.GetLineCount() * 12 ;
+                    if (nHeight < 150)
+                        nHeight = 150;
+                    else if (nHeight > 500)
+                        nHeight = 500;
+
+                    rcSubItem.bottom += nHeight;
+                }
+
                 m_edit.MoveWindow(&rcSubItem);
                 m_edit.ShowWindow(SW_SHOW);
                 m_edit.SetFocus();

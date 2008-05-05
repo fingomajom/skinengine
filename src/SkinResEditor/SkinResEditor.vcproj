@@ -137,13 +137,19 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="0"
+				FavorSizeOrSpeed="2"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="../../publish;../../tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
+				StringPooling="false"
 				ExceptionHandling="1"
 				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -159,9 +165,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkIncremental="1"
+				LinkIncremental="0"
 				AdditionalLibraryDirectories="../../sharelib"
+				GenerateDebugInformation="false"
 				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
 			<Tool
