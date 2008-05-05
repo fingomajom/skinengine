@@ -111,14 +111,14 @@ public:
             _bstr_t bstrOut1;
 
             m_spSvrCaller->CallSvrFunc( 
-                0, 
+                CALLERID_KIS, 
                 _bstr_t(_T("123123123")),
                 NULL,
                 bstrOut.GetAddress()
                 );
 
             m_spSvrCaller->CallSvrFunc( 
-                0, 
+                CALLERID_KIS, 
                 _bstr_t(_T("44444444444")),
                 NULL,
                 bstrOut1.GetAddress()
