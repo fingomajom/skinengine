@@ -106,6 +106,12 @@ public:
             }
         }
 
+        SkinTableCtrlEx* pTableCtrlEx = (SkinTableCtrlEx*)m_childList.GetDlgItem(_T("IDN_1014"));
+
+        pTableCtrlEx->InsertItem(0, _T("SkinTableCtrlEx"));
+        pTableCtrlEx->InsertItem(1, _T("SkinTableCtrlEx"));
+        pTableCtrlEx->InsertItem(2, _T("SkinTableCtrlEx"));
+        pTableCtrlEx->InsertItem(3, _T("SkinTableCtrlEx"));
 
 		return TRUE;
 	}
