@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "../../publish/kismoduleiddef.h"
 #include <atlctl.h>
 
 #include "resource.h"       // main symbols
 
 #include "kissctl.h"
-//#include "_ISvrCallerEvents_CP.h"
 #include "SvrCallerSink.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)

@@ -6,6 +6,7 @@
 
 #include <atlpath.h>
 
+#include "../../publish/kismoduleiddef.h"
 #include "../kissctl/kissctl.h"
 #include "../../import/kis_com_s/kis_esc/KComInterfacePtr.h"
 

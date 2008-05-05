@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 #include "SvrObject.h"
-
+#include ""
 
 
 CSvrObjectFactory::CSvrObjectFactory()
@@ -80,6 +80,17 @@ HRESULT STDMETHODCALLTYPE CSvrObject::CallSvrFunc(
     /* [in] */ BSTR bstrFunctionName,
     /* [in] */ BSTR bstrParameter,
     /* [out] */ BSTR *bstrResult)
+{
+    return S_OK;
+}
+
+
+HRESULT STDMETHODCALLTYPE CSvrObject::Advise(IUnknown* pUnkSink, DWORD* pdwCookie)
+{
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CSvrObject::Unadvise(DWORD dwCookie)
 {
     return S_OK;
 }

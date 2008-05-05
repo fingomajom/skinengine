@@ -68,6 +68,10 @@ END_CONNECTION_POINT_MAP()
 	{
 	}
 
+    STDMETHOD(Advise)(IUnknown* pUnkSink, DWORD* pdwCookie);
+    STDMETHOD(Unadvise)(DWORD dwCookie);
+
+
 public:
 
     STDMETHOD(GetTypeInfoCount)(UINT* pctinfo);

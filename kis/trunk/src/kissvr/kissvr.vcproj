@@ -327,6 +327,18 @@
 				RelativePath=".\SvrObject.h"
 				>
 			</File>
+			<Filter
+				Name="callback"
+				>
+				<File
+					RelativePath=".\SvrCallbackMgt.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SvrCallbackMgt.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
