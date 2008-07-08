@@ -90,20 +90,29 @@ public:
     skinresloader& m_skinresloader;
 };
 
-} // namespace KSGUI
-
-
-extern KSGUI::CSkinAppModule _Module;
-
 
 inline BOOL SkinLoadString(LPCTSTR pszIDName, KSGUI::CString& strValue)
 {
     return KSGUI::CSkinAppModule::LoadString_S(pszIDName, strValue);
 }
 
+inline KSGUI::CString SkinLoadString(LPCTSTR pszIDName)
+{
+	KSGUI::CString str;
+	KSGUI::CSkinAppModule::LoadString_S(pszIDName, str);
+	return str;
+}
+
 inline BOOL SkinLoadString(UINT uResID, KSGUI::CString& strValue)
 {
     return KSGUI::CSkinAppModule::LoadString_U(uResID, strValue);
+}
+
+inline KSGUI::CString SkinLoadString(UINT uResID)
+{
+	KSGUI::CString str;
+	return KSGUI::CSkinAppModule::LoadString_U(uResID, str);
+	return str;
 }
 
 inline HBITMAP SkinLoadBitmap(LPCTSTR pszIDName)
@@ -166,3 +175,9 @@ inline HMENU SkinLoadMenu( LPCTSTR pszIDName )
 
     return pskinmenures->LoadMenu(pszIDName);
 }
+
+
+}; // namespace KSGUI
+
+
+extern KSGUI::CSkinAppModule _Module;

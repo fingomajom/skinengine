@@ -12,6 +12,7 @@
 #pragma once
 
 #include <atlpath.h>
+#include <framework/kis_pathcfg.h>
 
 namespace KSGUI{
 
@@ -43,32 +44,14 @@ public:
         return m_pathSkinImagePath;
     }
 
-    virtual LPCTSTR GetWorkDirectory()
-    {
-        if ( m_pathWorkDirectory.m_strPath.GetLength() > 2 )
-            return m_pathWorkDirectory.m_strPath;
-
-        TCHAR szBuffer[MAX_PATH] = { 0 };
-
-        GetModuleFileName(NULL, szBuffer, MAX_PATH);
-        
-        m_pathWorkDirectory.m_strPath = szBuffer;
-        m_pathWorkDirectory.RemoveFileSpec();
-
-        return m_pathWorkDirectory.m_strPath;
-    }
-
     virtual void InitPaths()
     {
-        GetWorkDirectory();
-
-        m_pathSkinResPath   = m_pathWorkDirectory;
-        m_pathSkinImagePath = m_pathWorkDirectory;
+        m_pathSkinResPath   = (LPCTSTR)kis::kisGetPath(kis::path_cur_land);
+        m_pathSkinImagePath = (LPCTSTR)kis::kisGetPath(kis::path_images);
     }
 
 public:
-    
-    ATL::CPath m_pathWorkDirectory;
+  
     ATL::CPath m_pathSkinResPath;
     ATL::CPath m_pathSkinImagePath;
 

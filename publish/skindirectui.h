@@ -16,6 +16,9 @@
 
 namespace KSGUI{
 
+#ifndef _DIRECTUI_USE_IDNAME_
+#define _DIRECTUI_USE_IDNAME_
+#endif
 
 class duidrawbase
 {
@@ -120,7 +123,7 @@ public:
         dc.SetTextColor(clrOld);
     }
 
-protected:
+public:
     
     KSGUI::CString strCaption;
     CFont          hFont;
@@ -172,7 +175,7 @@ public:
             dc.SkinDrawBitmap(pt, m_bmp);
     }
 
-protected:
+public:
 
     CBitmap m_bmp;
 };
@@ -237,7 +240,7 @@ public:
         dc.SelectPen(hOldPen);
     }
 
-protected:
+public:
 
     int nPenStyle;
     int nPenWidth;

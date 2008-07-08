@@ -53,7 +53,7 @@ public:
         xmlWin.GetItemId(dwId);
 
         if (MenuOrID.m_hMenu == 0U)
-            MenuOrID.m_hMenu = (HMENU)dwId;
+            MenuOrID.m_hMenu = (HMENU)(LONG_PTR)dwId;
 
         m_hWnd = ::CreateWindowEx(dwExStyle, szClassName, strCaption,
             dwStyle, rcClient.left, rcClient.top, rcClient.right - rcClient.left,

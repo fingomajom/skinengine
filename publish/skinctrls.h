@@ -14,6 +14,7 @@
 #include "skinxmlctrls.h"
 #include "skinwin.h"
 #include "skingdi.h"
+#include "ksguicommon/drawer/StandardDrawer.h"
 #include <atlctrls.h>
 
 
@@ -212,7 +213,8 @@ public:
         MESSAGE_HANDLER(WM_PAINT     , OnPaint)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
         MESSAGE_HANDLER(WM_SETTEXT   , OnSetText)
-        
+        MESSAGE_HANDLER(WM_PRINTCLIENT, OnPaint)
+
         MESSAGE_HANDLER(WM_LBUTTONDOWN    , OnRefWindowMsg)
         MESSAGE_HANDLER(WM_LBUTTONUP      , OnRefWindowMsg)
         MESSAGE_HANDLER(WM_NCLBUTTONDBLCLK, OnRefWindowMsg)
@@ -246,27 +248,43 @@ public:
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        CPaintDC dc(m_hWnd);
+        if (wParam == 0)
+        {
+            CPaintDC dc(m_hWnd);
 
-        CSkinDCHandle skinDC = (dc.m_hDC);
+            DoPaint(dc.m_hDC);
+        }
+        else
+        {
+            DoPaint((HDC)wParam);
+        }
 
+        return 0L;
+    }
+
+
+    void DoPaint( CSkinDCHandle skinDC )
+    {
         BOOL bCheck = GetCheck();
 
         RECT rcClient = { 0 };
         RECT rcCheck  = { 0 };
 
         GetClientRect(&rcClient);
-        
+
         rcCheck = rcClient;
 
         const int nWidth = 13;
 
-        rcCheck.top    = (rcCheck.bottom - rcCheck.top) / 2 - nWidth/2;
+        rcCheck.top    = (rcCheck.bottom - rcCheck.top) / 2 - nWidth/2 - 1;
         rcCheck.bottom = rcCheck.top + nWidth;
         rcCheck.right  = nWidth;
 
-        skinDC.DrawFrameControl(&rcCheck, DFC_BUTTON, 
-            DFCS_BUTTONCHECK | bCheck ? DFCS_CHECKED : 0);
+        //skinDC.DrawFrameControl(&rcCheck, DFC_BUTTON, 
+        //    DFCS_BUTTONCHECK | bCheck ? DFCS_CHECKED : 0);
+
+        DrawCheckBox( skinDC, rcCheck.left, rcCheck.top,
+            DFCS_BUTTONCHECK | bCheck ? CBS_CHECKED | CBS_NORMAL : CBS_NORMAL );
 
         rcClient.left += nWidth * 4 / 3;
 
@@ -279,7 +297,6 @@ public:
                 DT_VCENTER | DT_SINGLELINE | DT_LEFT, 0L, GetFont());
         }
 
-        return 0L;
     }
 
 

@@ -43,6 +43,11 @@ public:
     {
         return GetObject(_T("DrawTextFlags"), dwFlag);
     }
+
+    BOOL GetLineColor( COLORREF& clrLine )
+    {
+        return GetColor( _T("LineColor"), clrLine );
+    }
 };
 
 class skinxmlbmpbtn : public skinxmlwin
@@ -171,6 +176,28 @@ public:
         return GetColor( _T("MainColor"), clr );
     }
 
+};
+
+class skinxmlhtmlctrl: public skinxmlwin
+{
+public:
+
+    skinxmlhtmlctrl(const SkinXmlElement& xmlElement = SkinXmlElement()) 
+        : skinxmlwin(xmlElement)
+    {
+    }
+
+    const skinxmlhtmlctrl& operator = (const SkinXmlElement& xmlElement)
+    {
+        m_xmlResElement = xmlElement;
+
+        return *this;
+    }
+
+    static LPCTSTR GetSkinWndClassName() 
+    {
+        return _T("skinxmlhtmlctrl");
+    }
 };
 
 

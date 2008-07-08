@@ -69,6 +69,23 @@ public:
         return pSkinWindow;
     }
 
+    KSGUI::duidrawbase* GetDxUIItem(const KSGUI::CString& strIdName)
+    {
+        KSGUI::duidrawbase* pRet = NULL;
+
+        for (size_t idx = 0; idx < m_directui.vtdrawlist.size(); idx++)
+        {
+            if ( !strIdName.CompareNoCase( m_directui.vtdrawlist[idx]->GetIdName() ) )
+            {
+                pRet = m_directui.vtdrawlist[idx];
+                break;
+            }
+        }
+        
+        return pRet;
+    }
+
+
     BOOL AddChildWindow( skinxmlwin& xmlWin )
     {
         KSGUI::SkinWindow* pSinWindow = NULL;
@@ -582,7 +599,9 @@ public:
                 rcBox.right  -= 3;
                 rcBox.bottom -= 3;
 
-                dc.SkinDrawBorder(rcBox, pT->m_clrMainColor);
+                //dc.SkinDrawBorder(rcBox, pT->m_clrMainColor);
+                dc.Draw3dRect(&rcBox, pT->m_clrMainColor, pT->m_clrMainColor);
+
                 dc.SkinLine( rcBox.left , rcBox.top + 1,
                     rcBox.right, rcBox.top + 1, pT->m_clrMainColor);
             }
@@ -667,6 +686,7 @@ public:
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize)
 
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
+        MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
 
         MESSAGE_HANDLER(WM_NCLBUTTONDOWN, OnNcLButtonDown)
         MESSAGE_HANDLER(WM_NCLBUTTONUP  , OnNcLButtonUp  )
@@ -710,6 +730,7 @@ public:
         return 0;
     }
 
+
     LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
@@ -717,8 +738,6 @@ public:
         CWindowDC dc(wndThis);
 
         CSkinDCHandle skinDC(dc.m_hDC);
-
-        //LRESULT lResult = ::DefWindowProc(wndThis, uMsg, wParam, lParam);
 
         RECT rcWindow = { 0 };
         RECT rcDraw   = { 0 };
@@ -731,76 +750,96 @@ public:
         rcWindow.left = 0;
         rcWindow.top  = 0;
 
-        skinDC.SkinDrawBorder(rcWindow, HLS_TRANSFORM(m_clrMainColor, 80, 0), PS_SOLID, em_border_width);
+        {
+            RECT rcBorder = rcWindow;
+
+            COLORREF clrLine1 = HLS_TRANSFORM(m_clrMainColor, 80, 0);
+
+            InflateRect(&rcBorder, -1, -1);
+            skinDC.SkinFrameRect(rcBorder, clrLine1);
+            InflateRect(&rcBorder, -1, -1);
+            skinDC.SkinFrameRect(rcBorder, clrLine1);
+
+            rcDraw = rcWindow;
+            rcDraw.bottom = rcDraw.top + em_border_width;
+
+            clrLine1 = HLS_TRANSFORM(m_clrMainColor, 95, 0);
+
+            skinDC.SkinFrameRect(rcDraw, clrLine1);
+        }
         
-        rcDraw = rcWindow;
-        rcDraw.bottom = rcDraw.top;
+        skinDC.SkinFrameRect(rcWindow, m_clrMainColor);
 
-        skinDC.SkinDrawBorder(rcDraw.left, rcDraw.top, 
-            rcDraw.right, rcDraw.bottom, HLS_TRANSFORM(m_clrMainColor, 95, 0), PS_SOLID, em_border_width);
-
-        skinDC.SkinDrawBorder(rcWindow, m_clrMainColor);
-
-        rcWindow.top   += em_border_width;
-        rcWindow.left  += em_border_width;
-        rcWindow.right -= em_border_width;
-
-        rcWindow.bottom = rcWindow.top + em_titlebar_height;
-
-        skinDC.SkinDrawGradualColorRect(rcWindow, 
-            HLS_TRANSFORM(m_clrMainColor, 85, 30), 
-            HLS_TRANSFORM(m_clrMainColor, 99, 20));
-
-        skinDC.SkinLine( rcWindow.left, rcWindow.bottom - 1,
-            rcWindow.right, rcWindow.bottom - 1, HLS_TRANSFORM(m_clrMainColor, 70, 0));
-
-        int npaintx =  em_border_width * 2;
-
-        HICON hicon = wndThis.GetIcon(FALSE);
-        if (hicon != NULL)
+        if (true)
         {
-            skinDC.DrawIconEx(npaintx, em_border_width , hicon, 
-                ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+            rcWindow.top   += em_border_width;
+            rcWindow.left  += em_border_width;
+            rcWindow.right -= em_border_width;
+            rcWindow.bottom = rcWindow.top + em_titlebar_height;
 
-            npaintx += (::GetSystemMetrics(SM_CXSMICON) + em_border_width);
+            CMemoryDC memDC(dc, rcWindow);
+
+            CSkinDCHandle skinDC(memDC.m_hDC);
+
+
+            skinDC.SkinDrawGradualColorRect(rcWindow, 
+                HLS_TRANSFORM(m_clrMainColor, 85, 30), 
+                HLS_TRANSFORM(m_clrMainColor, 99, 20));
+
+            skinDC.SkinLine( rcWindow.left, rcWindow.bottom - 1,
+                rcWindow.right, rcWindow.bottom - 1, HLS_TRANSFORM(m_clrMainColor, 70, 0));
+
+            int npaintx =  em_border_width * 2;
+
+            HICON hicon = wndThis.GetIcon(FALSE);
+            if (hicon != NULL)
+            {
+                skinDC.DrawIconEx(npaintx, em_border_width , hicon, 
+                    ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+
+                npaintx += (::GetSystemMetrics(SM_CXSMICON) + em_border_width);
+            }
+
+
+            TCHAR szCaption[MAX_PATH] = { 0 };
+            wndThis.GetWindowText(szCaption, MAX_PATH);
+
+            if (_tcslen(szCaption) > 0)
+            {
+                skinDC.SkinDrawText(npaintx, em_border_width * 2, szCaption, 0, wndThis.GetFont());
+            }
+
+            if (m_closebtn.bUsed)
+                m_closebtn.Paint(skinDC, 0);
+            if (m_minbtn.bUsed)
+                m_minbtn.Paint(skinDC, 0);
+            if (m_maxbtn.bUsed)
+                m_maxbtn.Paint(skinDC, 0);
         }
 
-
-        TCHAR szCaption[MAX_PATH] = { 0 };
-        wndThis.GetWindowText(szCaption, MAX_PATH);
-
-        if (_tcslen(szCaption) > 0)
-        {
-            skinDC.SkinDrawText(npaintx, em_border_width * 2, szCaption, 0, wndThis.GetFont());
-        }
-
-        if (m_closebtn.bUsed)
-            m_closebtn.Paint(skinDC, 0);
-        if (m_minbtn.bUsed)
-            m_minbtn.Paint(skinDC, 0);
-        if (m_maxbtn.bUsed)
-            m_maxbtn.Paint(skinDC, 0);
-
-        return 0;
+        return 0L;
     }
+
 
     LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        CSkinDCHandle skinDC((HDC)wParam);
-
         RECT rcClient = { 0 };
-
         wndThis.GetClientRect(&rcClient);
+
+        CMemoryDC memDC( (HDC)wParam, rcClient );
+
+        CSkinDCHandle skinDC((HDC)memDC);
 
         skinDC.SkinDrawGradualColorRect(rcClient, 
             HLS_TRANSFORM(m_clrMainColor, 99, 20),
             HLS_TRANSFORM(m_clrMainColor, 85, 30)); 
 
+
         bHandled = TRUE;
 
-        return 0L;
+        return 1L;
     }
 
     
@@ -881,16 +920,57 @@ public:
     }
 
     
+    LRESULT OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+        
+        if (wndThis.GetStyle() & WS_MINIMIZE)
+            return DefWindowProc(wndThis, uMsg, wParam, lParam);
+
+        switch(wParam)
+        {
+        case SC_MAXIMIZE:
+            if ( m_bMaxed )
+            {
+                wndThis.MoveWindow(&m_rcLastWindow);
+
+                m_bMaxed = FALSE;
+            }
+            else
+            {
+                wndThis.GetWindowRect(&m_rcLastWindow);
+                m_bMaxed = TRUE;
+
+                RECT rt;   
+                SystemParametersInfo(SPI_GETWORKAREA,0,&rt,0);   
+                wndThis.MoveWindow(&rt, TRUE);
+                wndThis.Invalidate();
+            }
+
+            return 0L;
+
+            break;
+        }
+
+
+        return DefWindowProc(wndThis, uMsg, wParam, lParam);
+    }
+
+    
     LRESULT OnNcLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        int xPos = GET_X_LPARAM(lParam); 
+        int yPos = GET_Y_LPARAM(lParam); 
+
 
         if ( wParam == HTMINBUTTON ||
              wParam == HTMAXBUTTON ||
              wParam == HTCLOSE )
         {
             m_bBtnPressed = TRUE;
-            m_uBtnPress   = wParam;
+            m_uBtnPress   = (LONG)wParam;
 
             CWindowDC dc(wndThis);
             CSkinDCHandle skinDC(dc.m_hDC);
@@ -905,6 +985,20 @@ public:
         }
         else if ( wParam == HTCAPTION && !m_bMaxed )
         {
+            //RECT rcWindow = { 0 };
+            //wndThis.GetWindowRect(&rcWindow);
+
+            //xPos -= rcWindow.left;
+            //yPos -= rcWindow.top;
+
+            //if ( WS_SYSMENU & wndThis.GetStyle() &&
+            //    xPos < (em_titlebar_height + em_border_width) &&
+            //    yPos < (em_titlebar_height + em_border_width) )
+            //{
+            //    return ::DefWindowProc(wndThis, WM_SYSCOMMAND, SC_MOUSEMENU, 
+            //        lParam);
+            //}
+
             ::DefWindowProc(wndThis, WM_NCLBUTTONDOWN, HTCAPTION, 
                 MAKELPARAM(0, 0));
         }
@@ -1120,7 +1214,7 @@ public:
 
         wndThis.GetWindowRect(&rcTitlebar);
 
-        rcTitlebar.bottom = rcTitlebar.top + em_titlebar_height;
+        rcTitlebar.bottom = rcTitlebar.top + em_titlebar_height + em_border_width;
 
         if (m_closebtn.bUsed)
             if (::PtInRect( &m_closebtn.rcButton, 

@@ -87,11 +87,30 @@ public:
 
     void operator >> (HFONT& font)
     {
+        if (GetLength() <= 0)
+        {
+            font = NULL;
+            return;
+        }
+
         LOGFONT LogFont = { 0 };
         
         (*this) >> LogFont;
 
         font = ::CreateFontIndirect(&LogFont);
+    }
+
+    static HFONT ToHandle( LPCTSTR pszFont )
+    {
+        HFONT hResult = NULL;
+
+        skinxmlfont xmlfont;
+        
+        (CString&)xmlfont = (pszFont);
+
+        xmlfont >> hResult;
+
+        return hResult;
     }
 
 
@@ -213,12 +232,32 @@ public:
 
     void operator >> ( HBRUSH& hbrush )
     {
+        if (GetLength() <= 0)
+        {
+            hbrush = NULL;
+            return;
+        }
+
         LOGBRUSH brush = { 0 };
 
         (*this) >> brush;
 
         hbrush = ::CreateBrushIndirect(&brush);
     }
+
+    static HBRUSH ToHandle( LPCTSTR pszFont )
+    {
+        HBRUSH hResult = NULL;
+
+        skinxmlbrush xmlfont;
+
+        (CString&)xmlfont = (pszFont);
+
+        xmlfont >> hResult;
+
+        return hResult;
+    }
+
 
 };
 
@@ -254,11 +293,30 @@ public:
 
     void operator >> ( HPEN& hpen )
     {
+        if (GetLength() <= 0)
+        {
+            hpen = NULL;
+            return;
+        }
+
         LOGPEN pen = { 0 };
         
         (*this) >> pen;
 
         hpen = ::CreatePenIndirect(&pen);
+    }
+
+    static HPEN ToHandle( LPCTSTR pszFont )
+    {
+        HPEN hResult = NULL;
+
+        skinxmlpen xmlfont;
+
+        (CString&)xmlfont = (pszFont);
+
+        xmlfont >> hResult;
+
+        return hResult;
     }
 
 };
@@ -274,6 +332,12 @@ public:
 
     void operator >> ( COLORREF& clr )
     {
+        if (GetLength() <= 0)
+        {
+            clr = 0;
+            return;
+        }
+
         _stscanf_s((LPCTSTR)(*this), _T(" 0x %x "), &clr);
     }
 
@@ -282,6 +346,19 @@ public:
         COLORREF clr = RGB(r,g,b);
 
         (*this) << clr;
+    }
+
+    static COLORREF ToHandle( LPCTSTR pszFont )
+    {
+        COLORREF hResult = NULL;
+
+        skinxmlcolor xmlfont;
+
+        (CString&)xmlfont = (pszFont);
+
+        xmlfont >> hResult;
+
+        return hResult;
     }
 
 };

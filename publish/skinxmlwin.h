@@ -152,10 +152,7 @@ inline BOOL skinxmlwin::GetFont ( LPCTSTR Name, HFONT & hFont )
     if (!GetObject(Name, xmlfont))
         return FALSE;
 
-    if (xmlfont.GetLength() <= 0)
-        return FALSE;
-
-    xmlfont >> hFont;
+    hFont = xmlfont.ToHandle( xmlfont );
 
     return TRUE;
 }
