@@ -41,15 +41,67 @@ public:
 
 class skinres : public skinresbase
 {
+    template<class T>
+    class skin_ptr
+    {
+    public:
+
+        skin_ptr( T* ptr = NULL ) :
+            m_ptr(ptr),
+            m_bowner(false)
+        {  }
+
+        const skin_ptr& operator=(const skin_ptr& ptr)
+        {
+            if (this == &ptr)
+                return *this;
+            
+            m_ptr = ptr.m_ptr;
+            m_bowner = false;
+
+            return *this;
+        }
+
+        T* ownerptr( T* ptr )
+        {
+            m_ptr = ptr;
+            m_bowner = true;
+
+            return m_ptr;
+        }
+
+        operator T*()
+        {
+            return m_ptr;
+        }
+
+        T* operator->()
+        {
+            return m_ptr;
+        }
+        
+        T* getptr()
+        {
+            return m_ptr;
+        }
+
+        void release()
+        {
+            if (m_bowner && m_ptr != NULL)
+                delete m_ptr;
+
+            m_ptr = NULL;
+            m_bowner = false;
+        }
+
+    private:        
+        T*   m_ptr;
+        bool m_bowner;
+    };
+
 public:
 
-    skinres(  ) :
-        m_pXmlDocument(NULL),
-        m_pskinconfig(NULL),
-        m_pskinstrres(NULL),
-        m_pskindlgres(NULL),
-        m_pskinimageres(NULL),
-        m_pskinmenures(NULL)
+    skinres(  ) 
     {
     }
 
@@ -67,11 +119,12 @@ public:
     {
         uinit_skin();
 
-        m_pskinconfig   = pskinconfig;
-        m_pskinstrres   = pskinstrres;
-        m_pskindlgres   = pskindlgres;
-        m_pskinimageres = pskinimageres;
-        m_pskinmenures  = pskinmenures;
+
+        m_skinconfig_ptr   = pskinconfig;
+        m_skinstrres_ptr   = pskinstrres;
+        m_skindlgres_ptr   = pskindlgres;
+        m_skinimageres_ptr = pskinimageres;
+        m_skinmenures_ptr  = pskinmenures;
 
         if (pszSkinXmlFile == NULL || _tcslen(pszSkinXmlFile) == NULL)
         {
@@ -82,69 +135,93 @@ public:
 
         while (pszSkinXmlFile != NULL)
         {
-            if (m_pskinconfig == NULL)
+            if (m_skinconfig_ptr.getptr() == NULL)
             {
-                m_pskinconfig = new skinconfig();
+                m_skinconfig_ptr.ownerptr( new skinconfig() );
             }
 
-            if (m_pskinconfig == NULL)
+            if (m_skinconfig_ptr.getptr() == NULL)
                 break;
 
             CPath pathXmlFile;
-            pathXmlFile.m_strPath = m_pskinconfig->GetSkinResPath();
+            pathXmlFile.m_strPath = m_skinconfig_ptr->GetSkinResPath();
             pathXmlFile.Append(pszSkinXmlFile);
 
-            m_pXmlDocument = new SkinXmlDocument();
-            if (m_pXmlDocument == NULL)
+            m_xmldocument_ptr.ownerptr( new SkinXmlDocument() );
+            if (m_xmldocument_ptr.getptr() == NULL)
                 break;
 
-            m_pXmlDocument->LoadFile(pathXmlFile);
+            m_xmldocument_ptr->LoadFile(pathXmlFile);
 
-            SkinXmlElement root = m_pXmlDocument->RootElement();
+            SkinXmlElement root = m_xmldocument_ptr->RootElement();
             if (!root.IsValid())
                 break;
 
-            while (m_pskinstrres == NULL)
+            while (m_skinstrres_ptr.getptr() == NULL)
             {
-                m_pskinstrres = new skinstrres();
-                if (m_pskinstrres == NULL)
+                m_skinstrres_ptr.ownerptr( new skinstrres() );
+                if (m_skinstrres_ptr.getptr() == NULL)
                     break;
-                SkinXmlElement strresnode = root.FirstChildElement(skinstrresbase::GetResKeyName());
+
+                SkinXmlElement strresnode = root.FirstChildElement(
+                    skinstrresbase::GetResKeyName());
+
                 if (strresnode.IsValid())
-                    ((skinstrres*)m_pskinstrres)->AttachXmlElement( strresnode );
+                {
+                    ((skinstrres*)m_skinstrres_ptr.getptr())->AttachXmlElement( 
+                        strresnode );
+                }
 
             }
 
-            while (m_pskindlgres == NULL)
+            while (m_skindlgres_ptr.getptr() == NULL)
             {
-                m_pskindlgres = new skindlgres();
-                if (m_pskindlgres == NULL)
+                m_skindlgres_ptr.ownerptr( new skindlgres() );
+                if (m_skindlgres_ptr.getptr() == NULL)
                     break;
-                SkinXmlElement strdlgnode = root.FirstChildElement(skindlgresbase::GetResKeyName());
+
+                SkinXmlElement strdlgnode = root.FirstChildElement(
+                    skindlgresbase::GetResKeyName());
+
                 if (strdlgnode.IsValid())
-                    ((skindlgres*)m_pskindlgres)->AttachXmlElement( strdlgnode );
+                {
+                    ((skindlgres*)m_skindlgres_ptr.getptr())->AttachXmlElement( 
+                        strdlgnode );
+                }
 
             }
 
-            while (m_pskinimageres == NULL)
+            while (m_skinimageres_ptr.getptr() == NULL)
             {
-                m_pskinimageres = new skinimageres(m_pskinconfig);
-                if (m_pskinimageres == NULL)
+                m_skinimageres_ptr.ownerptr( new skinimageres(m_skinconfig_ptr.getptr()) );;
+                if (m_skinimageres_ptr.getptr() == NULL)
                     break;
-                SkinXmlElement strimagenode = root.FirstChildElement(skinimageresbase::GetResKeyName());
+
+                SkinXmlElement strimagenode = root.FirstChildElement(
+                    skinimageresbase::GetResKeyName());
+
                 if (strimagenode.IsValid())
-                    ((skinimageres*)m_pskinimageres)->AttachXmlElement( strimagenode );
+                {
+                    ((skinimageres*)m_skinimageres_ptr.getptr())->AttachXmlElement( 
+                        strimagenode );
+                }
 
             }
 
-            while (m_pskinmenures == NULL)
+            while (m_skinmenures_ptr.getptr() == NULL)
             {
-                m_pskinmenures = new skinmenures();
-                if (m_pskinmenures == NULL)
+                m_skinmenures_ptr.ownerptr( new skinmenures() );
+                if (m_skinmenures_ptr.getptr() == NULL)
                     break;
-                SkinXmlElement strmenunode = root.FirstChildElement(skinmenuresbase::GetResKeyName());
+
+                SkinXmlElement strmenunode = root.FirstChildElement(
+                    skinmenuresbase::GetResKeyName());
+
                 if (strmenunode.IsValid())
-                    ((skinmenures*)m_pskinmenures)->AttachXmlElement( strmenunode );
+                {
+                    ((skinmenures*)m_skinmenures_ptr.getptr())->AttachXmlElement( 
+                        strmenunode );
+                }
 
             }
 
@@ -160,61 +237,61 @@ public:
 
     void uinit_skin()
     {
-        skin_delete_p(m_pXmlDocument);
+        m_xmldocument_ptr.release();
 
-        skin_delete_p(m_pskinconfig);
-        skin_delete_p(m_pskinstrres);
-        skin_delete_p(m_pskindlgres);
-        skin_delete_p(m_pskinimageres);
-        skin_delete_p(m_pskinmenures);
+        m_skinconfig_ptr.release();
+        m_skinstrres_ptr.release();
+        m_skindlgres_ptr.release();
+        m_skinimageres_ptr.release();
+        m_skinmenures_ptr.release();
     }
 
 public:
 
     virtual skinconfigbase* get_skinconfig() 
     {
-        ATLASSERT( m_pskinconfig != NULL );
+        ATLASSERT( m_skinconfig_ptr.getptr() != NULL );
 
-        return m_pskinconfig;
+        return m_skinconfig_ptr;
     }
 
     virtual skinstrresbase* get_skinstrres()
     {
-        ATLASSERT( m_pskinstrres != NULL );
+        ATLASSERT( m_skinstrres_ptr.getptr() != NULL );
 
-        return m_pskinstrres;
+        return m_skinstrres_ptr;
     }
 
     virtual skindlgresbase* get_skindlgres()
     {
-        ATLASSERT( m_pskindlgres != NULL );
+        ATLASSERT( m_skindlgres_ptr.getptr() != NULL );
 
-        return m_pskindlgres;
+        return m_skindlgres_ptr;
     }
 
     virtual skinimageresbase* get_skinimageres()
     {
-        ATLASSERT( m_pskinimageres != NULL );
+        ATLASSERT( m_skinimageres_ptr.getptr() != NULL );
 
-        return m_pskinimageres;
+        return m_skinimageres_ptr;
     }
 
     virtual skinmenuresbase* get_skinmenures() 
     {
-        ATLASSERT( m_pskinmenures != NULL );
+        ATLASSERT( m_skinmenures_ptr.getptr() != NULL );
 
-        return m_pskinmenures;
+        return m_skinmenures_ptr;
     }
 
 public:
 
-    SkinXmlDocument* m_pXmlDocument;
+    skin_ptr<SkinXmlDocument>  m_xmldocument_ptr;
     
-    skinconfigbase* m_pskinconfig;
-    skinstrresbase* m_pskinstrres;
-    skindlgresbase* m_pskindlgres;
-    skinimageresbase* m_pskinimageres;
-    skinmenuresbase*  m_pskinmenures;
+    skin_ptr<skinconfigbase>   m_skinconfig_ptr;
+    skin_ptr<skinstrresbase>   m_skinstrres_ptr;
+    skin_ptr<skindlgresbase>   m_skindlgres_ptr;
+    skin_ptr<skinimageresbase> m_skinimageres_ptr;
+    skin_ptr<skinmenuresbase>  m_skinmenures_ptr;
 };
 
 } // namespace KSGUI

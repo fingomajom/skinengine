@@ -146,67 +146,39 @@ public:
         COLORREF    clrEnd     = RGB(  0,   0,   0) ,   // 
         BOOL        bVertical  = TRUE ) 
     {
-        BYTE rfv = GetRValue(clrFirst);
-        BYTE gfv = GetGValue(clrFirst);
-        BYTE bfv = GetBValue(clrFirst);
-
-        BYTE rev = GetRValue(clrEnd);
-        BYTE gev = GetGValue(clrEnd);
-        BYTE bev = GetBValue(clrEnd);
-
-        const int nWidth  = drawRC.right  - drawRC.left;
-        const int nHeight = drawRC.bottom - drawRC.top;
-
         if (bVertical)
         {
-            double rstep = (double)((rev - rfv)) / nHeight;
-            double gstep = (double)((gev - gfv)) / nHeight;
-            double bstep = (double)((bev - bfv)) / nHeight;
+            GRADIENT_RECT gRect = {0, 1};
 
-            CSkinDCT<TRUE> memDC;
+            TRIVERTEX vert[2] = {
+                {drawRC.left , drawRC.top   , 0, 0, 0, 0}, 
+                {drawRC.right, drawRC.bottom, 0, 0, 0, 0} };
 
-            memDC.CreateCompatibleDC(m_hDC);
+                vert[0].Red     = GetRValue(clrFirst) << 8;
+                vert[0].Green   = GetGValue(clrFirst) << 8;
+                vert[0].Blue    = GetBValue(clrFirst) << 8;
+                vert[1].Red     = GetRValue(clrEnd) << 8;
+                vert[1].Green   = GetGValue(clrEnd) << 8;
+                vert[1].Blue    = GetBValue(clrEnd) << 8;
 
-            CBitmap bmp;
-            bmp.CreateCompatibleBitmap(m_hDC, 1, nHeight);
-
-            HBITMAP hOldBmp = memDC.SelectBitmap(bmp);
-
-            for (int i = 0; i < nHeight; i++)
-            {
-                BYTE rclr = rfv + BYTE(rstep * i);
-                BYTE gclr = gfv + BYTE(gstep * i);
-                BYTE bclr = bfv + BYTE(bstep * i);
-
-                COLORREF clr = RGB(rclr, gclr, bclr);
-
-                memDC.SetPixel( 0, i, clr );
-            }
-
-            for (int j =  0; j < nWidth; j++)
-            {
-                BitBlt( drawRC.left + j, drawRC.top, 1, nHeight,
-                    memDC, 0, 0, SRCCOPY);
-            }
-
-            memDC.SelectBitmap(hOldBmp);
+            ::GradientFill(m_hDC, vert, 2, &gRect, 1, GRADIENT_FILL_RECT_V);
         }
         else
         {
-            double rstep = (double)((rev - rfv)) / nWidth;
-            double gstep = (double)((gev - gfv)) / nWidth;
-            double bstep = (double)((bev - bfv)) / nWidth;
+            GRADIENT_RECT gRect = {0, 1};
 
-            for (int i = 0; i < nWidth; i++)
-            {
-                BYTE rclr = rfv + BYTE(rstep * i);
-                BYTE gclr = gfv + BYTE(gstep * i);
-                BYTE bclr = bfv + BYTE(bstep * i);
+            TRIVERTEX vert[2] = {
+                {drawRC.left , drawRC.top   , 0, 0, 0, 0}, 
+                {drawRC.right, drawRC.bottom, 0, 0, 0, 0} };
 
-                COLORREF clr = RGB(rclr, gclr, bclr);
+                vert[0].Red     = GetRValue(clrFirst) << 8;
+                vert[0].Green   = GetGValue(clrFirst) << 8;
+                vert[0].Blue    = GetBValue(clrFirst) << 8;
+                vert[1].Red     = GetRValue(clrEnd) << 8;
+                vert[1].Green   = GetGValue(clrEnd) << 8;
+                vert[1].Blue    = GetBValue(clrEnd) << 8;
 
-                SkinLine(drawRC.left + i, drawRC.top , drawRC.left + i, drawRC.bottom, clr);
-            }
+                ::GradientFill(m_hDC, vert, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
         }
     }
 
@@ -448,6 +420,16 @@ public:
 
         brush.DeleteObject();
 
+    }
+
+
+    void SkinFrameRect(const RECT& rect, COLORREF crColor)
+    {
+        HBRUSH hBrush = ::CreateSolidBrush(crColor);
+
+        FrameRect( &rect, hBrush );
+
+        ::DeleteObject(hBrush);
     }
 
 };

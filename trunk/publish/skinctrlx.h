@@ -26,8 +26,9 @@ namespace KSGUI{
 //////////////////////////////////////////////////////////////////////////
 
 enum {
-    KTLS_NORMAL     = 0,
-    KTLS_USEPARENTBKBRUSH = 1,
+    KTLS_NORMAL     = 0x0,
+    KTLS_USEPARENTBKBRUSH = 0x1,
+    KTLS_DRAWBOLDER = 0x2
 };
 
 template <class T, class TBase = KSGUI::SkinWindow, class TWinTraits = ATL::CControlWinTraits>
@@ -39,6 +40,7 @@ public:
 
     int          m_nPaintStyle;
     COLORREF     m_clrBkGnd;
+    COLORREF     m_clrLine;
     COLORREF     m_clrTextColor;
     CFont        m_hTextFont;   
     KSGUI::CString m_strCaption;
@@ -49,6 +51,7 @@ public:
     {
         m_clrBkGnd     = 0;
         m_clrTextColor = 0;
+        m_clrLine      = 0;
 
         m_uDrawTextFlags = DT_LEFT | DT_TOP;
         m_nPaintStyle    = KTLS_NORMAL;
@@ -77,12 +80,13 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     BEGIN_MSG_MAP(CSkinStaticExT)
-        MESSAGE_HANDLER(WM_CREATE , OnCreate)
-        MESSAGE_HANDLER(WM_COMMAND, OnCommand)
-        MESSAGE_HANDLER(WM_SETTEXT, OnSetText)
-        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBKGnd)
+        MESSAGE_HANDLER( WM_CREATE    ,  OnCreate     )
+        MESSAGE_HANDLER( WM_COMMAND   ,  OnCommand    )
+        MESSAGE_HANDLER( WM_SETTEXT   ,  OnSetText    )
+        MESSAGE_HANDLER( WM_ERASEBKGND,  OnEraseBKGnd )
 
-        MESSAGE_HANDLER(WM_PAINT  , OnPaint)
+        MESSAGE_HANDLER( WM_PAINT      , OnPaint )
+        MESSAGE_HANDLER( WM_PRINTCLIENT, OnPaint )
 
     END_MSG_MAP()
 
@@ -116,12 +120,16 @@ public:
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        CPaintDC dc(m_hWnd);
-
         T* pT = static_cast<T*>(this);
-
-        pT->DoPaint((HDC)dc);
-
+        if(wParam != NULL)
+        {
+            pT->DoPaint((HDC)wParam);
+        }
+        else
+        {
+            CPaintDC dc(m_hWnd);
+            pT->DoPaint(dc.m_hDC);
+        }
         return 0;
     }
 
@@ -130,25 +138,17 @@ public:
         RECT rcClient = {0};
         GetClientRect(&rcClient);
 
-
-        switch(m_nPaintStyle)
+        if ( !(m_nPaintStyle & KTLS_USEPARENTBKBRUSH) )
         {
-        case KTLS_USEPARENTBKBRUSH:
-            {
-                //CBrushHandle hBrush = (HBRUSH)::SendMessage(GetParent(), WM_CTLCOLORSTATIC, (WPARAM)dc.m_hDC, (LPARAM)m_hWnd);
-                //dc.FillRect(&rcClient, hBrush);
-            }
+            CBrush brush;
+            brush.CreateSolidBrush(m_clrBkGnd);
 
-            break;
-        case KTLS_NORMAL:
-        default:
-            {
-                CBrush brush;
-                brush.CreateSolidBrush(m_clrBkGnd);
+            dc.FillRect(&rcClient, brush);
+        }
 
-                dc.FillRect(&rcClient, brush);
-            }
-            break;
+        if ( m_nPaintStyle & KTLS_DRAWBOLDER )
+        {
+            dc.Draw3dRect(&rcClient, m_clrLine, m_clrLine);
         }
 
         //rcClient.left++;
@@ -220,6 +220,8 @@ public:
         xmlWin.GetTextColor(m_clrTextColor);
         xmlWin.GetBkColor(m_clrBkGnd);
 
+        xmlWin.GetLineColor(m_clrLine);
+
         return hWndResult;
     }
 
@@ -253,6 +255,280 @@ public:
         return pSkinWindow;
     }
 };
+
+
+template <class T, class TBase = KSGUI::CSkinButton, class TWinTraits = ATL::CControlWinTraits>
+class ATL_NO_VTABLE CSkinColorButtonImpl : 
+    public KSGUI::SkinWindowImpl< T, TBase, TWinTraits>
+{
+public:
+    //DECLARE_WND_SUPERCLASS(NULL, TBase::GetWndClassName())
+    
+    CSkinColorButtonImpl()
+    {
+        m_clrText  = 0x00000000;
+        m_clrBkGnd = 0x00808080;
+        m_clrHot   = 0x004080ff;
+        m_clrFocus = 0x00c0c0c0;
+        
+        m_bMouseHot = FALSE;
+    }
+
+    BOOL SubclassWindow(HWND hWnd)
+    {
+        ATLASSERT(m_hWnd == NULL);
+        ATLASSERT(::IsWindow(hWnd));
+
+        BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits>::SubclassWindow(hWnd);
+        if(bRet)
+        {
+            T* pT = static_cast<T*>(this);
+            pT->_Init();
+        }
+        return bRet;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    BEGIN_MSG_MAP(CSkinColorButtonImpl)
+
+        MESSAGE_HANDLER( WM_CREATE    , OnCreate     )
+        MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBKGnd )
+        MESSAGE_HANDLER( WM_PAINT     , OnPaint      )
+        MESSAGE_HANDLER( WM_PRINTCLIENT, OnPaint)
+
+        MESSAGE_HANDLER( WM_MOUSEMOVE , OnMouseMove  )
+        MESSAGE_HANDLER( WM_MOUSELEAVE, OnMouseLeave )
+
+        MESSAGE_HANDLER( WM_LBUTTONDOWN, OnMouseMsg)
+        MESSAGE_HANDLER( WM_LBUTTONUP  , OnMouseMsg)
+
+        MESSAGE_HANDLER( WM_ENABLE    , OnMouseMsg)
+        MESSAGE_HANDLER( WM_SETFOCUS  , OnMouseMsg)
+        MESSAGE_HANDLER( WM_KILLFOCUS , OnMouseMsg)
+        MESSAGE_HANDLER( WM_SETTEXT   , OnMouseMsg)
+
+    END_MSG_MAP()
+
+    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        bHandled = FALSE;
+        _Init();
+        return 1L;
+    }
+
+
+    LRESULT OnEraseBKGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1L;
+    }
+
+    LRESULT OnMouseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
+
+        if (IsWindow())
+            Invalidate(FALSE);
+
+        return lResult;
+    }
+
+
+    LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
+
+        if (!m_bMouseHot)
+        {
+            TRACKMOUSEEVENT tme = { 0 };
+
+            tme.cbSize  = sizeof(tme);
+            tme.dwFlags = TME_LEAVE;
+            tme.hwndTrack = m_hWnd;
+
+            _TrackMouseEvent(&tme);
+
+            m_bMouseHot = TRUE;
+
+            Invalidate( FALSE );
+        }
+
+        return lResult;
+    }
+
+    LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
+
+        if (m_bMouseHot)
+        {
+            m_bMouseHot = FALSE;
+            Invalidate( FALSE );
+        }
+
+        return lResult;
+    }
+
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        T* pT = static_cast<T*>(this);
+        if(wParam != NULL)
+        {
+            pT->DoPaint((HDC)wParam);
+        }
+        else
+        {
+            CPaintDC dc(m_hWnd);
+            pT->DoPaint(dc.m_hDC);
+        }
+
+        return 0;
+    }
+
+    void DoPaint(KSGUI::CSkinDCHandle dc)
+    {
+        BOOL bHot      = m_bMouseHot;
+        BOOL bFocus    = ( GetFocus() == m_hWnd );
+        BOOL bChecked  = GetState() & BST_PUSHED;
+        BOOL bDisabled = GetStyle() & WS_DISABLED;
+
+
+        RECT rcClient = { 0 };
+        GetClientRect(&rcClient);
+
+        TCHAR szWndText[MAX_PATH] = { 0 };
+        GetWindowText(szWndText, MAX_PATH);
+
+        if ( !bDisabled )
+        {
+  
+            RECT rcBox = rcClient;
+            rcBox.left   += 1;
+            rcBox.top    += 1;
+            rcBox.right  -= 1;
+            rcBox.bottom -= 1;
+            
+            if (!bChecked)
+            {
+                dc.SkinDrawGradualColorRect( rcClient,
+                    KSGUI::HLS_TRANSFORM( m_clrBkGnd , 100, 0 ),
+                    KSGUI::HLS_TRANSFORM( m_clrBkGnd , 80,  0 ) );
+ 
+                if (bHot)
+                {
+                    dc.SkinDrawBorder( rcBox, 
+                        m_clrHot, 
+                        PS_SOLID, 2 );
+                }
+                else if ( bFocus )
+                {
+                    dc.SkinDrawBorder( rcBox, 
+                        m_clrFocus, //KSGUI::HLS_TRANSFORM( m_clrBkGnd , 20, 0 ), 
+                        PS_SOLID, 2 );
+                }
+
+            }
+            else
+            {
+                dc.SkinDrawGradualColorRect( rcClient,
+                    KSGUI::HLS_TRANSFORM( m_clrBkGnd , 50, 0 ),
+                    KSGUI::HLS_TRANSFORM( m_clrBkGnd , 100, 0 ) );
+                
+                rcBox.left   += 1;
+                rcBox.top    += 1;
+                rcBox.right  -= 1;
+                rcBox.bottom -= 1;
+
+                //dc.SkinDrawBorder( rcBox, m_clrFocus, PS_USERSTYLE, 1 );
+
+                dc.DrawFocusRect(&rcBox);
+            }
+
+            
+
+            dc.Draw3dRect( &rcClient, m_clrBkGnd, m_clrBkGnd);
+        }
+        else
+        {
+            dc.SkinDrawRectangle( rcClient, 
+                KSGUI::HLS_TRANSFORM( GetSysColor( COLOR_GRAYTEXT) , 80, 0 ),
+                GetSysColor( COLOR_GRAYTEXT) );
+        }
+
+        dc.SkinDrawText( &rcClient, szWndText, 
+            DT_SINGLELINE | DT_VCENTER | DT_CENTER,
+            bDisabled ? GetSysColor(COLOR_GRAYTEXT) : m_clrText, GetFont());
+        
+    }
+
+    void _Init()
+    {
+        int nRet = 0;
+
+        ModifyStyle(0, BS_OWNERDRAW);
+    }
+
+    HWND SkinCreate( 
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U ) throw()
+    {
+        HWND hWndResult = SkinWindowImpl< T, TBase, TWinTraits >::
+            SkinCreate(xmlElement, hWndParent, MenuOrID);
+
+        if (hWndResult == NULL)
+            return hWndResult;
+
+        skinxmlclrbtn xmlWin(xmlElement);
+
+        xmlWin.GetTextColor(m_clrText);
+        xmlWin.GetBkColor(m_clrBkGnd);
+        xmlWin.GetColor(_T("HotColor"), m_clrHot);
+        xmlWin.GetColor(_T("FocusColor"), m_clrFocus);
+
+        return hWndResult;
+    }
+
+
+public:
+
+    COLORREF m_clrText;
+    COLORREF m_clrBkGnd;
+    COLORREF m_clrHot;
+    COLORREF m_clrFocus;
+
+    BOOL     m_bMouseHot;
+};
+
+
+class CSkinColorButton : public CSkinColorButtonImpl<CSkinColorButton>
+{
+public:
+    DECLARE_WND_CLASS(_T("KIS_SkinColorButton"))
+
+
+    static SkinWindow* SkinCreate_Static(
+        const SkinXmlElement& xmlElement,
+        HWND hWndParent, _U_MENUorID MenuOrID = 0U )
+    {
+        CSkinColorButton * pSkinWindow = new CSkinColorButton;
+
+        if (pSkinWindow == NULL)
+            return pSkinWindow;
+
+
+        if (pSkinWindow->SkinCreate(xmlElement, 
+            hWndParent, 
+            MenuOrID) == NULL)
+        {
+            delete pSkinWindow;
+
+            pSkinWindow = NULL;
+        }
+
+        return pSkinWindow;
+    }
+};
+
 
 
 class CSkinBitmapButton : public CBitmapButtonImpl<CSkinBitmapButton, SkinWindow>
@@ -596,6 +872,20 @@ public:
 
         return nPos;
     }
+	BOOL SetItemText(int nPos, LPCTSTR szCaption)
+	{
+		ATLASSERT(szCaption != NULL);
+		ATLASSERT(nPos < m_vtItems.size());
+		if (szCaption == NULL || nPos >= m_vtItems.size())
+			return FALSE;
+
+		// Normal
+		TableItemInfo tableItem;
+		tableItem.strItemText = szCaption;
+		m_vtItems[nPos] = tableItem;
+
+		return TRUE;
+	}
 
     void CalcAllItemRect(HDC hdc)
     {
@@ -832,11 +1122,15 @@ public:
 
         CWindow wndParent = GetParent();
 
-        HFONT hDefaultFont = wndParent.m_hWnd != NULL ? wndParent.GetFont() : GetFont();
+        HFONT hDefaultFont = wndParent.IsWindow() ? wndParent.GetFont() : GetFont();
 
         int nOldMode = dc.SetBkMode(TRANSPARENT);
 
-        HFONT hOldFont = dc.SelectFont( m_hHotFont.m_hFont != NULL ? m_hHotFont : hDefaultFont);
+        HFONT hOldFont = NULL;
+        if ( m_hHotFont.m_hFont == NULL )
+            dc.SelectFont(hDefaultFont);
+        else
+            dc.SelectFont(m_hHotFont);
 
         CalcAllItemRect(dc);
 
@@ -877,8 +1171,8 @@ public:
             rcPaint.left   += em_between_space;
             rcPaint.right  -= em_between_space;
 
-            HFONT hOldFont = dc.SelectFont(hDefaultFont);
-
+            hOldFont = dc.SelectFont(hDefaultFont);
+ 
             if (nflag == 1 && m_hHotFont.m_hFont != NULL)
                 dc.SelectFont(m_hHotFont);
 
@@ -892,7 +1186,7 @@ public:
 
         }
 
-        dc.SetBkMode(nOldMode);
+        //dc.SetBkMode(nOldMode);
     }
 
     void DrawBkHeaderItem( HDC hdc, const RECT& rcItem, int nFlag = 0 )
@@ -903,9 +1197,14 @@ public:
 
         if (nFlag == 0)
         {
-            dc.SkinDrawRoundRect(rcItem, 3 , 0, m_clrLine);
+            dc.SkinLine(rcItem.left + 1, rcItem.top, rcItem.right - 1, rcItem.top    , m_clrLine);
+            dc.SkinLine(rcItem.left , rcItem.top + 1, rcItem.left , rcItem.bottom - 1 , m_clrLine);
+            dc.SkinLine(rcItem.right - 1, rcItem.top + 1, rcItem.right - 1, rcItem.bottom - 1 , m_clrLine);
+
+
+            //dc.SkinDrawRoundRect(rcItem, 3 , 0, m_clrLine);
             dc.SkinLine(rcItem.left , rcItem.bottom - 1, 
-                rcItem.right - 1, rcItem.bottom - 1, m_clrLine);
+                rcItem.right, rcItem.bottom - 1, m_clrLine);
 
             rcBox.left++;
             rcBox.top++;
@@ -915,16 +1214,16 @@ public:
         }
         else if (nFlag == 1)
         {
-            dc.SkinLine(rcItem.left + 1, rcItem.top, rcItem.right - 2, rcItem.top    , m_clrLine);
-            dc.SkinLine(rcItem.left , rcItem.top + 1, rcItem.left , rcItem.bottom - 1 , m_clrLine);
-            dc.SkinLine(rcItem.right - 1, rcItem.top + 1, rcItem.right - 1, rcItem.bottom - 1 , m_clrLine);
+            //dc.SkinLine(rcItem.left + 1, rcItem.top, rcItem.right - 2, rcItem.top    , m_clrLine);
+            //dc.SkinLine(rcItem.left , rcItem.top + 1, rcItem.left , rcItem.bottom - 1 , m_clrLine);
+            //dc.SkinLine(rcItem.right - 1, rcItem.top + 1, rcItem.right - 1, rcItem.bottom - 1 , m_clrLine);
 
-            rcBox.left++;
-            rcBox.top++;
-            rcBox.right--;
+            //rcBox.left++;
+            //rcBox.top++;
+            //rcBox.right--;
             rcBox.bottom += 10;
 
-            dc.SkinDrawRoundRect(rcItem, 3 , m_clrBkGnd, m_clrLine);
+            dc.SkinDrawRoundRect(rcBox, 3 , m_clrBkGnd, m_clrLine);
            
         }
     }

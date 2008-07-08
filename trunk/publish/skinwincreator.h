@@ -14,7 +14,7 @@
 #include <map>
 #include "skinctrls.h"
 #include "skinxmlctrls.h"
-#include <skinctrlx.h>
+#include "skinctrlx.h"
 
 namespace KSGUI{
 
@@ -167,12 +167,13 @@ protected:
             CSkinStaticEx::SkinCreate_Static);
         AddSkinCreator(KSGUI::skinxmlbmpbtn::GetSkinWndClassName(), 
             CSkinBitmapButton::SkinCreate_Static);
+        AddSkinCreator(KSGUI::skinxmlclrbtn::GetSkinWndClassName(), 
+            CSkinColorButton::SkinCreate_Static);
 
         AddSkinCreator(KSGUI::skinxmlhyperlink::GetSkinWndClassName(), 
             SkinHyperLink::SkinCreate_Static);
         AddSkinCreator(KSGUI::skinxmltablectrlex::GetSkinWndClassName(), 
-            SkinTableCtrlEx::SkinCreate_Static);
-        
+            SkinTableCtrlEx::SkinCreate_Static);       
 
     }
 
