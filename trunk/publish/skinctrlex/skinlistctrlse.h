@@ -1,16 +1,18 @@
-/* -------------------------------------------------------------------------
-// 文件名		:	ksgui/skinctrlex/skinlistctrlex.h
-// 创建人		:	冰峰
-// 创建时间		:	2008-4-22 17:28:40
-// 功能描述     :	ListCtrlEx
+///////////////////////////////////////////////////////////////
 //
-// $Id: $
-// -----------------------------------------------------------------------*/
-#ifndef __KSGUI_SKINCTRLEX_SKINLISTCTRLEX_H__
-#define __KSGUI_SKINCTRLEX_SKINLISTCTRLEX_H__
+//	Filename: 	skinlistctrlse.h
+//	Creator:	冰峰 & lichenglin 
+//	Date:		2008-7-24  15:51
+//	Comment:	
+//
+///////////////////////////////////////////////////////////////
 
+
+#ifndef _skinlistctrlse_h_
+#define _skinlistctrlse_h_
 #include <algorithm>
 #include <atlframe.h>
+#include <vector>
 #include "skinheaderctrl.h"
 
 #pragma warning(push)
@@ -41,12 +43,12 @@ typedef enum
 
 
 
-typedef BOOL _Fun_Enum(KSingleLineHTMLControl *pCell, WPARAM wParam, LPARAM lParam);
 //////////////////////////////////////////////////////////////////////////
 // 增加的ListViewCtrl，里面的内容可以直接输入Html指定
-class CSkinListViewCtrlEx : 
-	public SkinWindowImpl<CSkinListViewCtrlEx, CSkinListViewCtrl>,
-	public COwnerDraw<CSkinListViewCtrlEx>
+template<class T>
+class CSkinListViewCtrlSeImpl : 
+	public SkinWindowImpl<T, CSkinListViewCtrl>,
+	public COwnerDraw<T>
 {
 public:
 	//DECLARE_WND_SUPERCLASS(_T("KSG_SkinListViewCtrlEx"), GetWndClassName())
@@ -59,8 +61,8 @@ public:
 
 	} ShowType;
 
-	typedef SkinWindowImpl<CSkinListViewCtrlEx, CSkinListViewCtrl>	_Base;
-	typedef CSkinListViewCtrlEx										_Self;
+	typedef SkinWindowImpl<T, CSkinListViewCtrl>     			_Base;
+	typedef CSkinListViewCtrlSeImpl<T>   						_Self;
 
 	//////////////////////////////////////////////////////////////////////////
 	// 私有数据
@@ -90,28 +92,32 @@ private:
 		}
 	} _Cell;
 
+
+
 	typedef struct tagItemData 
- 	{
- 		DWORD_PTR							ItemData;				//ItemData（也就是给控件使用者设置的)
-		int									m_nGroupLevel;			//组的级别，类似树型控件的级别，可能折叠某级别
-		BOOL								m_bExpand;				//组展开/折叠状态
+	{
+		DWORD_PTR							ItemData;				//ItemData（也就是给控件使用者设置的)
+		//int								m_nGroupLevel;			//组的级别，类似树型控件的级别，可能折叠某级别
+		//BOOL								m_bExpand;				//组展开/折叠状态
 		ShowType							m_eShowtype;			//显示样式
 		COLORREF							m_rbkColor;				//背景色
- 		std::vector<_Cell>					vecSubItems;			//子项
+		std::vector<_Cell>					vecSubItems;			//子项
 		tagItemData()
 		{
 			ItemData		= NULL;
-			m_nGroupLevel	= 0;
-			m_eShowtype		= ST_NORMAL;
-			m_bExpand		= TRUE;
+			//m_nGroupLevel	= 0;
+			m_eShowtype	= ST_NORMAL;
+			//m_bExpand		= TRUE;
 			m_rbkColor		= Undefine;
 		}
 
- 	} _ItemData;
-	typedef std::vector<_Cell>::iterator			_ColIter;	// 列迭代器
-	
-	typedef std::vector<_ItemData*>					_Items;
-	typedef _Items::iterator						_RowIter;	// 行迭代器
+	} _ItemData;
+
+
+
+	typedef typename std::vector<_ItemData*>        _Items;
+	typedef typename _Items::iterator               _RowIter;	// 行迭代器
+	typedef typename std::vector<_Cell>::iterator   _ColIter;	// 列迭代器
 
 	typedef std::vector<KSingleLineHTMLControl*>	_PresetContainer;
 	typedef _PresetContainer::iterator				_Preset_Iter;
@@ -138,7 +144,7 @@ protected:
 	int							m_nCustomStyle;
 
 public:
-	CSkinListViewCtrlEx()
+	CSkinListViewCtrlSeImpl()
 	{
 		m_nCustomStyle			= 0;
 		m_rSelect				= RGB(170, 190, 220);
@@ -150,7 +156,7 @@ public:
 		m_nVGridLineStyle		= PS_SOLID;
 	};
 
-	virtual ~CSkinListViewCtrlEx()
+	virtual ~CSkinListViewCtrlSeImpl()
 	{
 
 	};
@@ -198,7 +204,7 @@ public:
 		const SkinXmlElement& xmlElement,
 		HWND hWndParent, _U_MENUorID MenuOrID = 0U )
 	{
-		CSkinListViewCtrlEx *pSkinWindow = new CSkinListViewCtrlEx;
+		T *pSkinWindow = new T;
 
 		if (pSkinWindow == NULL)
 			return pSkinWindow;
@@ -222,13 +228,6 @@ public:
 	// 导出函数
 public:
 
-	//////////////////////////////////////////////////////////////////////////
-	// 给某一个格子指定对齐方式
-	void SetItemAlignType(int nAlignType, int nItem = -1, int nSubItem = -1)
-	{
-		// 如果行为-1，表示本列所有行，列为-1则表示本行所有列
-		_EnumItem(nItem, nSubItem, _Enum_SetAlignType, nAlignType);
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// 设置自定义样式
@@ -286,7 +285,7 @@ public:
 	{
 		m_rHGridLine		= rHColor;
 		m_nHGridLineStyle	= nHStyle;
-		
+
 		if (rVColor == Undefine)
 			m_rVGridLine	= m_rHGridLine;
 		else
@@ -305,12 +304,6 @@ public:
 		m_bSel3D	= b3D;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// 设置缩进
-	void SetItemIndent(int nIndent, int nItem = -1, int nSubItem = -1)
-	{
-		_EnumItem(nItem, nSubItem, _Enum_SetIndent, nIndent);
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// 设置预设的内容，主要是作多项重复时的优化
@@ -445,7 +438,7 @@ public:
 		}
 
 		pItem->m_rbkColor	 = rbkColor;
-		pItem->m_nGroupLevel = nGroupLevel;
+		//pItem->m_nGroupLevel = nGroupLevel;
 		pItem->m_eShowtype	 = eShowType;
 	}
 
@@ -485,7 +478,7 @@ public:
 		return 0;
 	}
 
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	// 返回真正的Item数
 	int GetItemCount()
@@ -493,12 +486,6 @@ public:
 		return m_Items.size();
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// 返回当前展开的Item数
-	int GetExpandItemCount()
-	{
-		return _GetVisibleItemCount();
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// 重载GetItemData
@@ -520,42 +507,6 @@ public:
 		return _SetItemData(nItem, pItemData);
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// 插入项，注意一定要用此重载函数
-	BOOL InsertItem(int nItemBefore, int nCount = 1)
-	{
-		ASSERT(nItemBefore <= m_Items.size());
-		if (nItemBefore > m_Items.size())
-			return FALSE;
-
-		// 插入
-		_RowIter it = m_Items.begin() + nItemBefore;
-		for (int i = 0; i < nCount; ++i)
-			m_Items.insert(it + i, new _ItemData);
-
-		// 设置可见Item数
-		_Base::SetItemCountEx(_GetVisibleItemCount(), LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
-		RedrawWindow();
-
-		return TRUE;
-	}
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// 删除行
-	BOOL DeleteItem(int nItem, int nCount = 1)
-	{
-		for (int i = nItem + nCount - 1; i >= nItem; --i)
-		{
-			_DeleteItemData(i);
-		}
-
-		// 设置可见Item数
-		_Base::SetItemCountEx(_GetVisibleItemCount(), LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
-		RedrawWindow();
-
-		return TRUE;
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// 设置Image
@@ -611,9 +562,9 @@ public:
 	{
 		for (int i = GetHeader().GetItemCount(); i <= nItem; ++i)
 		{
- 			InsertColumn(i, _T(""), LVCFMT_LEFT, nWidth);
+			InsertColumn(i, _T(""), LVCFMT_LEFT, nWidth);
 		}
-		
+
 		return m_ctrlHeader.SetRichText(nItem, szRichText, nWidth, nIndent, nAlignType);
 	}
 
@@ -648,71 +599,24 @@ public:
 		return _Base::SetColumnWidth(nCol, nWidth);
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// 组相关操作
-	int GetRealItemIndex(int nDrawItem)
-	{
-		return _GetDrawItemMap(nDrawItem);
-	}
-
-	int GetGroupLevel(int nItem)
-	{
-		_ItemData *pItem = _GetItemData(nItem);
-		return pItem->m_nGroupLevel;
-	}
-	BOOL IsGroupExpand(int nItem)
-	{
-		_ItemData *pItem = _GetItemData(nItem);
-		return pItem->m_bExpand;
-	}
-	int GetParentGroup(int nItem)
-	{
-		return _GetParentGroup(nItem);
-	}
-	int GetGroupItemCount(int nItem)
-	{
-		return _GetGroupItemCount(nItem);
-	}
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// 让派生类重载的函数
-public:
-	virtual int ExpandGroup(int nItem, BOOL bExpand = TRUE)
-	{
-		_ItemData *pItem = _GetItemData(nItem);
-		if (pItem->m_bExpand == bExpand)
-			return 0;
-
-		// Normal
-		pItem->m_bExpand = bExpand;
-
-		int nGroupItemCount = _GetGroupItemCount(nItem);
-		int nItemCount = _GetVisibleItemCount();
-		_Base::SetItemCountEx(nItemCount, LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
-
-		Invalidate();
-		return nGroupItemCount;
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// MESSAGE
 public:
 
-	BEGIN_MSG_MAP(CSkinListViewCtrlEx)
+	BEGIN_MSG_MAP(CSkinListViewCtrlSeImpl<T>)
 		MESSAGE_HANDLER(WM_CREATE ,		OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY,		OnDestroy)
 		MESSAGE_HANDLER(WM_MOUSEMOVE,	OnMouseMove)
 		MESSAGE_HANDLER(WM_NCPAINT   ,	OnNcPaint)
 		MESSAGE_HANDLER(WM_NCCALCSIZE,	OnNcCalcSize)
-		MESSAGE_HANDLER(WM_KEYDOWN,		OnKeyDown)
 
 		NOTIFY_CODE_HANDLER(HDN_BEGINTRACK,		OnBeginTrack)
 		NOTIFY_CODE_HANDLER(HDN_ENDTRACK,		OnEndChangeColumnWidth)
 
 		REFLECTED_NOTIFY_CODE_HANDLER(NM_CLICK, OnListViewClick)
-		
-		CHAIN_MSG_MAP_ALT(COwnerDraw<_Self>, 1)
+
+		CHAIN_MSG_MAP_ALT(COwnerDraw<T>, 1)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
@@ -756,32 +660,13 @@ public:
 
 		return 0L;
 	}
-	LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-	{
-		// 处理组逻辑
-		int nItem = GetSelectedIndex();
-		nItem = GetRealItemIndex(nItem);
-		if (wParam == VK_LEFT)
-		{
-			if (GetGroupLevel(nItem) > 0)
-				ExpandGroup(nItem, FALSE);											// 展开组
-			else
-				_Base::SelectItem(_GetDrawItemMap(GetParentGroup(nItem), FALSE));	// 选中组
-		}
-		else if (wParam == VK_RIGHT)
-		{
-			if (GetGroupLevel(nItem) > 0)
-				ExpandGroup(nItem, TRUE);
-		}
 
-		return DefWindowProc(uMsg, wParam, lParam);
-	}
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
 		bHandled = FALSE;
 
 		_Init();
-		return 1L;
+		return 0L;
 	}
 
 
@@ -926,21 +811,21 @@ public:
 		int nItem = _GetDrawItemMap(lpDrawItemStruct->itemID);
 		_ItemData *pItem = _GetItemData(nItem);
 		if (pItem->m_eShowtype == ST_ONELINE)
- 		{
- 			dc.FillSolidRect(&lpDrawItemStruct->rcItem, _GetBkColor(nItem, lpDrawItemStruct->itemState));
+		{
+			dc.FillSolidRect(&lpDrawItemStruct->rcItem, _GetBkColor(nItem, lpDrawItemStruct->itemState));
 			CPen pen;
 			pen.CreatePen(m_nHGridLineStyle, 1, m_rHGridLine);
 			dc.SelectPen(pen);
 			_DrawLine(dc, lpDrawItemStruct->rcItem.left, lpDrawItemStruct->rcItem.bottom - 1, 
 				lpDrawItemStruct->rcItem.right, lpDrawItemStruct->rcItem.bottom - 1);
-			
+
 			//绘制内容
 			dc.SetBkMode(TRANSPARENT);
 			KSingleLineHTMLControl *pDrawerCtrl = _GetDrawerCtrl(nItem, 0);
 			if (pDrawerCtrl)
 				pDrawerCtrl->Draw(dc, &lpDrawItemStruct->rcItem);
- 		}
- 		else
+		}
+		else
 		{
 			for (int i = 0; i < nColumns; ++i)
 			{
@@ -974,6 +859,8 @@ private:
 	{
 		ModifyStyle(0, LVS_OWNERDRAWFIXED | LVS_OWNERDATA);
 		SetViewType(LVS_REPORT);
+
+		SetLineHeight( 20 );
 	}
 
 	inline void _DrawSubItem(HDC hdc, int nDrawItem, int nCol, int nItemState)
@@ -1028,7 +915,7 @@ private:
 			if ((m_nCustomStyle & LVS_CT_DRAWFRAME) == 0 || nSubItem > 0)
 				_DrawLine(dc, lprc->left, lprc->top, lprc->left, lprc->bottom);
 
- 			_DrawLine(dc, lprc->right, lprc->top, lprc->right, lprc->bottom);
+			_DrawLine(dc, lprc->right, lprc->top, lprc->right, lprc->bottom);
 		}
 
 		dc.RestoreDC(nSaveDC);
@@ -1118,7 +1005,7 @@ private:
 				++rc.left;
 			rc.DeflateRect(1, 1, 1, 1);
 		}
-		
+
 		return &rc;
 	}
 	inline void _DrawLine(CDCHandle &dc, int x1, int y1, int x2, int y2)
@@ -1126,47 +1013,15 @@ private:
 		dc.MoveTo(x1, y1);
 		dc.LineTo(x2, y2);
 	}
-// 	inline void _SetTextToCell(int nItem, int nSubItem, LPCTSTR szText)
-// 	{
-// 		// 插入前面空项，否则会插不到的
-// 		int nItemCount = GetItemCount();
-// 		for (int i = GetItemCount(); i < nItem + 1; ++i)
-// 			_Base::AddItem(i, 0, _T(""));
-// 
-// 		_Base::SetItemText(nItem, nSubItem, szText);
-// 	}
-	inline BOOL _EnumItem(int nItem, int nSubItem, _Fun_Enum pFun, WPARAM wParam = 0, LPARAM lParam = NULL)
-	{
-		int nRows = _Base::GetItemCount();
-		int nCols = _Base::GetHeader().GetItemCount();
-		for (int i = 0; i < nRows; ++i)
-		{
-			_ItemData *pItemData = (_ItemData*)GetItemData(i);
-			for (int j  = 0; j < nCols; ++j)
-			{
-				if ((nItem == -1 || nItem == i) && 
-					(nSubItem == -1 || nSubItem == j))
-				{
-					if (!pFun(_GetDrawerCtrl(pItemData->vecSubItems[j]), wParam, lParam))
-						return FALSE;
-				}
-			}
-		}
-
-		return TRUE;
-	}
-
-	static BOOL _Enum_SetAlignType(KSingleLineHTMLControl *pCell, WPARAM wParam, LPARAM lParam)
-	{
-		pCell->SetAlignStyle((UINT)wParam);
-		return TRUE;
-	}
-	static BOOL _Enum_SetIndent(KSingleLineHTMLControl *pCell, WPARAM wParam, LPARAM lParam)
-	{
-		ASSERT(!L"暂时有点小bug");
-		pCell->SetIndent((int)wParam);
-		return TRUE;
-	}
+	// 	inline void _SetTextToCell(int nItem, int nSubItem, LPCTSTR szText)
+	// 	{
+	// 		// 插入前面空项，否则会插不到的
+	// 		int nItemCount = GetItemCount();
+	// 		for (int i = GetItemCount(); i < nItem + 1; ++i)
+	// 			_Base::AddItem(i, 0, _T(""));
+	// 
+	// 		_Base::SetItemText(nItem, nSubItem, szText);
+	// 	}
 
 	inline _ItemData* _GetItemData(int nItem)
 	{
@@ -1202,69 +1057,28 @@ private:
 		m_Items.erase(std::find(m_Items.begin(), m_Items.end(), pItemData));
 	}
 
-	// 返回本组的子Item数
-	inline int _GetGroupItemCount(int nItem)
-	{
-		int nGroupLevel = m_Items[nItem]->m_nGroupLevel;
-		int i;
-		for (i = nItem + 1; i < m_Items.size(); ++i)
-		{
-			if (m_Items[i]->m_nGroupLevel >= nGroupLevel)
-				break;
-		}
 
-		return i - nItem - 1;
-	}
-	
-	// 取得当前Item数
-	inline int _GetVisibleItemCount()
-	{
-		int nHideCount = 0;
-		for (int i = 0; i < m_Items.size(); ++i)
-		{
-			_ItemData *pItem = m_Items[i];
-			if (!pItem->m_bExpand)
-			{
-				int nGroupItemCount = _GetGroupItemCount(i);
-				nHideCount += nGroupItemCount;
-				i += nGroupItemCount;
-			}
-		}
-
-		return m_Items.size() - nHideCount;
-	}
 
 	// 取得Draw和Doc数据之间的映射
 	inline int _GetDrawItemMap(int nItem2, BOOL bDrawItem2Item = TRUE)
 	{
-		int nItem = 0;
-		int i;
-		int nCount = bDrawItem2Item ? m_Items.size() : nItem2 + 1;
-		for (i = 0; i < nCount; ++i)
-		{
-			if (++nItem > nItem2)
-				break;
+		return nItem2;
+		//int nItem = 0;
+		//int i;
+		//int nCount = bDrawItem2Item ? m_Items.size() : nItem2 + 1;
+		//for (i = 0; i < nCount; ++i)
+		//{
+		//	if (++nItem > nItem2)
+		//		break;
 
-			_ItemData *pItem = m_Items[i];
-			if (!pItem->m_bExpand)
-				i += _GetGroupItemCount(i);
-		}
+		//	_ItemData *pItem = m_Items[i];
+		//	if (!pItem->m_bExpand)
+		//		i += _GetGroupItemCount(i);
+		//}
 
-		return bDrawItem2Item ? i : nItem - 1;
+		//return bDrawItem2Item ? i : nItem - 1;
 	}
 
-	// 取得ParentGroup
-	inline int _GetParentGroup(int nItem)
-	{
-		int nLevel = m_Items[nItem]->m_nGroupLevel;
-		while (--nItem >= 0)
-		{
-			if (m_Items[nItem]->m_nGroupLevel > nLevel)
-				break;
-		}
-
-		return nItem;
-	}
 
 	inline KSingleLineHTMLControl* _GetDrawerCtrl(_Cell &cell)
 	{
@@ -1289,10 +1103,16 @@ protected:
 	}
 };
 
+
+
+class CSkinListViewCtrlSe : public CSkinListViewCtrlSeImpl<CSkinListViewCtrlSe>
+{
 };
 
-#pragma warning(pop)
-// -------------------------------------------------------------------------
-// $Log: $
+};
 
-#endif /* __KSGUI_SKINCTRLEX_SKINLISTCTRLEX_H__ */
+
+
+#pragma warning(pop)
+
+#endif // _skinlistctrlse_h_

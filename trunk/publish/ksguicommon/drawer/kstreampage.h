@@ -12,6 +12,10 @@
 #include <vector>
 #include <map>
 
+#ifndef ASSERT
+#define ASSERT ATLASSERT
+#endif
+
 #define MAX_KEY				32								//Key最长字符串
 #define Undefine			99999999						//整型Undefine
 #define GET_H_ALIGN(v)		(v & 0xFF)
