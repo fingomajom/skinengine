@@ -608,6 +608,9 @@ public:
         m_nTreeIndent    = 19;
         m_crSelectedItem = ::GetSysColor( COLOR_HIGHLIGHT );
         m_tree.GetRootItem()->GetData().m_bExpand = TRUE;
+
+		m_sizeImage.cx = 16;
+		m_sizeImage.cy = 16;
     }
     ~CSkinTreeListCtrl(void)
     {  }
@@ -733,6 +736,11 @@ public:
 	int GetVisibleItemCount() const
 	{
 		return m_tree.GetVisibleItemCount();
+	}
+
+	int GetVisibleItemIndex( const HTREELISTITEM pItem ) const
+	{
+		return m_tree.GetVisibleItemIndex(pItem);
 	}
 
     void SetFilter( LPCTSTR pszFilter , HTREELISTITEM pItem = NULL)
@@ -1078,20 +1086,28 @@ public:
     * @param   [in]  hImageList,  Í¼ÏñÁÐ±í
     * @remark  
     */
-    CImageList SetImageList( HIMAGELIST hImageList )
+    CImageList SetImageList( HIMAGELIST hImageList , int nImageWidth = -1, int nImageHeight = -1)
     {
         if( hImageList == NULL )
         {
             return NULL;
         }
 
+		if ( nImageWidth < 0 )
+		{
+			IMAGEINFO info = {0};
+			ImageList_GetImageInfo( hImageList, 0, &info );
+			CRect rcImage = info.rcImage;
 
-        IMAGEINFO info = {0};
-        ImageList_GetImageInfo( hImageList, 0, &info );
-        CRect rcImage = info.rcImage;
+			m_sizeImage.cx = rcImage.Width();
+			m_sizeImage.cy = rcImage.Height();
+		}
+		else
+		{
+			m_sizeImage.cx = nImageWidth;
+			m_sizeImage.cy = nImageHeight;
+		}
 
-        m_sizeImage.cx = rcImage.Width();
-        m_sizeImage.cy = rcImage.Height();
 
         m_nTreeIndent = max( m_nTreeIndent, m_sizeImage.cx );
 

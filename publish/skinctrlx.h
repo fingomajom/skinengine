@@ -308,6 +308,8 @@ public:
         MESSAGE_HANDLER( WM_KILLFOCUS , OnMouseMsg)
         MESSAGE_HANDLER( WM_SETTEXT   , OnMouseMsg)
 
+        MESSAGE_HANDLER( WM_GETDLGCODE, GetDlgCode)
+
     END_MSG_MAP()
 
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -317,6 +319,13 @@ public:
         return 1L;
     }
 
+    LRESULT GetDlgCode(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (GetFocus() == m_hWnd)
+            return DLGC_DEFPUSHBUTTON;
+
+        return DLGC_BUTTON;
+    }
 
     LRESULT OnEraseBKGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -329,6 +338,18 @@ public:
 
         if (IsWindow())
             Invalidate(FALSE);
+
+        return lResult;
+    }
+
+    LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LRESULT lResult = 1L;
+
+        if (wParam == VK_RETURN)
+            Click();
+        else
+            lResult = DefWindowProc();
 
         return lResult;
     }
@@ -880,7 +901,7 @@ public:
 			return FALSE;
 
 		// Normal
-		TableItemInfo tableItem;
+		TableItemInfo tableItem = m_vtItems[nPos];
 		tableItem.strItemText = szCaption;
 		m_vtItems[nPos] = tableItem;
 

@@ -90,6 +90,10 @@ public:
     skinresloader& m_skinresloader;
 };
 
+inline LPCTSTR SkinImagePath()
+{
+	return skinresloader::instance().get_skinres()->get_skinconfig()->GetSkinImagePath();
+}
 
 inline BOOL SkinLoadString(LPCTSTR pszIDName, KSGUI::CString& strValue)
 {

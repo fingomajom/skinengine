@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/ksgui/;../../../include/3rdparty/wtl/include/;../../../include/3rdparty/tinyxml;../../../include/"
+				AdditionalIncludeDirectories="../../publish/ksgui/;../../import/wtl;../../import/;../../import/tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -141,7 +141,7 @@
 				InlineFunctionExpansion="0"
 				FavorSizeOrSpeed="2"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../include/ksgui/;../../../include/3rdparty/wtl/include/;../../../include/3rdparty/tinyxml;../../../include/"
+				AdditionalIncludeDirectories="../../publish/ksgui/;../../import/wtl;../../import/;../../import/tinyxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				StringPooling="false"
 				ExceptionHandling="1"
@@ -286,7 +286,7 @@
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(IntDir);../../../include/3rdparty/wtl/include/"
+						AdditionalIncludeDirectories="&quot;$(IntDir)&quot;;../../import/wtl"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -294,7 +294,7 @@
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(IntDir);../../../include/3rdparty/wtl/include/"
+						AdditionalIncludeDirectories="&quot;$(IntDir)&quot;;../../import/wtl/"
 					/>
 				</FileConfiguration>
 			</File>
@@ -450,92 +450,28 @@
 				Name="tinyxml"
 				>
 				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinystr.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinystr.h"
+					RelativePath="..\..\import\tinyxml\tinystr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinyxml.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinyxml.h"
+					RelativePath="..\..\import\tinyxml\tinystr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinyxmlerror.cpp"
+					RelativePath="..\..\import\tinyxml\tinyxml.cpp"
 					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\include\3rdparty\TinyXml\tinyxmlparser.cpp"
+					RelativePath="..\..\import\tinyxml\tinyxml.h"
 					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="2"
-						/>
-					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\import\tinyxml\tinyxmlerror.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\import\tinyxml\tinyxmlparser.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter

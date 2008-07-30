@@ -241,14 +241,10 @@ public:
         skinxmlwin xmlWin(m_xmlDlgElement);
         xmlWin.GetBkColor(clrBkGnd);
 
-        CBrush brush;
-        brush.CreateSolidBrush(clrBkGnd);
-        
         RECT rcClient = { 0 };
-
         GetClientRect(&rcClient);
 
-        dc.FillRect(&rcClient, brush);
+        dc.FillSolidRect(&rcClient, clrBkGnd);
 
         return 1L;
     }
@@ -552,28 +548,197 @@ public:
     CSkinDlgChildList m_childList;
 };
 
+class SkinNCButtonBase
+{
+public:
+
+    enum{
+        em_align_left   = 0x01,
+        em_align_top    = 0x02,
+        em_align_right  = 0x04,
+        em_align_bottom = 0x08
+    };
+
+    enum{
+        em_bs_normal      = 0x00,
+        em_bs_mouseover   = 0x01,
+        em_bs_lbuttondown = 0x02
+    };
+
+public:
+
+    SkinNCButtonBase()
+    {
+        memset(&m_rcButton, 0, sizeof(m_rcButton));
+        memset(&m_sizeBtn, 0, sizeof(m_sizeBtn));
+        memset(&m_ptOffset, 0, sizeof(m_ptOffset));
+        m_uNcHitTestCode = 0;
+        m_uSysCmdId = 0;
+        m_uStatus = 0;
+    }
+
+
+    virtual void DoPaint( CSkinDCHandle dc )
+    {
+    }
+
+    void ChangedBtnPos( const RECT& rcWindow )
+    {
+        RECT rcWndParent;
+
+        rcWndParent.left   = 0;
+        rcWndParent.top    = 0;
+        rcWndParent.right  = rcWindow.right  - rcWindow.left;
+        rcWndParent.bottom = rcWindow.bottom - rcWindow.top;
+
+        if((m_uAlign & em_align_right) == em_align_right)
+        {
+            m_rcButton.right = rcWndParent.right - m_ptOffset.x;
+            m_rcButton.left = m_rcButton.right - m_sizeBtn.cx;
+        }
+        else
+        {
+            if((m_uAlign & em_align_left) == em_align_left)
+            {
+                m_rcButton.left = rcWndParent.left + m_ptOffset.x;
+                m_rcButton.right = m_rcButton.left + m_sizeBtn.cx;
+            }
+        }
+        if((m_uAlign & em_align_bottom) == em_align_bottom)
+        {
+            m_rcButton.bottom = rcWndParent.bottom - m_ptOffset.y;
+            m_rcButton.top = m_rcButton.bottom - m_sizeBtn.cy;
+        }
+        else
+        {
+            if((m_uAlign & em_align_top) == em_align_top)
+            {
+                m_rcButton.top = rcWndParent.top + m_ptOffset.y;
+                m_rcButton.bottom = m_rcButton.top + m_sizeBtn.cy;
+            }
+        }
+    }
+
+public:
+
+    UINT NcHitTestCode() const
+    {
+        return m_uNcHitTestCode;
+    }
+
+    void NcHitTestCode( UINT uCode )
+    {
+        m_uNcHitTestCode = uCode;
+    }
+
+    UINT SysCmdId() const
+    {
+        return m_uSysCmdId;
+    }
+
+    void SysCmdId( UINT uId )
+    {
+        m_uSysCmdId = uId;
+    }
+    
+    SIZE SizeBtn() const
+    {
+        return m_sizeBtn;
+    }
+
+    void SizeBtn( SIZE size )
+    {
+        m_sizeBtn = size;
+    }
+
+    POINT Offset() const
+    {
+        return m_ptOffset;
+    }
+
+    void Offset( POINT pt )
+    {
+        m_ptOffset = pt;
+    }
+
+    UINT Align() const
+    {
+        return m_uAlign;
+    }
+
+    void Align( UINT uAlign )
+    {
+        m_uAlign = uAlign;
+    }
+
+    UINT Status() const
+    {
+        return m_uStatus;
+    }
+
+    void Status( UINT uStatus )
+    {
+        m_uStatus = uStatus;
+    }
+
+    RECT ButtonRect() const
+    {
+        return m_rcButton;
+    }
+
+protected:
+    
+    RECT  m_rcButton;
+    UINT  m_uNcHitTestCode;
+    UINT  m_uSysCmdId;
+    
+    UINT  m_uAlign;
+    SIZE  m_sizeBtn;
+    POINT m_ptOffset;
+
+    UINT  m_uStatus;
+
+};
 
 template <class T>
 class SkinCaptionDialogT
 {
 public:
 
-    class SkinCaptionButton
+    class SkinCaptionButton : public SkinNCButtonBase
     {
     public:
 
-        void Paint( CSkinDCHandle& dc , int nflags )
+        SkinCaptionButton( 
+            UINT  uNcHitTestCode, 
+            UINT  uSysCmdId,
+            UINT  uAlign,
+            SIZE  sizeBtn,
+            POINT ptOffset,
+            COLORREF clr = 0) :
+            clrMainColor(clr)
         {
-            COLORREF clrbkgnd = nflags == 0 ? 
-                HLS_TRANSFORM(pT->m_clrMainColor, 85, 30) :
-                HLS_TRANSFORM(pT->m_clrMainColor, 100, 30);
+            m_uNcHitTestCode = (uNcHitTestCode);
+            m_uSysCmdId      = (uSysCmdId);
+            m_uAlign         = (uAlign);
+            m_sizeBtn        = (sizeBtn);
+            m_ptOffset       = (ptOffset);
+        }
+ 
+        virtual void DoPaint( CSkinDCHandle dc )
+        {
+            COLORREF clrbkgnd = m_uStatus == em_bs_normal ? 
+                HLS_TRANSFORM(clrMainColor, 5, 0) :
+                HLS_TRANSFORM(clrMainColor, 25, 30);
 
-            dc.SkinDrawRectangle(rcButton, 
-                clrbkgnd, HLS_TRANSFORM(pT->m_clrMainColor, 50, 30));
+            dc.SkinDrawRectangle(m_rcButton, 
+                clrbkgnd, HLS_TRANSFORM(clrMainColor, 60, 30));
 
-            if ( uNcHitTestCode == HTCLOSE )
+            COLORREF clrLine = m_uStatus == em_bs_normal ? 0xFFFFFF : 0xFFFFFF;
+
+            if ( NcHitTestCode() == HTCLOSE )
             {
-                RECT rcBox = rcButton;
+                RECT rcBox = m_rcButton;
 
                 rcBox.left += 3;
                 rcBox.top  += 3;
@@ -581,68 +746,62 @@ public:
                 rcBox.bottom -= 3;
 
                 dc.SkinLine( rcBox.left , rcBox.top,
-                    rcBox.right , rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                    rcBox.right , rcBox.bottom, clrLine, PS_SOLID, 1);
                 dc.SkinLine( rcBox.left + 1, rcBox.top,
-                    rcBox.right + 1, rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                    rcBox.right + 1, rcBox.bottom, clrLine, PS_SOLID, 1);
                 dc.SkinLine( rcBox.right, rcBox.top,
-                    rcBox.left , rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                    rcBox.left , rcBox.bottom, clrLine, PS_SOLID, 1);
                 dc.SkinLine( rcBox.right - 1, rcBox.top,
-                    rcBox.left - 1, rcBox.bottom, pT->m_clrMainColor, PS_SOLID, 1);
+                    rcBox.left - 1, rcBox.bottom, clrLine, PS_SOLID, 1);
 
             }
-            else if ( uNcHitTestCode == HTMAXBUTTON )
+            else if ( NcHitTestCode() == HTMAXBUTTON )
             {
-                RECT rcBox = rcButton;
+                RECT rcBox = m_rcButton;
 
                 rcBox.left += 3;
                 rcBox.top  += 3;
                 rcBox.right  -= 3;
                 rcBox.bottom -= 3;
 
-                //dc.SkinDrawBorder(rcBox, pT->m_clrMainColor);
-                dc.Draw3dRect(&rcBox, pT->m_clrMainColor, pT->m_clrMainColor);
+                //dc.SkinDrawBorder(rcBox, clrLine);
+                dc.Draw3dRect(&rcBox, clrLine, clrLine);
 
                 dc.SkinLine( rcBox.left , rcBox.top + 1,
-                    rcBox.right, rcBox.top + 1, pT->m_clrMainColor);
+                    rcBox.right, rcBox.top + 1, clrLine);
             }
-            else if (uNcHitTestCode == HTMINBUTTON )
+            else if (NcHitTestCode() == HTMINBUTTON )
             {
-               dc.SkinLine( rcButton.left + 3, rcButton.top + 8,
-                    rcButton.right - 5, rcButton.top + 8, pT->m_clrMainColor, PS_SOLID, 1);
-               dc.SkinLine( rcButton.left + 3, rcButton.top + 9,
-                   rcButton.right - 5, rcButton.top + 9, pT->m_clrMainColor, PS_SOLID, 1);
+                dc.SkinLine( m_rcButton.left + 3, m_rcButton.top + 8,
+                    m_rcButton.right - 5, m_rcButton.top + 8, clrLine, PS_SOLID, 1);
+                dc.SkinLine( m_rcButton.left + 3, m_rcButton.top + 9,
+                    m_rcButton.right - 5, m_rcButton.top + 9, clrLine, PS_SOLID, 1);
             }
         }
 
     public:
-        SkinCaptionButton( SkinCaptionDialogT<T>* p ) :
-            bUsed(FALSE),
-            uNcHitTestCode(HTCLOSE),
-            pT(p)
-        {
-        }
-        
-        BOOL bUsed;
-        RECT rcButton;
-        UINT uNcHitTestCode;
 
-        SkinCaptionDialogT<T>* pT;
+        COLORREF MainColor() const
+        {
+            return clrMainColor;
+        }
+
+        void MainColor( COLORREF clr )
+        {
+            clrMainColor = clr;
+        }
+
+    public:       
+
+        COLORREF clrMainColor;
     };
 
 
-    SkinCaptionDialogT() :
-        m_closebtn(this), m_maxbtn(this), m_minbtn(this)
+    SkinCaptionDialogT() : 
+        m_pBtnPress(NULL),
+        m_pLastHotBtn(NULL)
     {
-        m_closebtn.uNcHitTestCode = HTCLOSE;
-        m_minbtn.uNcHitTestCode   = HTMINBUTTON;
-        m_maxbtn.uNcHitTestCode   = HTMAXBUTTON;
-
-        m_bBtnPressed = FALSE;
-        m_uBtnPress   = HTNOWHERE;
-        m_uLastHotBtn = HTNOWHERE;
-
-        m_bMaxed      = FALSE;
-
+        m_bMaxed       = FALSE;
         m_clrMainColor = RGB(87,117,159);
     }
 
@@ -655,27 +814,21 @@ public:
         xmlwin.GetObject(_T("MainColor"), m_clrMainColor);
     }
 
+    SkinNCButtonBase* m_pBtnPress;
+    SkinNCButtonBase* m_pLastHotBtn;
 
-    SkinCaptionButton m_closebtn;
-    SkinCaptionButton m_minbtn;
-    SkinCaptionButton m_maxbtn;
+    std::vector<SkinNCButtonBase*> m_vtNcBtn;
 
-    BOOL m_bBtnPressed;
     BOOL m_bMaxed;
-    UINT m_uBtnPress;
-
-    UINT m_uLastHotBtn;
-
     RECT m_rcLastWindow;
+
+    CRgn m_rgnWindow;
 
     COLORREF m_clrMainColor;
 
     enum {
-        em_border_width = 3,
-        em_titlebar_height = 21,
-
-        //em_clr_border = RGB(87,117,159),
-        //em_clr_border = RGB(128, 0 , 128),
+        em_border_width    = 3,
+        em_titlebar_height = 21
     };
 
     BEGIN_MSG_MAP(SkinCaptionDialogT)
@@ -701,11 +854,14 @@ public:
 
         MESSAGE_HANDLER(WM_SETTEXT, OnSetText)
 
+        MESSAGE_HANDLER(WM_SIZE   , OnSize)
+
     END_MSG_MAP()
 
     LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {       
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
 
         RECT rcClient = { 0 };
 
@@ -713,6 +869,8 @@ public:
 
         int width  = rcClient.right - rcClient.left + em_border_width * 2;
         int height = rcClient.bottom - rcClient.top + em_titlebar_height + em_border_width * 2;
+
+        InitDefaultCaptionBtn();
 
         ::SetWindowPos(wndThis, NULL, 0, 0,
              width, height,
@@ -724,12 +882,112 @@ public:
         m_rcLastWindow.right = m_rcLastWindow.left + width;
         m_rcLastWindow.bottom = m_rcLastWindow.top + height;
 
-        bHandled = FALSE;
+        ReRgnWindow();
 
+        bHandled = FALSE;
 
         return 0;
     }
 
+    LRESULT InitDefaultCaptionBtn( )
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        BOOL bMinimized = wndThis.GetStyle() & WS_MINIMIZEBOX;
+        BOOL bMaximized = wndThis.GetStyle() & WS_MAXIMIZEBOX;
+
+        SkinNCButtonBase* pNewCaptionBtn = NULL;
+
+        int nrightoffset = em_border_width * 2;
+
+        SIZE  sizeBtn  = { em_titlebar_height * 3 / 4, em_titlebar_height * 2 / 3 };
+        POINT ptOffset = { nrightoffset , (em_border_width + em_titlebar_height) / 5};
+
+        bool bfirst = true;
+
+        if ( (wndThis.GetStyle() & WS_SYSMENU) || bMaximized || bMinimized )
+        {
+            pNewCaptionBtn = new SkinCaptionButton( HTCLOSE, 
+                SC_CLOSE,
+                SkinNCButtonBase::em_align_top | SkinNCButtonBase::em_align_right,
+                sizeBtn, 
+                ptOffset,
+                m_clrMainColor);
+
+            if (pNewCaptionBtn != NULL)
+                m_vtNcBtn.push_back( pNewCaptionBtn );
+
+            bfirst = false;
+        }
+
+        if (bMaximized)
+        {
+            if (!bfirst)
+            {
+                ptOffset.x += (( em_titlebar_height * 3 / 4 ) + em_border_width ) ;
+            }
+
+            pNewCaptionBtn = new SkinCaptionButton( HTMAXBUTTON, 
+                SC_MAXIMIZE,
+                SkinNCButtonBase::em_align_top | SkinNCButtonBase::em_align_right,
+                sizeBtn, 
+                ptOffset,
+                m_clrMainColor);
+
+            if (pNewCaptionBtn != NULL)
+                m_vtNcBtn.push_back( pNewCaptionBtn );
+
+            bfirst = false;
+        }
+
+        if (bMinimized)
+        {
+            if (!bfirst)
+            {
+                ptOffset.x += (( em_titlebar_height * 3 / 4 ) + em_border_width ) ;
+            }
+
+            pNewCaptionBtn = new SkinCaptionButton( HTMINBUTTON, 
+                SC_MINIMIZE,
+                SkinNCButtonBase::em_align_top | SkinNCButtonBase::em_align_right,
+                sizeBtn, 
+                ptOffset,
+                m_clrMainColor);
+
+            if (pNewCaptionBtn != NULL)
+                m_vtNcBtn.push_back( pNewCaptionBtn );
+
+            bfirst = false;
+        }
+
+        return 1L;
+    }
+
+    void ReRgnWindow()
+    {
+        CWindow wndThis = static_cast<T*>(this)->m_hWnd;
+
+        CRgnHandle rgn;
+
+        RECT rcWindow;
+        wndThis.GetWindowRect(&rcWindow);
+
+        rcWindow.right  = rcWindow.right  - rcWindow.left;
+        rcWindow.bottom = rcWindow.bottom - rcWindow.top;
+
+        rcWindow.top = rcWindow.left = 0;
+
+        rgn.CreateRoundRectRgn( rcWindow.left, rcWindow.top, 
+            rcWindow.right + 1, rcWindow.bottom + 6, 5, 5);
+
+        wndThis.SetWindowRgn(rgn, TRUE);
+
+        if (m_rgnWindow.m_hRgn != NULL)
+            m_rgnWindow.DeleteObject();
+
+        m_rgnWindow.Attach( rgn );
+
+    }
 
     LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -752,42 +1010,52 @@ public:
 
         {
             RECT rcBorder = rcWindow;
+            
 
             COLORREF clrLine1 = HLS_TRANSFORM(m_clrMainColor, 80, 0);
 
             InflateRect(&rcBorder, -1, -1);
+            rcBorder.top = rcWindow.top + em_titlebar_height + em_border_width - 1;
             skinDC.SkinFrameRect(rcBorder, clrLine1);
             InflateRect(&rcBorder, -1, -1);
+            rcBorder.top = rcWindow.top + em_titlebar_height + em_border_width - 1;
             skinDC.SkinFrameRect(rcBorder, clrLine1);
 
-            rcDraw = rcWindow;
-            rcDraw.bottom = rcDraw.top + em_border_width;
+            rcBorder = rcWindow;
+            rcBorder.top = rcWindow.top + em_titlebar_height + em_border_width - 1;
+            skinDC.SkinFrameRect(rcBorder, m_clrMainColor);
 
-            clrLine1 = HLS_TRANSFORM(m_clrMainColor, 95, 0);
-
-            skinDC.SkinFrameRect(rcDraw, clrLine1);
         }
         
-        skinDC.SkinFrameRect(rcWindow, m_clrMainColor);
 
         if (true)
         {
-            rcWindow.top   += em_border_width;
-            rcWindow.left  += em_border_width;
-            rcWindow.right -= em_border_width;
-            rcWindow.bottom = rcWindow.top + em_titlebar_height;
+            //rcWindow.top   += 1;
+            //rcWindow.left  += 1;
+            //rcWindow.right -= 1;
+            rcWindow.bottom = rcWindow.top + em_titlebar_height + em_border_width;
 
             CMemoryDC memDC(dc, rcWindow);
 
             CSkinDCHandle skinDC(memDC.m_hDC);
 
+            RECT rcGradual = rcWindow;
+            rcGradual.bottom = (rcGradual.top + rcGradual.bottom) / 2;
 
-            skinDC.SkinDrawGradualColorRect(rcWindow, 
-                HLS_TRANSFORM(m_clrMainColor, 85, 30), 
-                HLS_TRANSFORM(m_clrMainColor, 99, 20));
+            skinDC.SkinDrawGradualColorRect(rcGradual, 
+                HLS_TRANSFORM(m_clrMainColor, 80, -20), 
+                HLS_TRANSFORM(m_clrMainColor, 45, 10));
 
-            skinDC.SkinLine( rcWindow.left, rcWindow.bottom - 1,
-                rcWindow.right, rcWindow.bottom - 1, HLS_TRANSFORM(m_clrMainColor, 70, 0));
+            rcGradual = rcWindow;
+            rcGradual.top = (rcGradual.top + rcGradual.bottom) / 2;
+
+            skinDC.SkinDrawGradualColorRect(rcGradual, 
+                HLS_TRANSFORM(m_clrMainColor, 35, -10), 
+                HLS_TRANSFORM(m_clrMainColor, 05, 10));
+
+
+            skinDC.SkinLine( rcWindow.left + 1, rcWindow.bottom - 2,
+                rcWindow.right - 1, rcWindow.bottom - 2, HLS_TRANSFORM(m_clrMainColor, 40, 20));
 
             int npaintx =  em_border_width * 2;
 
@@ -806,20 +1074,46 @@ public:
 
             if (_tcslen(szCaption) > 0)
             {
-                skinDC.SkinDrawText(npaintx, em_border_width * 2, szCaption, 0, wndThis.GetFont());
+                LOGFONT logFont;
+
+                CFont font;
+            
+                CFontHandle fontWnd = wndThis.GetFont();
+                fontWnd.GetLogFont(&logFont);
+                logFont.lfWeight = 800;
+
+                font.CreateFontIndirect(&logFont);
+
+                HFONT hOldFont = skinDC.SelectFont(font);
+
+                skinDC.SetTextColor(0xFFFFFF);
+                skinDC.SetBkMode(TRANSPARENT);
+
+                RECT rcText = { npaintx + 4, em_border_width, rcWindow.right, em_titlebar_height };    
+                skinDC.DrawText( szCaption, -1, &rcText, DT_LEFT | DT_VCENTER | DT_SINGLELINE );
+
+                skinDC.SelectFont(hOldFont);
+
+                //skinDC.SkinDrawText(npaintx + 4, em_border_width * 2, szCaption, 0xffffff, font);
             }
 
-            if (m_closebtn.bUsed)
-                m_closebtn.Paint(skinDC, 0);
-            if (m_minbtn.bUsed)
-                m_minbtn.Paint(skinDC, 0);
-            if (m_maxbtn.bUsed)
-                m_maxbtn.Paint(skinDC, 0);
+            for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
+            {
+                m_vtNcBtn[idx]->DoPaint( skinDC );
+            }
         }
 
         return 0L;
     }
 
+    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        bHandled = FALSE;
+
+        ReRgnWindow();
+
+        return 0L;
+    }
 
     LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -881,42 +1175,10 @@ public:
         BOOL bMinimized = wndThis.GetStyle() & WS_MINIMIZEBOX;
         BOOL bMaximized = wndThis.GetStyle() & WS_MAXIMIZEBOX;
 
-        int nrightpos = rcWindow.right - rcWindow.left - em_border_width * 2;
-
-        m_closebtn.bUsed = TRUE;
-
-        m_closebtn.rcButton.right  = nrightpos;
-        m_closebtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
-
-        m_closebtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
-        m_closebtn.rcButton.bottom = m_closebtn.rcButton.top + em_titlebar_height * 2 / 3;
-
-        if (bMaximized)
+        for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
         {
-            nrightpos -= (( em_titlebar_height * 3 / 4 ) + em_border_width ) ;
-
-            m_maxbtn.bUsed = TRUE;
-
-            m_maxbtn.rcButton.right  = nrightpos;
-            m_maxbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
-
-            m_maxbtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
-            m_maxbtn.rcButton.bottom = m_maxbtn.rcButton.top + em_titlebar_height * 2 / 3;
+            m_vtNcBtn[idx]->ChangedBtnPos(rcWindow);
         }
-
-        if (bMinimized)
-        {
-            nrightpos -= (( em_titlebar_height * 3 / 4 ) + em_border_width );
-
-            m_minbtn.bUsed = TRUE;
-
-            m_minbtn.rcButton.right  = nrightpos;
-            m_minbtn.rcButton.left   = nrightpos - ( em_titlebar_height * 3 / 4 );
-
-            m_minbtn.rcButton.top    = (em_border_width + em_titlebar_height) / 4;
-            m_minbtn.rcButton.bottom = m_minbtn.rcButton.top + em_titlebar_height * 2 / 3;
-        }
-
     }
 
     
@@ -964,41 +1226,32 @@ public:
         int xPos = GET_X_LPARAM(lParam); 
         int yPos = GET_Y_LPARAM(lParam); 
 
+        RECT rcWindow = { 0 };
+        wndThis.GetWindowRect(&rcWindow);
 
-        if ( wParam == HTMINBUTTON ||
-             wParam == HTMAXBUTTON ||
-             wParam == HTCLOSE )
+        m_pBtnPress = NULL;
+
+        for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
         {
-            m_bBtnPressed = TRUE;
-            m_uBtnPress   = (LONG)wParam;
+            RECT rcButton = m_vtNcBtn[idx]->ButtonRect();
 
-            CWindowDC dc(wndThis);
-            CSkinDCHandle skinDC(dc.m_hDC);
+            if ( ::PtInRect( &rcButton, CPoint(xPos - rcWindow.left, yPos - rcWindow.top) ) )                 
+            {
+                CWindowDC dc(wndThis);
+                CSkinDCHandle skinDC(dc.m_hDC);
 
-            if (m_uBtnPress == HTCLOSE)
-                m_closebtn.Paint(skinDC, 0);
-            else if (m_uBtnPress == HTMINBUTTON)
-                m_minbtn.Paint(skinDC, 0);
-            else if (m_uBtnPress == HTMAXBUTTON)
-                m_maxbtn.Paint(skinDC, 0);
+                m_pBtnPress = m_vtNcBtn[idx];
+                m_pBtnPress->Status( SkinNCButtonBase::em_bs_lbuttondown );
+                m_pBtnPress->DoPaint( skinDC );
+            }
+        }
+
+        if (m_pBtnPress != NULL)
+        {
 
         }
         else if ( wParam == HTCAPTION && !m_bMaxed )
         {
-            //RECT rcWindow = { 0 };
-            //wndThis.GetWindowRect(&rcWindow);
-
-            //xPos -= rcWindow.left;
-            //yPos -= rcWindow.top;
-
-            //if ( WS_SYSMENU & wndThis.GetStyle() &&
-            //    xPos < (em_titlebar_height + em_border_width) &&
-            //    yPos < (em_titlebar_height + em_border_width) )
-            //{
-            //    return ::DefWindowProc(wndThis, WM_SYSCOMMAND, SC_MOUSEMENU, 
-            //        lParam);
-            //}
-
             ::DefWindowProc(wndThis, WM_NCLBUTTONDOWN, HTCAPTION, 
                 MAKELPARAM(0, 0));
         }
@@ -1013,11 +1266,30 @@ public:
         int xPos = GET_X_LPARAM(lParam); 
         int yPos = GET_Y_LPARAM(lParam); 
 
-        if (wParam == m_uBtnPress)
-        {
-            POINT pt =  { xPos, yPos };
+        RECT rcWindow = { 0 };
+        wndThis.GetWindowRect(&rcWindow);
+        
+        SkinNCButtonBase* pBtnPos = NULL;
 
-            switch (wParam)
+        for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
+        {
+            RECT rcButton = m_vtNcBtn[idx]->ButtonRect();
+
+            if ( ::PtInRect( &rcButton, CPoint(xPos - rcWindow.left, yPos - rcWindow.top) ) )                 
+            {
+                CWindowDC dc(wndThis);
+                CSkinDCHandle skinDC(dc.m_hDC);
+
+                pBtnPos = m_vtNcBtn[idx];
+                pBtnPos->Status( SkinNCButtonBase::em_bs_normal );
+                pBtnPos->DoPaint( skinDC );
+            }
+        }
+
+
+        if ( pBtnPos != NULL && pBtnPos == m_pBtnPress)
+        {
+            switch (m_pBtnPress->NcHitTestCode())
             {
             case HTCLOSE:
                 wndThis.PostMessage(WM_SYSCOMMAND, SC_CLOSE, 0);
@@ -1041,11 +1313,24 @@ public:
                     wndThis.MoveWindow(&rt, TRUE);
                     wndThis.Invalidate();
                 }
+
                 break;
+
             default:
-                bHandled = FALSE;
+                
+                if ( m_pLastHotBtn->NcHitTestCode() != NULL )
+                {
+                    bHandled = FALSE;
+                }
+                else
+                {
+                    wndThis.PostMessage(WM_SYSCOMMAND, m_pLastHotBtn->SysCmdId());
+                }
+
             }
         }
+
+        m_pBtnPress = NULL;
 
         return 0;
     }
@@ -1098,67 +1383,36 @@ public:
 
         wndThis.GetWindowRect(&rcWindow);
 
-        switch(m_uLastHotBtn)
-        {
-        case HTCLOSE:
-        case HTMINBUTTON:
-        case HTMAXBUTTON:
-            {
-                CWindowDC dc(wndThis);
-                CSkinDCHandle skinDC(dc.m_hDC);
-
-                if (m_uLastHotBtn == HTCLOSE)
-                    m_closebtn.Paint(skinDC, 0);
-                else if (m_uLastHotBtn == HTMINBUTTON)
-                    m_minbtn.Paint(skinDC, 0);
-                else if (m_uLastHotBtn == HTMAXBUTTON)
-                    m_maxbtn.Paint(skinDC, 0);
-               
-                m_uLastHotBtn = HTNOWHERE;
-            }
-            break;
-        }
-
-        UINT uLastHotBtn = m_uLastHotBtn;
-
-        if ( m_closebtn.bUsed && 
-             ::PtInRect( &m_closebtn.rcButton, 
-                CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
+        if ( m_pLastHotBtn != NULL )
         {
             CWindowDC dc(wndThis);
             CSkinDCHandle skinDC(dc.m_hDC);
             
-            m_closebtn.Paint(skinDC, 1);
-
-            m_uLastHotBtn = HTCLOSE;
+            m_pLastHotBtn->Status( SkinNCButtonBase::em_bs_normal );
+            m_pLastHotBtn->DoPaint( skinDC );
         }
 
-        if ( m_minbtn.bUsed && 
-            ::PtInRect( &m_minbtn.rcButton, 
-            CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
+        SkinNCButtonBase* pLastBtn = m_pLastHotBtn;
+
+        m_pLastHotBtn = NULL;
+
+        for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
         {
-            CWindowDC dc(wndThis);
-            CSkinDCHandle skinDC(dc.m_hDC);
+            RECT rcButton = m_vtNcBtn[idx]->ButtonRect();
 
-            m_minbtn.Paint(skinDC, 1);
-
-            m_uLastHotBtn = HTMINBUTTON;
+            if ( ::PtInRect( &rcButton, CPoint(xPos - rcWindow.left, yPos - rcWindow.top) ) )                 
+            {
+                CWindowDC dc(wndThis);
+                CSkinDCHandle skinDC(dc.m_hDC);
+                    
+                m_pLastHotBtn = m_vtNcBtn[idx];
+                m_pLastHotBtn->Status( SkinNCButtonBase::em_bs_mouseover );
+                m_pLastHotBtn->DoPaint( skinDC );
+            }
         }
 
-        if ( m_maxbtn.bUsed && 
-            ::PtInRect( &m_maxbtn.rcButton, 
-            CPoint(xPos - rcWindow.left, yPos - rcWindow.top )))
-        {
-            CWindowDC dc(wndThis);
-            CSkinDCHandle skinDC(dc.m_hDC);
-
-            m_maxbtn.Paint(skinDC, 1);
-
-            m_uLastHotBtn = HTMAXBUTTON;
-        }
-
-        if (uLastHotBtn == HTNOWHERE &&
-            m_uLastHotBtn != HTNOWHERE)
+        if (pLastBtn == NULL &&
+            m_pLastHotBtn != NULL)
         {
             TRACKMOUSEEVENT tme = { 0 };
 
@@ -1176,25 +1430,15 @@ public:
     {
         CWindow wndThis = static_cast<T*>(this)->m_hWnd;
 
-        switch(m_uLastHotBtn)
+        if ( m_pLastHotBtn != NULL )
         {
-        case HTCLOSE:
-        case HTMINBUTTON:
-        case HTMAXBUTTON:
-            {
-                CWindowDC dc(wndThis);
-                CSkinDCHandle skinDC(dc.m_hDC);
+            CWindowDC dc(wndThis);
+            CSkinDCHandle skinDC(dc.m_hDC);
 
-                if (m_uLastHotBtn == HTCLOSE)
-                    m_closebtn.Paint(skinDC, 0);
-                else if (m_uLastHotBtn == HTMINBUTTON)
-                    m_minbtn.Paint(skinDC, 0);
-                else if (m_uLastHotBtn == HTMAXBUTTON)
-                    m_maxbtn.Paint(skinDC, 0);
+            m_pLastHotBtn->Status( SkinNCButtonBase::em_bs_normal );
+            m_pLastHotBtn->DoPaint( skinDC );
 
-                m_uLastHotBtn = HTNOWHERE;
-            }
-            break;
+            m_pLastHotBtn = NULL;
         }
 
         return 0L;
@@ -1216,18 +1460,16 @@ public:
 
         rcTitlebar.bottom = rcTitlebar.top + em_titlebar_height + em_border_width;
 
-        if (m_closebtn.bUsed)
-            if (::PtInRect( &m_closebtn.rcButton, 
-                CPoint(xPos - rcTitlebar.left, yPos - rcTitlebar.top) ))
-                return m_closebtn.uNcHitTestCode;
-        if (m_minbtn.bUsed)
-            if (::PtInRect( &m_minbtn.rcButton, 
-                CPoint(xPos - rcTitlebar.left, yPos - rcTitlebar.top) ))
-                return m_minbtn.uNcHitTestCode;
-        if (m_maxbtn.bUsed)
-            if (::PtInRect( &m_maxbtn.rcButton, 
-                CPoint(xPos - rcTitlebar.left, yPos - rcTitlebar.top) ))
-                return m_maxbtn.uNcHitTestCode;
+        for (size_t idx = 0; idx < m_vtNcBtn.size(); idx++)
+        {
+            RECT rcButton = m_vtNcBtn[idx]->ButtonRect();
+
+            if ( m_vtNcBtn[idx]->NcHitTestCode() != 0 &&
+                 ::PtInRect( &rcButton, CPoint(xPos - rcTitlebar.left, yPos - rcTitlebar.top) ) )                 
+            {
+                return m_vtNcBtn[idx]->NcHitTestCode();
+            }
+        }
 
 
         if (::PtInRect( &rcTitlebar, CPoint(xPos, yPos) ))
