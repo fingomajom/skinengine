@@ -1,0 +1,49 @@
+// lsesvr.idl : IDL source for lsesvr
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (lsesvr.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(DCCD45AE-FC29-414C-8149-F8870C628865),
+	dual,
+	nonextensible,
+	helpstring("ISvrObject Interface"),
+	pointer_default(unique)
+]
+interface ISvrObject : IDispatch{
+    //[id(1), helpstring("method CallFunction")] HRESULT CallFunction( [in] ULONG uTargetId, [in] ULONG uCallerId, [in] ULONG uFunctionId, [in] VARIANT varParameter, [out] VARIANT* varResault);
+};
+[
+	uuid(498800B5-E697-4F4F-AAC2-A8FC48CA345B),
+	version(1.0),
+	helpstring("lsesvr 1.0 Type Library")
+]
+library lsesvrLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(66EBAFDC-31F2-4220-A2A7-5BBD24239EA9),
+		helpstring("_ISvrObjectEvents Interface")
+	]
+	dispinterface _ISvrObjectEvents
+	{
+		properties:
+		methods:
+            [id(1), helpstring("method CallbackFunction")] HRESULT CallbackFunction( [in] ULONG uTargetId, [in] ULONG uCallerId, [in] ULONG uFunctionId, [in] VARIANT varParameter, [out] VARIANT* varResault);
+
+	};
+	[
+		uuid(A3D222EB-36BF-4EE0-8600-476A491A69BF),
+		helpstring("SvrObject Class")
+	]
+	coclass SvrObject
+	{
+		[default] interface ISvrObject;
+		[default, source] dispinterface _ISvrObjectEvents;
+	};
+};
