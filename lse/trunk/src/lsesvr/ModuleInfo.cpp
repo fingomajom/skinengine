@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "ModuleInfo.h"
+#include "SvrObject.h"
 
 CModuleInfo::CModuleInfo(void)  :
     m_utype( em_info_type_module ),
@@ -26,7 +27,7 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::Invoke(
     {
         ATLASSERT( m_spCallback.p != NULL);
 
-        hResult = m_spCallback->Invoke(0xABCDEF, 
+        hResult = m_spCallback->Invoke(dispAPI_CallFunction, 
             IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
             pdispparams, pvarResult, NULL, NULL);
     }
@@ -117,7 +118,7 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::CallSvrFunc(
 
         DISPPARAMS params = { avarParams, NULL, 5, 0 };
 
-        hResult = m_spCallback->Invoke(0xABCDEF, 
+        hResult = m_spCallback->Invoke(dispAPI_CallFunction, 
             IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
             &params, &varResult, NULL, NULL);
 
@@ -134,9 +135,43 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::CallSvrFunc(
 }
 
 
-HRESULT CModuleInfo::InitModule( LPCTSTR   pszModuleFile )
+HRESULT CModuleInfo::InitModule( LPCTSTR pszModuleFile )
 {
+    HRESULT hResult = E_FAIL;
+
+    CComPtr<IUnknown> spObj;
+    CSvrObject::instance().QueryInterface(IID_IUnknown, (void**)&spObj);
+
+    if (spObj.p == NULL)
+        return hResult;
+
+    hResult = InitModule(pszModuleFile, spObj.p);
+    if (FAILED(hResult))
+        return hResult;
+
+
+    return S_OK;
+}
+
+HRESULT CModuleInfo::InitModule( LPCTSTR pszModuleFile, LPUNKNOWN piSvrObject )
+{
+    HRESULT hResult = E_FAIL;
+
     m_utype = em_info_type_module;
+
+
+    if ( !m_spModuleObject.LoadInterface( pszModuleFile ) )
+        return E_FAIL;
+
+    hResult = m_spModuleObject->Initialize( piSvrObject );
+    if (FAILED(hResult))
+        return hResult;
+
+
+    hResult = m_spModuleObject->GetModuleId(&m_uModuleId);
+    if (FAILED(hResult))
+        return hResult;
+
 
     return S_OK;
 }
@@ -164,7 +199,10 @@ HRESULT CModuleInfo::InitCaller( IUnknown* piCallback )
 
 HRESULT CModuleInfo::Uninit()
 {
-    
+    if ( m_utype == em_info_type_module )
+    {
+        m_spModuleObject->Uninitialize();
+    }
 
     return S_OK;
 }

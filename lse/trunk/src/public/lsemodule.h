@@ -34,9 +34,11 @@ interface IModuleObject : public IUnknown
 public:
 
     virtual HRESULT STDMETHODCALLTYPE Initialize( 
-        /* [in] */ LPVOID pvParameter ) = 0;
+        /* [in] */ IUnknown* piSvrCallbackObject ) = 0;
 
     virtual HRESULT STDMETHODCALLTYPE Uninitialize( void ) = 0;
+
+    virtual HRESULT STDMETHODCALLTYPE GetModuleId( /* out */ ULONG* puID ) = 0;
 
     virtual HRESULT STDMETHODCALLTYPE CallModuleFunc( 
         /* [in]  */ ULONG uTargetId,

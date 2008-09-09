@@ -5,8 +5,8 @@
 
 
 CSvrCallerSink::CSvrCallerSink(void) :
-m_pSvrCaller(NULL),
-m_bDisped(FALSE)
+    m_pSvrCaller(NULL),
+    m_bDisped(FALSE)
 {
 }
 
@@ -51,10 +51,10 @@ STDMETHODIMP CSvrCallerSink::Invoke(
     /* [out] */ EXCEPINFO *pExcepInfo,
     /* [out] */ UINT *puArgErr)
 {
-    if (m_pSvrCaller == NULL)
+    if (m_pSvrCaller == NULL || m_pSvrCaller->m_spCallback.p == NULL)
         return S_OK;
 
-    if (m_pSvrCaller->m_spCallback.p != NULL)
+    if ( dispIdMember == dispAPI_CallFunction)
     {
         if (pDispParams == NULL || pDispParams->cArgs != 5)
             return E_FAIL;
@@ -88,6 +88,11 @@ STDMETHODIMP CSvrCallerSink::Invoke(
             pVarResult[0].vt = pVarResult[0].parray ? VT_UI1 | VT_ARRAY : VT_EMPTY;
         }
     }
+    else if ( dispIdMember == dispAPI_Quit )
+    {
+        m_pSvrCaller->m_spCallback->OnQuit();
+    }
+
 
     return S_OK;
 }

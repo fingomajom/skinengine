@@ -124,7 +124,7 @@ STDMETHODIMP IConnectionPointImplMT<T, piid, CDV>::Advise(IUnknown* pUnkSink,
 		if(hRes == S_OK)
 		{
 			// Using the CCom(Dynamic)UnkArray to store the cookie instead of an IUnknown *:
-			*pdwCookie = m_vec.Add(reinterpret_cast<IUnknown *>(dwGITCookie));
+			*pdwCookie = m_vec.Add(reinterpret_cast<IUnknown *>((LONG_PTR)dwGITCookie));
 			hRes = (*pdwCookie != NULL) ? S_OK : CONNECT_E_ADVISELIMIT;
 
 			if (hRes != S_OK)
@@ -148,7 +148,7 @@ STDMETHODIMP IConnectionPointImplMT<T, piid, CDV>::Unadvise(DWORD dwCookie)
 	
     //DWORD dwGITCookie = (DWORD)_CDV::GetUnknown(dwCookie);
 
-    DWORD dwGITCookie = (DWORD)m_vec.GetUnknown(dwCookie);
+    DWORD dwGITCookie = (DWORD)(LONG_PTR)m_vec.GetUnknown(dwCookie);
 
 	HRESULT hRes = m_vec.Remove(dwCookie) ? S_OK : CONNECT_E_NOCONNECTION;
 	m_CPMTCritSec.Unlock();

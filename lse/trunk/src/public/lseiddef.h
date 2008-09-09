@@ -40,6 +40,13 @@ enum {
     MODULEID_MAX     = 0xFFFFFFFF
 };
 
+
+enum dispIdMember {
+
+    dispAPI_Quit         = 0x111111,
+    dispAPI_CallFunction = 0xABCDEF
+};
+
 #define IS_CALLERID(id) ( id >= CALLERID_UNKNOWN && id <= CALLERID_MAX )
 #define IS_MODULEID(id) ( id >= MODULEID_UNKNOWN && id <= MODULEID_MAX )
 

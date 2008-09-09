@@ -42,6 +42,7 @@ public:
 
 
     HRESULT InitModule( LPCTSTR   pszModuleFile );
+    HRESULT InitModule( LPCTSTR   pszModuleFile, LPUNKNOWN piSvrObject );
     HRESULT InitCaller( IUnknown* piCallback );
     
     HRESULT Uninit();

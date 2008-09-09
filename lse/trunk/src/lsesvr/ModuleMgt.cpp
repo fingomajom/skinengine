@@ -159,6 +159,8 @@ HRESULT CModuleMgt::RemoveModuleInfo ( ULONG uModuleId, DWORD dwCookie  )
                 Sleep(5);
             }
 
+            ModuleList[idx]->Uninit();
+
             delete ModuleList[idx];
             ModuleList.RemoveAt( idx );
             idx--;
@@ -190,7 +192,7 @@ HRESULT STDMETHODCALLTYPE CModuleMgt::Invoke(
     if ( pdispparams == NULL )
         return E_FAIL;
 
-    if (pdispparams->cArgs != 5 && pdispparams->rgvarg[4].vt != VT_UI4)
+    if (pdispparams->cArgs != 5 || pdispparams->rgvarg[4].vt != VT_UI4)
         return E_FAIL;
 
     m_cs.Lock();

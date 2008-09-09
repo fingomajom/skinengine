@@ -3,9 +3,7 @@
 // Used by lsesvr.rc
 //
 #define IDS_SERVICENAME                 100
-#define IDR_LSESVR                      101
 #define IDS_SERVICE_DISPLAYNAME         101
-#define IDR_SVROBJECT                   102
 #define IDS_SERVICE_DESCRIPTION         102
 
 // Next default values for new objects

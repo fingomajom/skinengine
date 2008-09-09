@@ -38,12 +38,6 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
-BEGIN
-    "1 TYPELIB ""lsesvr.tlb""\r\n"
-    "\0"
-END
-
 #endif    // APSTUDIO_INVOKED
 
 
@@ -91,9 +85,6 @@ END
 // REGISTRY
 //
 
-IDR_LSESVR              REGISTRY                "lsesvr.rgs"
-IDR_SVROBJECT           REGISTRY                "SvrObject.rgs"
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
@@ -116,7 +107,6 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-1 TYPELIB "lsesvr.tlb"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

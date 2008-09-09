@@ -6,6 +6,9 @@
 #include "ModuleMgt.h"
 // CSvrObject
 
+
+extern HRESULT StopService();
+
 CSvrObjectFactory::CSvrObjectFactory()
 {
     CSvrObject::instance().QueryInterface(IID_IUnknown, (void**)&m_spObj);
@@ -42,7 +45,14 @@ HRESULT STDMETHODCALLTYPE CSvrObject::Invoke(DISPID dispidMember, REFIID riid,
 {
     CModuleMgt& moduleMgt = CModuleMgt::Instance();
     
-    return moduleMgt.Invoke( pdispparams, pvarResult );
+    if (dispidMember == dispAPI_CallFunction)
+    {
+        return moduleMgt.Invoke( pdispparams, pvarResult );
+    }
+    else if (dispidMember == dispAPI_Quit)
+    {
+        StopService();
+    }
 
     return S_OK;
 }

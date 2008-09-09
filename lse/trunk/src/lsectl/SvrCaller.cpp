@@ -95,7 +95,7 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::CallSvrFunc(
 
     DISPPARAMS params = { avarParams, NULL, 5, 0 };
 
-    hr = m_spSvrObject->Invoke(0xABCDEF, 
+    hr = m_spSvrObject->Invoke(dispAPI_CallFunction, 
         IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
         &params, &varResult, NULL, NULL);
 

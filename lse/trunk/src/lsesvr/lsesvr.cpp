@@ -4,14 +4,23 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "lsesvr.h"
+#include "RunProcessMgt.h"
+#include "ProcessModuleMgt.h"
+#include "ModuleLoader.h"
 
 #include <stdio.h>
 
 class ClsesvrModule : public CAtlServiceModuleT< ClsesvrModule, IDS_SERVICENAME >
 {
 public :
+
+    ClsesvrModule()
+    {
+        m_bService = (TRUE);
+    }
+
 	DECLARE_LIBID(LIBID_lsesvrLib)
-	DECLARE_REGISTRY_APPID_RESOURCEID(IDR_LSESVR, "{99EDD16E-FC5E-4881-8419-63A7A2781391}")
+	//DECLARE_REGISTRY_APPID_RESOURCEID(IDR_LSESVR, "{99EDD16E-FC5E-4881-8419-63A7A2781391}")
 	HRESULT InitializeSecurity() throw()
 	{
 		// TODO : Call CoInitializeSecurity and provide the appropriate security settings for 
@@ -25,8 +34,6 @@ public :
 
     HRESULT Start(int nShowCmd) throw()
     {
-        m_bService = FALSE;
-
         if (m_bService)
         {
             SERVICE_TABLE_ENTRY st[] =
@@ -43,6 +50,85 @@ public :
         m_status.dwWin32ExitCode = Run(nShowCmd);
 
         return m_status.dwWin32ExitCode;
+    }
+
+    void ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv) throw()
+    {
+        m_status.dwCurrentState = SERVICE_START_PENDING;
+
+        m_hServiceStatus = RegisterServiceCtrlHandler(m_szServiceName, _Handler);
+        if (m_hServiceStatus == NULL)
+        {
+            return;
+        }
+        SetServiceStatus(SERVICE_START_PENDING);
+
+        m_status.dwWin32ExitCode = S_OK;
+        m_status.dwCheckPoint = 0;
+        m_status.dwWaitHint = 0;
+
+#ifndef _ATL_NO_COM_SUPPORT
+
+        HRESULT hr = E_FAIL;
+        hr = InitializeCom();
+        if (FAILED(hr))
+        {
+            // Ignore RPC_E_CHANGED_MODE if CLR is loaded. Error is due to CLR initializing
+            // COM and InitializeCOM trying to initialize COM with different flags.
+            if (hr != RPC_E_CHANGED_MODE || GetModuleHandle(_T("Mscoree.dll")) == NULL)
+            {
+                return;
+            }
+        }
+        else
+        {
+            m_bComInitialized = true;
+        }
+
+        m_bDelayShutdown = false;
+#endif //_ATL_NO_COM_SUPPORT
+        // When the Run function returns, the service has stopped.
+        m_status.dwWin32ExitCode = Run(SW_HIDE);
+
+#ifndef _ATL_NO_COM_SUPPORT
+        if (m_bService && m_bComInitialized)
+            UninitializeCom();
+#endif
+
+        SetServiceStatus(SERVICE_STOPPED);
+    }
+
+    void OnUnknownRequest(DWORD /*dwOpcode*/) throw()
+    {
+    }
+
+
+
+    HRESULT Run(int nShowCmd = SW_HIDE) throw()
+    {
+        HRESULT hr = S_OK;
+
+        ModuleLoader loader;
+        loader.LoadAllModule();
+
+        hr = PreMessageLoop(nShowCmd);
+
+        if (hr == S_OK)
+        {
+            if (m_bService)
+            {
+                SetServiceStatus(SERVICE_RUNNING);
+            }
+
+            RunMessageLoop();
+        }
+
+        if (SUCCEEDED(hr))
+        {
+            hr = PostMessageLoop();
+        }
+
+        return hr;
     }
 
 
@@ -77,6 +163,33 @@ public :
 
                 return false;
             }
+
+            // RunProcess
+            if (WordCmpI(lpszToken, _T("RunProcess"))==0)
+            {
+                RunProcessMgt runProcessMgt;
+
+                *pnRetCode = runProcessMgt.RunProcess( NULL );
+
+                return false;
+            }
+
+            // ProcessModule
+            if (WordCmpI(lpszToken, _T("ProcessModule"))==0)
+            {
+                CProcessModuleMgt ProcessModuleMgt;
+
+                *pnRetCode = ProcessModuleMgt.ProcessModule( NULL );
+
+                return false;
+            }
+
+            // ProcessModule
+            if (WordCmpI(lpszToken, _T("Debug"))==0)
+            {
+                m_bService = FALSE;               
+            }
+
 
             lpszToken = FindOneOf(lpszToken, szTokens);
         }
@@ -154,11 +267,23 @@ public :
         return TRUE;
     }
 
+    void OnStop() throw()
+    {
+        SetServiceStatus(SERVICE_STOP_PENDING);
+        PostThreadMessage(m_dwThreadID, WM_QUIT, 0, 0);
+    }
 };
 
 ClsesvrModule _AtlModule;
 
+HRESULT StopService()
+{
+    HRESULT hResult = E_FAIL;
+    
+    _AtlModule.OnStop();
 
+    return hResult;
+}
 
 //
 extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 

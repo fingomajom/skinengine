@@ -44,6 +44,8 @@ public:
         /* [in]  */ IDataBuffer*  pParameter,
         /* [out] */ IDataBuffer** ppResult) = 0;
 
+    virtual HRESULT STDMETHODCALLTYPE OnQuit() = 0;
+
 };
 
 
