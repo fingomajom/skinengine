@@ -56,7 +56,7 @@ public:
 
     ATL::CComAutoCriticalSection m_cs;
 
-    KComInterfacePtr<IModuleObject> m_spModuleObject;
+    KComInterfacePtr<IModuleObject, &__uuidof(IModuleObject)> m_spModuleObject;
     CComPtr<IDispatch> m_spCallback;
 
 };

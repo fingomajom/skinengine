@@ -108,9 +108,6 @@ public :
     {
         HRESULT hr = S_OK;
 
-        ModuleLoader loader;
-        loader.LoadAllModule();
-
         hr = PreMessageLoop(nShowCmd);
 
         if (hr == S_OK)
@@ -119,6 +116,9 @@ public :
             {
                 SetServiceStatus(SERVICE_RUNNING);
             }
+
+            ModuleLoader loader;
+            loader.LoadAllModule();
 
             RunMessageLoop();
         }
@@ -169,7 +169,7 @@ public :
             {
                 RunProcessMgt runProcessMgt;
 
-                *pnRetCode = runProcessMgt.RunProcess( NULL );
+                *pnRetCode = runProcessMgt.RunProcess( lpszToken + wcslen(L"ProcessModule") + 1 );
 
                 return false;
             }
@@ -179,7 +179,7 @@ public :
             {
                 CProcessModuleMgt ProcessModuleMgt;
 
-                *pnRetCode = ProcessModuleMgt.ProcessModule( NULL );
+                *pnRetCode = ProcessModuleMgt.ProcessModule( lpszToken + wcslen(L"ProcessModule") + 1 );
 
                 return false;
             }
