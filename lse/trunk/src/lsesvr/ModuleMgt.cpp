@@ -198,7 +198,7 @@ HRESULT STDMETHODCALLTYPE CModuleMgt::Invoke(
     m_cs.Lock();
 
     ATL::CAtlMap<DWORD, ATL::CSimpleArray<CModuleInfo*> >::CPair* pPair = 
-        m_mapModuleId2Info.Lookup( pdispparams->rgvarg->ulVal );
+        m_mapModuleId2Info.Lookup( pdispparams->rgvarg[4].ulVal );
 
     m_cs.Unlock();
 
@@ -206,6 +206,10 @@ HRESULT STDMETHODCALLTYPE CModuleMgt::Invoke(
         return E_NOINTERFACE;
 
     ATL::CSimpleArray<CModuleInfo*>& ModuleList = pPair->m_value;
+
+
+    if ( ModuleList.GetSize() > 1 )
+        pvarResult = NULL;
 
     for ( int idx = 0; idx < ModuleList.GetSize(); idx++ )
     {
@@ -238,6 +242,9 @@ HRESULT STDMETHODCALLTYPE CModuleMgt::CallSvrFunc(
 
     ATL::CSimpleArray<CModuleInfo*>& ModuleList = pPair->m_value;
     
+    if ( ModuleList.GetSize() > 1 )
+        ppResult = NULL;
+
     for ( int idx = 0; idx < ModuleList.GetSize(); idx++ )
     {
         ATLASSERT( ModuleList[idx] != NULL );

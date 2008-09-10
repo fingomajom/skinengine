@@ -65,6 +65,8 @@ public:
 
 private:
 
+    HRESULT Relive();
+
     ULONG m_uCallerId;
 
     CComPtr<IDispatch>       m_spSvrObject;

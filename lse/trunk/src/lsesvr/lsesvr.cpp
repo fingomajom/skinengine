@@ -169,7 +169,7 @@ public :
             {
                 RunProcessMgt runProcessMgt;
 
-                *pnRetCode = runProcessMgt.RunProcess( lpszToken + wcslen(L"ProcessModule") + 1 );
+                *pnRetCode = runProcessMgt.RunProcess( lpszToken + wcslen(L"RunProcess") + 1 );
 
                 return false;
             }

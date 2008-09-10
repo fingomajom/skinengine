@@ -39,9 +39,15 @@ HRESULT STDMETHODCALLTYPE CSvrObject::GetIDsOfNames(REFIID riid, LPOLESTR* rgszN
     return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE CSvrObject::Invoke(DISPID dispidMember, REFIID riid,
-    LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult,
-    EXCEPINFO* pexcepinfo, UINT* puArgErr)
+HRESULT STDMETHODCALLTYPE CSvrObject::Invoke(
+    DISPID      dispidMember, 
+    REFIID      riid,
+    LCID        lcid, 
+    WORD        wFlags, 
+    DISPPARAMS* pdispparams, 
+    VARIANT*    pvarResult,
+    EXCEPINFO*  pexcepinfo, 
+    UINT*       puArgErr)
 {
     CModuleMgt& moduleMgt = CModuleMgt::Instance();
     

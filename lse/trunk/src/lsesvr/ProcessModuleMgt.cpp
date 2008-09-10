@@ -2,6 +2,8 @@
 #include "ProcessModuleMgt.h"
 #include "lsesvr.h"
 
+DWORD g_dwThreadId = 0;
+
 CProcessModuleMgt::CProcessModuleMgt(void) :
     m_hQuitEvent(NULL),
     m_bDisped(FALSE)
@@ -19,7 +21,8 @@ HRESULT CProcessModuleMgt::ProcessModule( LPCTSTR pszDllFile )
     m_hQuitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     if (m_hQuitEvent == NULL)
         return E_FAIL;
-
+    
+    g_dwThreadId = GetCurrentThreadId();
 
     CComPtr<IClassFactory> spFactory;
 
@@ -43,7 +46,16 @@ HRESULT CProcessModuleMgt::ProcessModule( LPCTSTR pszDllFile )
     
     DispEventAdvise( m_spSvrObject );
 
-    WaitForSingleObject(m_hQuitEvent, INFINITE);
+    //WaitForSingleObject(m_hQuitEvent, INFINITE);
+
+    {
+        MSG msg;
+        while (GetMessage(&msg, 0, 0, 0) > 0)
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
 
     DispEventUnadvise ( m_spSvrObject );
 
@@ -97,41 +109,40 @@ STDMETHODIMP CProcessModuleMgt::Invoke(
 
     if ( dispIdMember ==  dispAPI_CallFunction)
     {
+        CComPtr<IDataBuffer> spParameter;
+        CComPtr<IDataBuffer> spResult;
+
         if (pDispParams == NULL || pDispParams->cArgs != 5)
             return E_FAIL;
 
-        if (  pDispParams->rgvarg[4].vt != VT_UI4 ||
-            pDispParams->rgvarg[3].vt != VT_UI4 ||
-            pDispParams->rgvarg[2].vt != VT_UI4 ||
-            ( pDispParams->rgvarg[1].vt & VT_ARRAY ) )
+        if (   pDispParams->rgvarg[4].vt != VT_UI4 ||
+               pDispParams->rgvarg[3].vt != VT_UI4 ||
+               pDispParams->rgvarg[2].vt != VT_UI4 ||
+            !( pDispParams->rgvarg[1].vt & VT_ARRAY ) )
             return E_FAIL;
 
-        IDataBuffer*  pParameter = NULL;
-        IDataBuffer*  ppResult   = NULL;
+        spParameter = SafeArray2DataBuffer( pDispParams->rgvarg[1].parray );
 
-        pParameter = SafeArray2DataBuffer( pDispParams->rgvarg[1].parray );
-        if (pParameter != NULL)
-            pParameter->AddRef();
-
-        m_ModuleInfo.m_spModuleObject->CallModuleFunc (
+        HRESULT hr = m_ModuleInfo.m_spModuleObject->CallModuleFunc (
             pDispParams->rgvarg[4].ulVal,
             pDispParams->rgvarg[3].ulVal,
             pDispParams->rgvarg[2].ulVal,
-            pParameter,
-            &ppResult);
+            spParameter,
+            &spResult);
 
-        if (pParameter != NULL)
-            pParameter->Release();
+        if (spResult.p != NULL)
+            spResult.p->AddRef();
 
-        if (ppResult != NULL && pVarResult != NULL)
+        if ( SUCCEEDED(hr) && spResult != NULL && pVarResult != NULL)
         {
-            pVarResult[0].parray = DataBuffer2SafeArray( ppResult );
+            pVarResult[0].parray = DataBuffer2SafeArray( spResult );
             pVarResult[0].vt = pVarResult[0].parray ? VT_UI1 | VT_ARRAY : VT_EMPTY;
         }
     }
     else if ( dispIdMember == dispAPI_Quit )
     {
         SetEvent(m_hQuitEvent);
+        PostThreadMessage(g_dwThreadId, WM_QUIT, 0, 0);
     }
 
     return S_OK;
@@ -171,9 +182,26 @@ HRESULT STDMETHODCALLTYPE CProcessModuleMgt::CallSvrFunc(
 
     DISPPARAMS params = { avarParams, NULL, 5, 0 };
 
-    hr = m_spSvrObject->Invoke(dispAPI_CallFunction, 
-        IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
-        &params, &varResult, NULL, NULL);
+
+    bool bfirst = true;
+
+    do 
+    {
+        if (m_spSvrObject.p != NULL)
+        {
+            hr = m_spSvrObject->Invoke(dispAPI_CallFunction, 
+                IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
+                &params, &varResult, NULL, NULL);
+        }
+
+        if ( !bfirst || (m_spSvrObject.p != NULL && hr != ERROR_RPC_SERVER_UNAVAILABLE ) )
+            break; 
+
+        Relive();
+
+        bfirst = false;
+
+    } while( true );
 
     if (SUCCEEDED(hr) && ppResult != NULL && (varResult.vt & VT_ARRAY) )
     {
@@ -181,4 +209,36 @@ HRESULT STDMETHODCALLTYPE CProcessModuleMgt::CallSvrFunc(
     }
 
     return hr;
+}
+
+
+HRESULT CProcessModuleMgt::Relive()
+{
+    HRESULT hResult = E_FAIL;
+
+    CComPtr<IClassFactory> spFactory;
+
+    if ( m_spSvrObject.p != NULL )
+    {
+        DispEventUnadvise( m_spSvrObject );
+
+        m_spSvrObject.Release();
+    }
+
+    hResult = CoGetClassObject( 
+        __uuidof(SvrObject), CLSCTX_LOCAL_SERVER, 0, 
+        IID_IClassFactory, (void**)&spFactory );
+
+    if (FAILED(hResult))
+        return hResult;
+
+    hResult = spFactory->CreateInstance(NULL, 
+        __uuidof(IDispatch), (void**)&m_spSvrObject );
+
+    if (FAILED(hResult))
+        return hResult;
+
+    DispEventAdvise( m_spSvrObject );
+
+    return hResult;
 }

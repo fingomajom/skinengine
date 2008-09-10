@@ -103,6 +103,9 @@ public:
 
 private:
 
+    HRESULT Relive();
+
+
     BOOL m_bDisped;
 
     HANDLE m_hQuitEvent;

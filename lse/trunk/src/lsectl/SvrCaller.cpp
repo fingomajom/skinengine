@@ -17,14 +17,6 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::Initialize(
     if (m_uCallerId == CALLERID_UNKNOWN)
         return E_FAIL;
     
-    if (piCallback != NULL)
-    {
-        piCallback->QueryInterface(__uuidof(INotifyCallback),
-            (void**)&m_spCallback);
-        
-        if (m_spCallback.p != NULL)
-            m_svrCallerSink.DispEventUnadvise(m_spSvrObject);
-    }    
 
     HRESULT hr = CoGetClassObject( 
         __uuidof(SvrObject), CLSCTX_LOCAL_SERVER, 0, 
@@ -38,6 +30,18 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::Initialize(
 
     if (FAILED(hr))
         goto Exit0;
+
+    if (piCallback != NULL)
+    {
+        hr = piCallback->QueryInterface(__uuidof(INotifyCallback),
+            (void**)&m_spCallback);
+        if (FAILED(hr) || m_spCallback.p == NULL)
+            goto Exit0;
+
+        hr = m_svrCallerSink.DispEventAdvise(m_spSvrObject);
+        if (FAILED(hr))
+            goto Exit0;
+    }
 
     return S_OK;
 
@@ -59,6 +63,8 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::Uninitialize( void )
         m_spSvrObject.Detach()->Release();
     }
 
+    m_spCallback.Release();
+
     return S_OK;
 }
 
@@ -70,10 +76,9 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::CallSvrFunc(
 {
     HRESULT hr = E_FAIL;
 
-    ATLASSERT( m_spSvrObject.p != NULL && m_uCallerId != CALLERID_UNKNOWN );
-    if ( m_spSvrObject.p == NULL || m_uCallerId == CALLERID_UNKNOWN )
+    ATLASSERT( m_uCallerId != CALLERID_UNKNOWN );
+    if ( m_uCallerId == CALLERID_UNKNOWN )
         return E_FAIL;
-
 
     CComVariant avarParams[5];
     CComVariant varResult;
@@ -95,9 +100,26 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::CallSvrFunc(
 
     DISPPARAMS params = { avarParams, NULL, 5, 0 };
 
-    hr = m_spSvrObject->Invoke(dispAPI_CallFunction, 
-        IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
-        &params, &varResult, NULL, NULL);
+    bool bfirst = true;
+
+    do 
+    {
+        if (m_spSvrObject.p != NULL)
+        {
+            hr = m_spSvrObject->Invoke(dispAPI_CallFunction, 
+                IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
+                &params, &varResult, NULL, NULL);
+        }
+
+        if ( !bfirst || (m_spSvrObject.p != NULL && hr != ERROR_RPC_SERVER_UNAVAILABLE ) )
+            break; 
+
+        Relive();
+
+        bfirst = false;
+
+    } while( true );
+
 
     if (SUCCEEDED(hr) && ppResult != NULL && (varResult.vt & VT_ARRAY) )
     {
@@ -105,4 +127,25 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::CallSvrFunc(
     }
 
     return hr;
+}
+
+
+HRESULT CSvrCaller::Relive()
+{
+    HRESULT hResult = E_FAIL;
+
+    ULONG             uCallerId  = m_uCallerId;
+    CComPtr<IUnknown> spCallback = m_spCallback;
+
+    Uninitialize();
+
+    hResult = Initialize(uCallerId, spCallback);
+    
+    if ( FAILED(hResult) )
+    {
+        m_uCallerId  = uCallerId;
+        m_spCallback = spCallback;
+    }
+
+    return hResult;
 }

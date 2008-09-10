@@ -50,3 +50,5 @@ enum dispIdMember {
 #define IS_CALLERID(id) ( id >= CALLERID_UNKNOWN && id <= CALLERID_MAX )
 #define IS_MODULEID(id) ( id >= MODULEID_UNKNOWN && id <= MODULEID_MAX )
 
+
+#define ERROR_RPC_SERVER_UNAVAILABLE  (0x800706ba)

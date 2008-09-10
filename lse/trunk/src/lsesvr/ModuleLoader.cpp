@@ -45,6 +45,8 @@ HANDLE ModuleLoader::RunProcessModule( LPCTSTR pszDllFile, LPCTSTR pszType )
         return NULL;
     }
 
+    //CreateProcessAsUser(  );
+
     return pi.hProcess;
 }
 

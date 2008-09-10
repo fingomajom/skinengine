@@ -75,7 +75,9 @@ public:
 	// Instead, use this function as follows:
 	//	CComPtr<IUnknown> sp;
 	//	sp.Attach (GetInterfaceAt(nConnectionIndex));
-	LPUNKNOWN GetInterfaceAt(int nConnectionIndex);
+
+    LPUNKNOWN GetInterfaceAt(int nConnectionIndex);
+    LPUNKNOWN GetInterfaceAtCookie( DWORD dwCookie );
 };
 
 template <class T, const IID* piid, class CDV>
@@ -223,7 +225,7 @@ LPUNKNOWN IConnectionPointImplMT<T, piid, CDV>::GetInterfaceAt(
 	LPUNKNOWN pUnk = NULL;
 	// IConnectionPointImplMT Vector stores DWORDs instead of IUnknown pointers, 
 	// explicit cast required:
-	DWORD dwGITCookie = (DWORD)(m_vec.GetAt(nConnectionIndex));
+	DWORD dwGITCookie = (DWORD)(LONG_PTR)(m_vec.GetAt(nConnectionIndex));
 	if (dwGITCookie != NULL)
 	{
 		IID iid;
@@ -237,5 +239,30 @@ LPUNKNOWN IConnectionPointImplMT<T, piid, CDV>::GetInterfaceAt(
 
 	return pUnk;
 }
+
+template <class T, const IID* piid, class CDV>
+LPUNKNOWN IConnectionPointImplMT<T, piid, CDV>::GetInterfaceAtCookie(
+    DWORD dwCookie )
+{
+    m_CPMTCritSec.Lock();
+
+    LPUNKNOWN pUnk = NULL;
+
+    DWORD dwGITCookie = (DWORD)(LONG_PTR)m_vec.GetUnknown(dwCookie);
+
+    if (dwGITCookie != NULL)
+    {
+        IID iid;
+        GetConnectionInterface(&iid);
+        HRESULT hr = m_pGIT->GetInterfaceFromGlobal(
+            dwGITCookie, iid, reinterpret_cast<void **>(&pUnk));
+        ATLASSERT(hr == S_OK);
+    }
+
+    m_CPMTCritSec.Unlock(); 
+
+    return pUnk;
+}
+
 
 #endif // __CPIMPLMT_H__
