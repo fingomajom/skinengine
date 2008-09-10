@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "..\public\lsemodule.h"
+#include "..\public\lsesvr_m.h"
 #include "ModuleInfo.h"
 
 

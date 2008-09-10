@@ -53,7 +53,7 @@ public:
 
 public:
 
-    HRESULT AddModuleInfo( CModuleInfo* pModuleInfo );
+    HRESULT AddModuleInfo( CModuleInfo* pModuleInfo, BOOL bCaller = FALSE );
     HRESULT RemoveModuleInfo ( ULONG uModuleId , DWORD dwCookie = -1);
 
 private:

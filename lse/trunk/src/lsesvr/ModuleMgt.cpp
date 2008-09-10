@@ -32,7 +32,7 @@ HRESULT CModuleMgt::AddModuleObject( LPCTSTR pszModuleFile )
     if (FAILED(hResult))
         return hResult;
 
-    hResult = AddModuleInfo( pModuleInfo );
+    hResult = AddModuleInfo( pModuleInfo, FALSE );
     if (FAILED( hResult ))
         delete pModuleInfo;
 
@@ -61,7 +61,7 @@ HRESULT CModuleMgt::AddCallerCallback( IUnknown* pUnkSink, DWORD dwCookie )
     m_mapCookie2ModuleId[dwCookie] = pModuleInfo->m_uModuleId;
     m_cs.Unlock();
 
-    hResult = AddModuleInfo( pModuleInfo );
+    hResult = AddModuleInfo( pModuleInfo, TRUE );
     if (FAILED( hResult ))
         delete pModuleInfo;
 
@@ -92,8 +92,10 @@ HRESULT CModuleMgt::RemoveCallerCallback ( DWORD dwCookie )
 }
 
 
-HRESULT CModuleMgt::AddModuleInfo( CModuleInfo* pModuleInfo )
+HRESULT CModuleMgt::AddModuleInfo( CModuleInfo* pModuleInfo, BOOL bCaller )
 {
+    HRESULT hResult = S_OK;
+
     m_cs.Lock();
 
     ATL::CAtlMap<DWORD, ATL::CSimpleArray<CModuleInfo*> >::CPair* pPair = 
@@ -104,17 +106,20 @@ HRESULT CModuleMgt::AddModuleInfo( CModuleInfo* pModuleInfo )
         newList.Add( pModuleInfo );
 
         m_mapModuleId2Info[ pModuleInfo->m_uModuleId ] = newList ;
+
     }
-    else
+    else if ( bCaller )
     {
         ATL::CSimpleArray<CModuleInfo*>& ModuleList = pPair->m_value;
 
         ModuleList.Add( pModuleInfo );
     }
+    else
+        hResult = E_FAIL;
     
     m_cs.Unlock();
 
-    return S_OK;
+    return hResult;
 }
 
 

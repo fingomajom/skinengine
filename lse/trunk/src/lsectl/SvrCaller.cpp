@@ -76,6 +76,10 @@ HRESULT STDMETHODCALLTYPE CSvrCaller::CallSvrFunc(
 {
     HRESULT hr = E_FAIL;
 
+    if ( uTargetId == m_uCallerId )
+        return E_NOTIMPL;
+
+
     ATLASSERT( m_uCallerId != CALLERID_UNKNOWN );
     if ( m_uCallerId == CALLERID_UNKNOWN )
         return E_FAIL;

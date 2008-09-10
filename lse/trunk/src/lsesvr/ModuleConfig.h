@@ -11,25 +11,7 @@
 
 #pragma once
 
-
-#define MAX_MODULE_NAME  50
-
-
-enum{
-    em_module_type_normal = 0,
-    em_module_type_run_process = 1,
-    em_module_type_processmodule = 2
-};
-
-typedef struct tag_Module_Config_Info
-{
-    ULONG uModuleId;
-    ULONG uModuleType;
-    WCHAR szModuleName[MAX_MODULE_NAME];
-    WCHAR szModulePathFile[MAX_PATH];
-
-}Module_Config_Info, *PModule_Config_Info;
-
+#include "..\public\lsesvr_m.h"
 
 class IModuleConfigMgt
 {

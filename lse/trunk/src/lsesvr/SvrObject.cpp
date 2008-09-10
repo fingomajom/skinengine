@@ -4,6 +4,8 @@
 #include "SvrObject.h"
 #include "..\public\IDataBuffer.h"
 #include "ModuleMgt.h"
+#include "ModuleConfig.h"
+#include "ModuleLoader.h"
 // CSvrObject
 
 
@@ -72,6 +74,9 @@ HRESULT STDMETHODCALLTYPE CSvrObject::CallSvrFunc(
 {
     CModuleMgt& moduleMgt = CModuleMgt::Instance();
 
+    if ( uTargetId == uCallerId )
+        return E_NOTIMPL;
+
     return moduleMgt.CallSvrFunc( 
         uTargetId, 
         uCallerId, 
@@ -82,6 +87,48 @@ HRESULT STDMETHODCALLTYPE CSvrObject::CallSvrFunc(
     return S_OK;
 }
 
+HRESULT STDMETHODCALLTYPE CSvrObject::StartModule(
+    /* [in]  */ ULONG uModuleId )
+{
+    CModuleConfigReg config;
+
+    if ( !config.LoadConfig() )
+        return E_FAIL;
+
+    for ( int idx = 0; idx < config.GetModuleCount(); idx++ )
+    {
+        Module_Config_Info ModuleInfo = { 0 };
+
+        if ( !config.GetModuleConfig( idx, ModuleInfo ))
+            continue;
+
+        if ( ModuleInfo.uModuleId == uModuleId )
+        {
+            ModuleLoader loader;
+
+            return loader.LoadModule( &ModuleInfo );
+        }
+    }
+
+
+    return E_FAIL;
+}
+
+HRESULT STDMETHODCALLTYPE CSvrObject::StartDllModule(
+    /* [in]  */ PModule_Config_Info pModuleInfo )
+{
+    ModuleLoader loader;
+
+    return loader.LoadModule( pModuleInfo );
+}
+
+HRESULT STDMETHODCALLTYPE CSvrObject::StopModule(
+    /* [in]  */ ULONG uModuleId )
+{
+    CModuleMgt::Instance().RemoveModuleInfo( uModuleId );
+
+    return S_OK;
+}
 
 HRESULT STDMETHODCALLTYPE CSvrObject::Advise(IUnknown* pUnkSink, DWORD* pdwCookie)
 {

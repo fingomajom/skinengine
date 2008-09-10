@@ -50,6 +50,34 @@ HANDLE ModuleLoader::RunProcessModule( LPCTSTR pszDllFile, LPCTSTR pszType )
     return pi.hProcess;
 }
 
+HRESULT ModuleLoader::LoadModule( PModule_Config_Info pModuleInfo )
+{
+    HRESULT hResult        = E_FAIL;
+    HANDLE  hProcessHandle = NULL;
+
+    if ( pModuleInfo == NULL )
+        return hResult;
+
+    if ( pModuleInfo->uModuleType == em_module_type_normal )
+    {
+        hResult = CModuleMgt::Instance().AddModuleObject( pModuleInfo->szModulePathFile );
+    }
+    else if ( pModuleInfo->uModuleType == em_module_type_run_process )
+    {
+        hProcessHandle = RunProcessModule( pModuleInfo->szModulePathFile, L"/RunProcess " );
+        if (hProcessHandle != NULL)
+            hResult = S_OK;
+    }
+    else if ( pModuleInfo->uModuleType == em_module_type_processmodule )
+    {
+        hProcessHandle = RunProcessModule( pModuleInfo->szModulePathFile, L"/ProcessModule " );
+        if (hProcessHandle != NULL)
+            hResult = S_OK;
+    }
+
+    return hResult;
+}
+
 
 HRESULT ModuleLoader::LoadAllModule()
 {
@@ -64,18 +92,7 @@ HRESULT ModuleLoader::LoadAllModule()
         Module_Config_Info info = { 0 };
         if ( config.GetModuleConfig( idx, info ) )
         {
-            if ( info.uModuleType == em_module_type_normal )
-            {
-                CModuleMgt::Instance().AddModuleObject( info.szModulePathFile );
-            }
-            else if ( info.uModuleType == em_module_type_run_process )
-            {
-                RunProcessModule( info.szModulePathFile, L"/RunProcess " );
-            }
-            else if ( info.uModuleType == em_module_type_processmodule )
-            {
-                RunProcessModule( info.szModulePathFile, L"/ProcessModule " );
-            }
+            hResult = LoadModule(&info);
         }
     }
 

@@ -254,6 +254,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\public\lsesvr_m.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
 				>
 			</File>

@@ -11,21 +11,7 @@
 
 #pragma once
 
-#include "lsectl.h"
-
-struct __declspec(uuid("E6285703-1255-4cff-9142-20D049B37917")) ISvrCallbackObject;
-interface ISvrCallbackObject : public IUnknown
-{
-public:
-
-    virtual HRESULT STDMETHODCALLTYPE CallSvrFunc( 
-        /* [in]  */ ULONG uTargetId,
-        /* [in]  */ ULONG uCallerId,
-        /* [in]  */ ULONG uFunctionId,
-        /* [in]  */ IDataBuffer*  pParameter,
-        /* [out] */ IDataBuffer** ppResult) = 0;
-
-};
+#include "IDataBuffer.h"
 
 
 struct __declspec(uuid("4F364374-A3BA-4eef-B9F2-02E0FE336FA8")) IModuleObject;
@@ -41,7 +27,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetModuleId( /* out */ ULONG* puID ) = 0;
 
     virtual HRESULT STDMETHODCALLTYPE CallModuleFunc( 
-        /* [in]  */ ULONG uTargetId,
+//      /* [in]  */ ULONG uTargetId,
         /* [in]  */ ULONG uCallerId,
         /* [in]  */ ULONG uFunctionId,
         /* [in]  */ IDataBuffer*  pParameter,

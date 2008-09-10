@@ -7,6 +7,7 @@
 #include "RunProcessMgt.h"
 #include "ProcessModuleMgt.h"
 #include "ModuleLoader.h"
+#include "ModuleConfig.h"
 
 #include <stdio.h>
 
@@ -190,6 +191,47 @@ public :
                 m_bService = FALSE;               
             }
 
+            // RegModule      xx.exe RegModule name dllfile id type
+            if (WordCmpI(lpszToken, _T("RegModule"))==0)
+            {
+                *pnRetCode = 0;
+
+                if ( __argc != 6 )
+                    return false;
+
+                Module_Config_Info info = { 0 };
+
+                wcsncpy_s(info.szModuleName, __wargv[2], sizeof(info.szModuleName) / sizeof(TCHAR));
+                wcsncpy_s(info.szModulePathFile, __wargv[3], sizeof(info.szModulePathFile) / sizeof(TCHAR));
+
+                info.uModuleId = _ttoi( __wargv[4] );
+                info.uModuleType = _ttoi( __wargv[5] );
+                
+                CModuleConfigReg reg;
+
+                *pnRetCode = reg.SetModuleConfig( info );
+
+                return false;
+            }
+
+            // UnregModule xx.exe UnregModule name
+            if (WordCmpI(lpszToken, _T("UnregModule"))==0)
+            {
+                *pnRetCode = 0;
+
+                if ( __argc != 3 )
+                    return false;
+
+                Module_Config_Info info = { 0 };
+
+                wcsncpy_s(info.szModuleName, __wargv[2], sizeof(info.szModuleName) / sizeof(TCHAR));
+
+                CModuleConfigReg reg;
+
+                *pnRetCode = reg.DeleteModuleConfig( info );
+
+                return false;
+            }
 
             lpszToken = FindOneOf(lpszToken, szTokens);
         }

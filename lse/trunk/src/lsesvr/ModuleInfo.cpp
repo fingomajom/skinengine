@@ -32,7 +32,7 @@ DWORD WINAPI Thread_Invoke_Func( LPVOID pParam )
     CProxy_ISvrObjectEvents<CSvrObject>& proxy = CSvrObject::instance();
 
 
-    CoInitialize( NULL );
+    //CoInitialize( NULL );
 
     proxy.m_CPMTCritSec.Lock();
 
@@ -52,7 +52,7 @@ DWORD WINAPI Thread_Invoke_Func( LPVOID pParam )
         }
     }
 
-    CoUninitialize();
+    //CoUninitialize();
 
     return hResult;
 }
@@ -103,28 +103,6 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::Invoke(
             pdispparams,
             pvarResult);
 
-        //CComPtr<IDispatch> spCallback;
-        //
-        //CProxy_ISvrObjectEvents<CSvrObject>& proxy = CSvrObject::instance();
-
-        //proxy.m_CPMTCritSec.Lock();
-
-        ////LPUNKNOWN piUnknown = proxy.m_vec.GetUnknown( m_uCookie );
-        //LPUNKNOWN piUnknown = proxy.GetInterfaceAt(0);
-
-        //proxy.m_CPMTCritSec.Unlock();
-
-        //if ( piUnknown != NULL )
-        //{
-        //    hResult = piUnknown->QueryInterface(IID_IDispatch, (void**)&spCallback);
-
-        //    if ( SUCCEEDED(hResult) && spCallback.p != NULL )
-        //    {
-        //        hResult = spCallback->Invoke(dispAPI_CallFunction, 
-        //            IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
-        //            pdispparams, pvarResult, NULL, NULL);
-        //    }
-        //}        
     }
     else do
     {
@@ -144,7 +122,6 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::Invoke(
         spParameter = SafeArray2DataBuffer( pdispparams->rgvarg[1].parray );
 
         hResult = m_spModuleObject->CallModuleFunc (
-            pdispparams->rgvarg[4].ulVal,
             pdispparams->rgvarg[3].ulVal,
             pdispparams->rgvarg[2].ulVal,
             spParameter,
@@ -182,7 +159,6 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::CallSvrFunc(
         ATLASSERT( m_spModuleObject.m_pT != NULL);
 
         hResult = m_spModuleObject->CallModuleFunc (
-            uTargetId,
             uCallerId,
             uFunctionId,
             pParameter,
@@ -212,9 +188,10 @@ HRESULT STDMETHODCALLTYPE CModuleInfo::CallSvrFunc(
 
         DISPPARAMS params = { avarParams, NULL, 5, 0 };
 
-        hResult = m_spCallback->Invoke(dispAPI_CallFunction, 
-            IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
-            &params, &varResult, NULL, NULL);
+        hResult = Call_Thread_Invoke( m_uCookie, 
+            dispAPI_CallFunction,
+            &params,
+            &varResult);
 
 
         if (SUCCEEDED(hResult) && ppResult != NULL && (varResult.vt & VT_ARRAY) )

@@ -124,7 +124,6 @@ STDMETHODIMP CProcessModuleMgt::Invoke(
         spParameter = SafeArray2DataBuffer( pDispParams->rgvarg[1].parray );
 
         HRESULT hr = m_ModuleInfo.m_spModuleObject->CallModuleFunc (
-            pDispParams->rgvarg[4].ulVal,
             pDispParams->rgvarg[3].ulVal,
             pDispParams->rgvarg[2].ulVal,
             spParameter,
@@ -156,6 +155,9 @@ HRESULT STDMETHODCALLTYPE CProcessModuleMgt::CallSvrFunc(
     /* [out] */ IDataBuffer** ppResult)
 {
     HRESULT hr = E_FAIL;
+
+    if ( uTargetId == uCallerId )
+        return E_FAIL;
 
     ATLASSERT( m_spSvrObject.p != NULL && m_ModuleInfo.m_uModuleId != CALLERID_UNKNOWN );
     if ( m_spSvrObject.p == NULL || m_ModuleInfo.m_uModuleId == CALLERID_UNKNOWN )

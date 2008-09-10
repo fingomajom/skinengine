@@ -4,7 +4,7 @@
 #include "resource.h"       // main symbols
 
 #include "lsesvr.h"
-#include "..\public\lsemodule.h"
+#include "..\public\lsesvr_m.h"
 #include "_ISvrObjectEvents_CP.h"
 
 
@@ -33,6 +33,7 @@ class ATL_NO_VTABLE CSvrObject :
 	public IConnectionPointContainerImpl<CSvrObject>,
 	public CProxy_ISvrObjectEvents<CSvrObject>,
     public ISvrCallbackObject,
+    public ISvrModuleMgt,
 	public ISvrObject
 {
 public:
@@ -95,6 +96,15 @@ public:
         /* [in]  */ IDataBuffer*  pParameter,
         /* [out] */ IDataBuffer** ppResult);
 
+
+    virtual HRESULT STDMETHODCALLTYPE StartModule(
+        /* [in]  */ ULONG uModuleId );
+
+    virtual HRESULT STDMETHODCALLTYPE StartDllModule(
+        /* [in]  */ PModule_Config_Info pModuleInfo );
+
+    virtual HRESULT STDMETHODCALLTYPE StopModule(
+        /* [in]  */ ULONG uModuleId );
 
 };
 
