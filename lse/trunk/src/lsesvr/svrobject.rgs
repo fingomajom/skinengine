@@ -1,0 +1,10 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {A3D222EB-36BF-4EE0-8600-476A491A69BF} = s 'SvrObject Class'
+		{
+			val AppID = s '%APPID%'
+		}
+	}
+}

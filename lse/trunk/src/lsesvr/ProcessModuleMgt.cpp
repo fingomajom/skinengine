@@ -159,8 +159,8 @@ HRESULT STDMETHODCALLTYPE CProcessModuleMgt::CallSvrFunc(
     if ( uTargetId == uCallerId )
         return E_FAIL;
 
-    ATLASSERT( m_spSvrObject.p != NULL && m_ModuleInfo.m_uModuleId != CALLERID_UNKNOWN );
-    if ( m_spSvrObject.p == NULL || m_ModuleInfo.m_uModuleId == CALLERID_UNKNOWN )
+    ATLASSERT( m_ModuleInfo.m_uModuleId != CALLERID_UNKNOWN );
+    if ( m_ModuleInfo.m_uModuleId == CALLERID_UNKNOWN )
         return E_FAIL;
 
 

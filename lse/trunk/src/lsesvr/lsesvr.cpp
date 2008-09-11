@@ -11,37 +11,48 @@
 
 #include <stdio.h>
 
-class ClsesvrModule : public CAtlServiceModuleT< ClsesvrModule, IDS_SERVICENAME >
+
+class ClsesvrModule : 
+    public CAtlServiceModuleT< ClsesvrModule, IDS_SERVICENAME >
 {
 public :
 
     ClsesvrModule()
     {
-        m_bService = (TRUE);
+        m_bService = TRUE;
     }
 
-	DECLARE_LIBID(LIBID_lsesvrLib)
-	//DECLARE_REGISTRY_APPID_RESOURCEID(IDR_LSESVR, "{99EDD16E-FC5E-4881-8419-63A7A2781391}")
+    static LPCOLESTR GetAppId() throw() 
+    { 
+        return OLESTR("{99EDD16E-FC5E-4881-8419-63A7A2781391}"); 
+    } 
+    static TCHAR* GetAppIdT() throw() 
+    { 
+        return _T("{99EDD16E-FC5E-4881-8419-63A7A2781391}"); 
+    } 
+
+
 	HRESULT InitializeSecurity() throw()
 	{
-		// TODO : Call CoInitializeSecurity and provide the appropriate security settings for 
-		// your service
-		// Suggested - PKT Level Authentication, 
-		// Impersonation Level of RPC_C_IMP_LEVEL_IDENTIFY 
-		// and an appropiate Non NULL Security Descriptor.
+        HRESULT hr = CoInitializeSecurity( NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT,
+            RPC_C_IMP_LEVEL_IDENTIFY, NULL, EOAC_NONE, NULL );
 
-		return S_OK;
+        ATLASSERT(SUCCEEDED(hr));
+
+		return hr;
 	}
 
     HRESULT Start(int nShowCmd) throw()
     {
         if (m_bService)
         {
+
             SERVICE_TABLE_ENTRY st[] =
             {
                 { m_szServiceName, _ServiceMain },
                 { NULL, NULL }
             };
+
             if (::StartServiceCtrlDispatcher(st) == 0)
                 m_status.dwWin32ExitCode = GetLastError();
 
@@ -65,17 +76,16 @@ public :
         SetServiceStatus(SERVICE_START_PENDING);
 
         m_status.dwWin32ExitCode = S_OK;
-        m_status.dwCheckPoint = 0;
-        m_status.dwWaitHint = 0;
+        m_status.dwCheckPoint    = 0;
+        m_status.dwWaitHint      = 0;
 
 #ifndef _ATL_NO_COM_SUPPORT
 
         HRESULT hr = E_FAIL;
+
         hr = InitializeCom();
         if (FAILED(hr))
         {
-            // Ignore RPC_E_CHANGED_MODE if CLR is loaded. Error is due to CLR initializing
-            // COM and InitializeCOM trying to initialize COM with different flags.
             if (hr != RPC_E_CHANGED_MODE || GetModuleHandle(_T("Mscoree.dll")) == NULL)
             {
                 return;
@@ -87,13 +97,16 @@ public :
         }
 
         m_bDelayShutdown = false;
+
 #endif //_ATL_NO_COM_SUPPORT
-        // When the Run function returns, the service has stopped.
+
         m_status.dwWin32ExitCode = Run(SW_HIDE);
 
 #ifndef _ATL_NO_COM_SUPPORT
+
         if (m_bService && m_bComInitialized)
             UninitializeCom();
+
 #endif
 
         SetServiceStatus(SERVICE_STOPPED);
@@ -132,6 +145,95 @@ public :
         return hr;
     }
 
+    HRESULT PreMessageLoop(int nShowCmd) throw()
+    {
+        HRESULT hr = S_OK;
+        if (m_bService)
+        {
+            m_dwThreadID = GetCurrentThreadId();
+
+            InitializeSecurity();
+
+            if (FAILED(hr))
+                return hr;
+        }
+
+        {
+
+#ifndef _ATL_NO_COM_SUPPORT
+
+#if ((_WIN32_WINNT >= 0x0400 ) || defined(_WIN32_DCOM)) & defined(_ATL_FREE_THREADED)
+
+            hr = RegisterClassObjects(CLSCTX_LOCAL_SERVER, 
+                REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED);
+
+            if (FAILED(hr))
+                return hr;
+
+            if (hr == S_OK)
+            {
+                if (m_bDelayShutdown)
+                {
+                    CHandle h(StartMonitor());
+                    if (h.m_h == NULL)
+                    {
+                        hr = E_FAIL;
+                    }
+                    else
+                    {
+                        hr = CoResumeClassObjects();
+                        ATLASSERT(SUCCEEDED(hr));
+                        if (FAILED(hr))
+                        {
+                            ::SetEvent(m_hEventShutdown); // tell monitor to shutdown
+                            ::WaitForSingleObject(h, m_dwTimeOut * 2);
+                        }
+                    }
+                }
+                else
+                {
+                    hr = CoResumeClassObjects();
+                    ATLASSERT(SUCCEEDED(hr));
+                }
+
+                if (FAILED(hr))
+                    RevokeClassObjects();
+            }
+            else
+            {
+                m_bDelayShutdown = false;
+            }
+
+#else
+
+            hr = RegisterClassObjects(CLSCTX_LOCAL_SERVER, 
+                REGCLS_MULTIPLEUSE);
+            if (hr == S_OK)
+            {
+                if (m_bDelayShutdown && !StartMonitor())
+                {
+                    hr = E_FAIL;
+                }
+            }
+            else
+            {
+                m_bDelayShutdown = false;
+            }
+
+
+#endif
+
+#endif	// _ATL_NO_COM_SUPPORT
+
+            ATLASSERT(SUCCEEDED(hr));
+            return hr;
+        }
+        if (FAILED(hr))
+            return hr;
+
+        return hr;
+    }
+
 
     bool ParseCommandLine(LPCTSTR lpCmdLine, HRESULT* pnRetCode) throw()
     {
@@ -144,8 +246,8 @@ public :
         {
             if (WordCmpI(lpszToken, _T("UnregServer"))==0)
             {
-                if (!Uninstall())
-                    *pnRetCode = E_FAIL;
+                
+                *pnRetCode = UnregisterAppId();
 
                 return false;
             }
@@ -153,8 +255,7 @@ public :
             // Register as Local Server
             if (WordCmpI(lpszToken, _T("RegServer"))==0)
             {
-                if (!Uninstall())
-                    *pnRetCode = E_FAIL;
+                *pnRetCode = UnregisterAppId();
 
                 if (FAILED(*pnRetCode))
                     return false;
@@ -191,21 +292,53 @@ public :
                 m_bService = FALSE;               
             }
 
-            // RegModule      xx.exe RegModule name dllfile id type
+            // RegModule      xx.exe RegModule name id type dllfile
             if (WordCmpI(lpszToken, _T("RegModule"))==0)
             {
-                *pnRetCode = 0;
+                *pnRetCode = E_FAIL;
 
-                if ( __argc != 6 )
-                    return false;
+                struct CStr2Int {
+                    static int Str2Int(const WCHAR* p )
+                    {
+                        int nRet = 0;
+
+                        while ( p != NULL && *p == ' ' )
+                            p++;
+
+                        while ( p != NULL && *p != 0 && *p>='0' && *p <= '9' )
+                            nRet = nRet * 10 + (*p++ - '0');
+                        return nRet;
+                    }
+                };
 
                 Module_Config_Info info = { 0 };
 
-                wcsncpy_s(info.szModuleName, __wargv[2], sizeof(info.szModuleName) / sizeof(TCHAR));
-                wcsncpy_s(info.szModulePathFile, __wargv[3], sizeof(info.szModulePathFile) / sizeof(TCHAR));
+                lpszToken += ( wcslen(L"RegModule") + 1 );
 
-                info.uModuleId = _ttoi( __wargv[4] );
-                info.uModuleType = _ttoi( __wargv[5] );
+                wcsncpy_s(info.szModuleName, 
+                    lpszToken, 
+                    sizeof(info.szModuleName) / sizeof(TCHAR));
+
+                LPCTSTR lpszSpace = FindOneOf( info.szModuleName, _T(" "));
+                if (lpszSpace != NULL)
+                    *const_cast<WCHAR*>(lpszSpace - 1) = 0;                
+
+                lpszToken = FindOneOf( lpszToken, _T(" ") );
+                info.uModuleId = CStr2Int::Str2Int( lpszToken );
+                while ( lpszToken != NULL && *lpszToken == ' ' )
+                    lpszToken++;
+                lpszToken = FindOneOf( lpszToken, _T(" ") );
+                info.uModuleType = CStr2Int::Str2Int( lpszToken );
+                while ( lpszToken != NULL && *lpszToken == ' ' )
+                    lpszToken++;
+                lpszToken = FindOneOf( lpszToken, _T(" ") );
+
+                if (lpszToken != NULL)
+                    wcsncpy_s(info.szModulePathFile, 
+                        lpszToken, 
+                        sizeof(info.szModulePathFile) / sizeof(TCHAR));
+                else
+                    return false;
                 
                 CModuleConfigReg reg;
 
@@ -219,12 +352,11 @@ public :
             {
                 *pnRetCode = 0;
 
-                if ( __argc != 3 )
-                    return false;
-
                 Module_Config_Info info = { 0 };
 
-                wcsncpy_s(info.szModuleName, __wargv[2], sizeof(info.szModuleName) / sizeof(TCHAR));
+                wcsncpy_s(info.szModuleName, 
+                    lpszToken + wcslen(L"UnregModule") + 1, 
+                    sizeof(info.szModuleName) / sizeof(TCHAR));
 
                 CModuleConfigReg reg;
 
@@ -244,6 +376,23 @@ public :
     {
         if (IsInstalled())
             return TRUE;
+
+        CRegKey keyAppID;
+        LONG lRes = keyAppID.Open(HKEY_CLASSES_ROOT, _T("AppID"), KEY_WRITE);
+        if (lRes != ERROR_SUCCESS)
+            return AtlHresultFromWin32(lRes);
+
+        CRegKey key;
+
+        lRes = key.Create(keyAppID, GetAppIdT());
+        if (lRes != ERROR_SUCCESS)
+            return AtlHresultFromWin32(lRes);
+
+        key.DeleteValue(_T("LocalService"));
+
+        key.SetStringValue(_T("LocalService"), m_szServiceName);
+        
+        RegisterServer(FALSE);
 
         // Get the executable file path
         TCHAR szFilePath[MAX_PATH + _ATL_QUOTES_SPACE];
@@ -308,6 +457,31 @@ public :
         ::CloseServiceHandle(hSCM);
         return TRUE;
     }
+
+    HRESULT UnregisterAppId() throw()
+    {
+        if (!Uninstall())
+            return E_FAIL;
+
+        UnregisterServer(FALSE);
+
+        // First remove entries not in the RGS file.
+        CRegKey keyAppID;
+        LONG lRes = keyAppID.Open(HKEY_CLASSES_ROOT, _T("AppID"), KEY_WRITE);
+        if (lRes != ERROR_SUCCESS)
+            return AtlHresultFromWin32(lRes);
+
+        CRegKey key;
+        lRes = key.Open(keyAppID, GetAppIdT(), KEY_WRITE);
+        if (lRes != ERROR_SUCCESS)
+            return AtlHresultFromWin32(lRes);
+        key.DeleteValue(_T("LocalService"));
+
+        return S_OK;
+        //return UpdateRegistryAppId(FALSE);
+    }
+
+
 
     void OnStop() throw()
     {

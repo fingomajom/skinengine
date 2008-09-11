@@ -22,7 +22,7 @@ enum {
     //////////////////////////////////////////////////////////////////////////
     MODULEID_UNKNOWN = 0xFFFF,
     MODULEID_ALL     = 0x10000,
-    MODULEID_SERVICE = 0x10001,
+    MODULEID_LSE_SVR = 0x10001,
     MODULEID_SCORE   = 0x10002,
     MODULEID_KAV     = 0x10003,
     MODULEID_KPFW    = 0x10004,

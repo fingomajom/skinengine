@@ -2,9 +2,13 @@
 // Microsoft Visual C++ generated include file.
 // Used by lsesvr.rc
 //
-#define IDS_SERVICENAME                 100
-#define IDS_SERVICE_DISPLAYNAME         101
-#define IDS_SERVICE_DESCRIPTION         102
+
+#define IDR_LSESVR                      101
+#define IDR_SVROBJECT                   102
+
+#define IDS_SERVICENAME                 103
+#define IDS_SERVICE_DISPLAYNAME         104
+#define IDS_SERVICE_DESCRIPTION         105
 
 // Next default values for new objects
 // 

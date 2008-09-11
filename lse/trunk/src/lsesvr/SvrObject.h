@@ -47,7 +47,7 @@ public:
     static CSvrObject& instance();
 
 
-DECLARE_REGISTRY_RESOURCEID(2)
+DECLARE_REGISTRY_RESOURCEID(IDR_SVROBJECT)
 
 DECLARE_CLASSFACTORY_EX(CSvrObjectFactory);
 
@@ -83,9 +83,16 @@ public:
     STDMETHOD(GetTypeInfo)(UINT itinfo, LCID lcid, ITypeInfo** pptinfo);
     STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR* rgszNames, UINT cNames,
         LCID lcid, DISPID* rgdispid);
-    STDMETHOD(Invoke)(DISPID dispidMember, REFIID riid,
-        LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult,
-        EXCEPINFO* pexcepinfo, UINT* puArgErr);
+
+    STDMETHOD(Invoke)(
+        DISPID      dispidMember, 
+        REFIID      riid,
+        LCID        lcid,
+        WORD        wFlags, 
+        DISPPARAMS* pdispparams, 
+        VARIANT*    pvarResult,
+        EXCEPINFO*  pexcepinfo, 
+        UINT*       puArgErr);
 
 public:
 

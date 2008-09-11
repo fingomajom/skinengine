@@ -31,7 +31,6 @@ DWORD WINAPI Thread_Invoke_Func( LPVOID pParam )
 
     CProxy_ISvrObjectEvents<CSvrObject>& proxy = CSvrObject::instance();
 
-
     //CoInitialize( NULL );
 
     proxy.m_CPMTCritSec.Lock();
