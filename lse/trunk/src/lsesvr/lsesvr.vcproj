@@ -147,7 +147,7 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -222,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\lsesvr.idl"
+				>
+			</File>
+			<File
+				RelativePath=".\lsesvrmodule.h"
 				>
 			</File>
 			<File

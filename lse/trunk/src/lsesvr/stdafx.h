@@ -26,7 +26,7 @@
 #define _WIN32_IE 0x0600	// Change this to the appropriate value to target other versions of IE.
 #endif
 
-#define _ATL_APARTMENT_THREADED
+#define _ATL_FREE_THREADED
 //#define _WIN32_DCOM
 #define _ATL_NO_AUTOMATIC_NAMESPACE
 

@@ -6,10 +6,9 @@
 #include "ModuleMgt.h"
 #include "ModuleConfig.h"
 #include "ModuleLoader.h"
-// CSvrObject
 
+#include "lsesvrmodule.h"
 
-extern HRESULT StopService();
 
 CSvrObjectFactory::CSvrObjectFactory()
 {
@@ -59,7 +58,7 @@ HRESULT STDMETHODCALLTYPE CSvrObject::Invoke(
     }
     else if (dispidMember == dispAPI_Quit)
     {
-        StopService();
+        _AtlModule.OnStop();
     }
 
     return S_OK;
