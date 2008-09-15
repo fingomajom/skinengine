@@ -20,6 +20,8 @@ class CSvrObjectFactory :
 public:
 
     CSvrObjectFactory();
+    ~CSvrObjectFactory();
+
 };
 
 static CSvrObject& instance();
@@ -79,6 +81,16 @@ END_CONNECTION_POINT_MAP()
 	void FinalRelease()
 	{
 	}
+
+    ULONG InternalAddRef()
+    {
+        return _ThreadModel::Increment(&m_dwRef);
+    }
+    ULONG InternalRelease()
+    {
+        return 1L;
+        return _ThreadModel::Decrement(&m_dwRef);
+    }
 
 public:
 

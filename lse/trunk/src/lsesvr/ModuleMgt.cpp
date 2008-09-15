@@ -86,7 +86,7 @@ HRESULT CModuleMgt::RemoveCallerCallback ( DWORD dwCookie )
 
     
     if ( uCallid != CALLERID_UNKNOWN )
-        RemoveModuleInfo( uCallid );
+        RemoveModuleInfo( uCallid , dwCookie );
 
     return hResult;
 }
@@ -138,9 +138,9 @@ HRESULT CModuleMgt::RemoveModuleInfo ( ULONG uModuleId, DWORD dwCookie  )
 
         if (pPair != NULL)
         {
-            m_mapModuleId2Info.RemoveKey( uModuleId );
-
             ModuleList = pPair->m_value;
+
+            m_mapModuleId2Info.RemoveKey( uModuleId );
         }
 
         if ( dwCookie != -1)
@@ -183,6 +183,33 @@ HRESULT CModuleMgt::RemoveModuleInfo ( ULONG uModuleId, DWORD dwCookie  )
         }
 
         break;
+    }
+
+
+    return S_OK;
+}
+
+HRESULT CModuleMgt::RemoveAllModule()
+{
+    HRESULT hResult = E_FAIL;
+    
+    while ( true )
+    {
+        DWORD uModuleId = CALLERID_UNKNOWN;
+
+        m_cs.Lock();
+        
+        POSITION pFirstPos = m_mapModuleId2Info.GetStartPosition();
+        if (pFirstPos != NULL)
+            uModuleId = m_mapModuleId2Info.GetNextKey( pFirstPos );
+
+        m_cs.Unlock();
+
+        if ( uModuleId == CALLERID_UNKNOWN )
+            break;
+
+        RemoveModuleInfo( uModuleId );
+
     }
 
 
@@ -261,3 +288,5 @@ HRESULT STDMETHODCALLTYPE CModuleMgt::CallSvrFunc(
 
     return S_OK;
 }
+
+

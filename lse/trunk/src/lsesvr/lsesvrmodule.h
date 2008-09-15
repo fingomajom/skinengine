@@ -17,6 +17,7 @@
 #include "ProcessModuleMgt.h"
 #include "ModuleLoader.h"
 #include "ModuleConfig.h"
+#include "ModuleMgt.h"
 
 #include <stdio.h>
 
@@ -34,7 +35,9 @@ public :
 
     HRESULT InitializeSecurity() throw()
     {
-        HRESULT hr = CoInitializeSecurity( NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT,
+        HRESULT hr = S_OK;
+
+        hr = CoInitializeSecurity( NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT,
             RPC_C_IMP_LEVEL_IDENTIFY, NULL, EOAC_NONE, NULL );
 
         ATLASSERT(SUCCEEDED(hr));
@@ -86,8 +89,6 @@ public :
         m_status.dwCheckPoint    = 0;
         m_status.dwWaitHint      = 0;
 
-        m_bDelayShutdown = false;
-
         m_status.dwWin32ExitCode = Run(SW_HIDE);
 
         SetServiceStatus(SERVICE_STOPPED);
@@ -111,6 +112,7 @@ public :
             loader.LoadAllModule();
 
             RunMessageLoop();
+
         }
 
         if (SUCCEEDED(hr))
@@ -135,6 +137,7 @@ public :
                 return hResult;
         }
 
+#if 0
 
         hResult = RegisterClassObjects(CLSCTX_LOCAL_SERVER, 
             REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED);
@@ -144,38 +147,18 @@ public :
 
         if (hResult == S_OK)
         {
-            if ( m_bDelayShutdown )
-            {
-                CHandle h(StartMonitor());
-
-                if (h.m_h == NULL)
-                {
-                    hResult = E_FAIL;
-                }
-                else
-                {
-                    hResult = CoResumeClassObjects();
-                    ATLASSERT(SUCCEEDED(hResult));
-                    if (FAILED(hResult))
-                    {
-                        ::SetEvent(m_hEventShutdown); // tell monitor to shutdown
-                        ::WaitForSingleObject(h, m_dwTimeOut * 2);
-                    }
-                }
-            }
-            else
-            {
-                hResult = CoResumeClassObjects();
-                ATLASSERT(SUCCEEDED(hResult));
-            }
+            hResult = CoResumeClassObjects();
+            ATLASSERT(SUCCEEDED(hResult));
 
             if (FAILED(hResult))
                 RevokeClassObjects();
         }
-        else
-        {
-            m_bDelayShutdown = false;
-        }
+#else
+
+        hResult = RegisterClassObjects(CLSCTX_LOCAL_SERVER, 
+            REGCLS_MULTIPLEUSE);
+
+#endif
 
         ATLASSERT(SUCCEEDED(hResult));
         return hResult;
@@ -205,7 +188,7 @@ public :
             if (WordCmpI(lpszToken, _T("UnregServer"))==0)
             {
 
-                *pnRetCode = UnregisterAppId();
+                *pnRetCode = Uninstall();
 
                 return false;
             }
@@ -213,7 +196,7 @@ public :
             // Register as Local Server
             if (WordCmpI(lpszToken, _T("RegServer"))==0)
             {
-                *pnRetCode = UnregisterAppId();
+                *pnRetCode = Uninstall();
 
                 if (FAILED(*pnRetCode))
                     return false;
@@ -247,7 +230,9 @@ public :
             // ProcessModule
             if (WordCmpI(lpszToken, _T("Debug"))==0)
             {
-                m_bService = FALSE;               
+                m_bService = FALSE; 
+
+                return true;
             }
 
             // RegModule      xx.exe RegModule name id type dllfile
@@ -334,7 +319,7 @@ public :
 
         CRegKey key;
 
-        lRes = key.Create(keyAppID, GetAppIdT());
+        lRes = key.Create(keyAppID, GetAppId());
         if (lRes != ERROR_SUCCESS)
             return AtlHresultFromWin32(lRes);
 
@@ -395,10 +380,10 @@ public :
         return TRUE;
     }
 
-    HRESULT UnregisterAppId() throw()
+    BOOL Uninstall() throw()
     {
-        if (!Uninstall())
-            return E_FAIL;
+        if (!IsInstalled())
+            return TRUE;
 
         UnregisterServer(FALSE);
 
@@ -408,14 +393,50 @@ public :
             return AtlHresultFromWin32(lRes);
 
         CRegKey key;
-        lRes = key.Open(keyAppID, GetAppIdT(), KEY_WRITE);
+        lRes = key.Open(keyAppID, GetAppId(), KEY_WRITE);
         if (lRes != ERROR_SUCCESS)
             return AtlHresultFromWin32(lRes);
         key.DeleteValue(_T("LocalService"));
 
-        return S_OK;
-    }
 
+        SC_HANDLE hSCM = ::OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+
+        if (hSCM == NULL)
+        {
+            //MessageBox(NULL, _T("Could not open Service Manager"), m_szServiceName, MB_OK);
+            return FALSE;
+        }
+
+        SC_HANDLE hService = ::OpenService(hSCM, m_szServiceName, SERVICE_STOP | DELETE);
+
+        if (hService == NULL)
+        {
+            ::CloseServiceHandle(hSCM);
+            //MessageBox(NULL, _T("Could not open service"), m_szServiceName, MB_OK);
+            return FALSE;
+        }
+        SERVICE_STATUS status;
+        BOOL bRet = ::ControlService(hService, SERVICE_CONTROL_STOP, &status);
+        if (!bRet)
+        {
+            DWORD dwError = GetLastError();
+            if (!((dwError == ERROR_SERVICE_NOT_ACTIVE) ||  (dwError == ERROR_SERVICE_CANNOT_ACCEPT_CTRL && status.dwCurrentState == SERVICE_STOP_PENDING)))
+            {
+                //MessageBox(NULL, _T("Could not stop service"), m_szServiceName, MB_OK);
+            }
+        }
+
+
+        BOOL bDelete = ::DeleteService(hService);
+        ::CloseServiceHandle(hService);
+        ::CloseServiceHandle(hSCM);
+
+        if (bDelete)
+            return TRUE;
+
+        //MessageBox(NULL, _T("Could not delete service"), m_szServiceName, MB_OK);
+        return FALSE;
+    }
 
     void OnUnknownRequest(DWORD /*dwOpcode*/) throw()
     {
@@ -423,13 +444,15 @@ public :
 
     void OnStop() throw()
     {
+        CModuleMgt::Instance().RemoveAllModule();
+
         SetServiceStatus(SERVICE_STOP_PENDING);
         PostThreadMessage(m_dwThreadID, WM_QUIT, 0, 0);
     }
 
-    static TCHAR* GetAppIdT() throw() 
+    static LPCOLESTR GetAppId() throw() 
     { 
-        return _T("{99EDD16E-FC5E-4881-8419-63A7A2781391}"); 
+        return OLESTR("{99EDD16E-FC5E-4881-8419-63A7A2781391}"); 
     } 
 };
 

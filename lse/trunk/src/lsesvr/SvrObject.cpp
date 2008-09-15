@@ -16,6 +16,11 @@ CSvrObjectFactory::CSvrObjectFactory()
     m_hrCreate = S_OK;
 }
 
+CSvrObjectFactory::~CSvrObjectFactory()
+{
+    m_spObj.Detach();
+}
+
 
 CSvrObject& CSvrObject::instance()
 {

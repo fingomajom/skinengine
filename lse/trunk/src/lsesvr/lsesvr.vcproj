@@ -104,8 +104,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Performing registration"
-				CommandLine="&quot;$(TargetPath)&quot; /RegServer"
+				Description=""
+				CommandLine="copy lsesvr.h ..\public"
 			/>
 		</Configuration>
 		<Configuration
@@ -145,6 +145,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
+				InlineFunctionExpansion="0"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
@@ -203,8 +204,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Performing registration"
-				CommandLine="&quot;$(TargetPath)&quot; /RegServer&#x0D;&#x0A;copy lsesvr.h ..\public&#x0D;&#x0A;"
+				Description=""
+				CommandLine="copy lsesvr.h ..\public&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

@@ -3,51 +3,54 @@
 #pragma once
 #include "resource.h"       // main symbols
 
-#include "SvrCallerSink.h"
 #include "..\public\lseiddef.h"
 #include "..\public\lsectl.h"
+#include "..\public\lsecaller.h"
 
-
-#if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
-#error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
-#endif
-
-
-
-// CSvrCaller
-
-class ATL_NO_VTABLE CSvrCaller :
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CSvrCaller, &__uuidof(ISvrCaller)>,
-	public ISvrCaller
+class CSvrCaller :
+	public ILSECaller
 {
-    friend class CSvrCallerSink;
 public:
     CSvrCaller() :
-        m_uCallerId(CALLERID_UNKNOWN)
+        m_dwRef(0)  
 	{
 	}
 
-DECLARE_REGISTRY_RESOURCEID(2)
 
+    ULONG STDMETHODCALLTYPE AddRef(void) 
+    { 
+        return (++m_dwRef); 
+    }
 
-BEGIN_COM_MAP(CSvrCaller)
-	COM_INTERFACE_ENTRY(ISvrCaller)
-	COM_INTERFACE_ENTRY(IUnknown)
-END_COM_MAP()
+    ULONG STDMETHODCALLTYPE Release( void) 
+    { 
+        if (--m_dwRef == 0)
+        {
+            delete this;
+        }
 
+        return (m_dwRef);
+    } 
 
+    HRESULT STDMETHODCALLTYPE QueryInterface( 
+        /* [in] */ REFIID riid, 
+        /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject) 
+    {
 
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
-
-	HRESULT FinalConstruct()
-	{
-		return S_OK;
-	}
-
-	void FinalRelease()
-	{
-	}
+        if ((riid) == __uuidof(ILSECaller)) 
+        { 
+            *ppvObject = static_cast<ILSECaller*>(this); 
+            AddRef();
+            return S_OK;
+        }
+        else if ((riid) == IID_IUnknown)
+        {
+            *ppvObject = static_cast<IUnknown*>(this); 
+            AddRef();
+            return S_OK;
+        }
+        return E_FAIL; 
+    }
 
     virtual HRESULT STDMETHODCALLTYPE Initialize( 
         /* [in] */ ULONG     uCallerId,
@@ -60,20 +63,11 @@ END_COM_MAP()
         /* [out] */ IDataBuffer** ppResult);
 
 
-public:
-
-
 private:
 
-    HRESULT Relive();
-
-    ULONG m_uCallerId;
-
-    CComPtr<IDispatch>       m_spSvrObject;
-    CComPtr<INotifyCallback> m_spCallback;
-
-    CSvrCallerSink m_svrCallerSink;
-
+    UINT m_dwRef;
+    
+    CLSECaller m_lseCaller;
 };
 
-OBJECT_ENTRY_AUTO(__uuidof(SvrCaller), CSvrCaller)
+//OBJECT_ENTRY_AUTO(__uuidof(SvrCaller), CSvrCaller)

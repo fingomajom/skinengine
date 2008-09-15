@@ -13,8 +13,8 @@
 
 #include "IDataBuffer.h"
 
-struct __declspec(uuid("B0B1411F-5D5E-4de1-B4B3-89A276084E2E")) ISvrCaller;
-interface ISvrCaller : public IUnknown
+struct __declspec(uuid("B0B1411F-5D5E-4de1-B4B3-89A276084E2E")) ILSECaller;
+interface ILSECaller : public IUnknown
 {
 public:
 
@@ -33,7 +33,7 @@ public:
 };
 
 MIDL_INTERFACE("44E918C4-0540-4d63-BFEA-1BBA0D5CCBFA")
-INotifyCallback : public IUnknown
+ILSECallback : public IUnknown
 {
 public:
 

@@ -4,16 +4,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "..\public\lsectl.h"
-
-
-class ClsectlModule : public CAtlDllModuleT< ClsectlModule >
-{
-public :
-	//DECLARE_LIBID(LIBID_lsectlLib)
-	//DECLARE_REGISTRY_APPID_RESOURCEID(IDR_LSECTL, "{75705836-AFAC-4B60-B80B-9A40B69602F4}")
-};
-
-ClsectlModule _AtlModule;
+#include "SvrCaller.h"
 
 
 #ifdef _MANAGED
@@ -23,8 +14,18 @@ ClsectlModule _AtlModule;
 // DLL Entry Point
 extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	hInstance;
-    return _AtlModule.DllMain(dwReason, lpReserved); 
+
+    switch ( dwReason )
+    {
+    case DLL_PROCESS_ATTACH:
+        CoInitialize( NULL );
+        break;
+    case DLL_PROCESS_DETACH:
+        CoUninitialize();
+        break;
+    }
+    return TRUE;
+    //return _AtlModule.DllMain(dwReason, lpReserved); 
 }
 
 #ifdef _MANAGED
@@ -32,35 +33,22 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpRes
 #endif
 
 
-
-
-// Used to determine whether the DLL can be unloaded by OLE
 STDAPI DllCanUnloadNow(void)
 {
-    return _AtlModule.DllCanUnloadNow();
+    return S_OK;
 }
 
-
-// Returns a class factory to create an object of the requested type
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 {
-    return _AtlModule.DllGetClassObject(rclsid, riid, ppv);
-}
+    if ( ppv != NULL && riid == __uuidof(ILSECaller) )
+    {
+        ILSECaller* piSvrCaller = new CSvrCaller();
 
+        *ppv = piSvrCaller;
 
-// DllRegisterServer - Adds entries to the system registry
-STDAPI DllRegisterServer(void)
-{
-    // registers object, typelib and all interfaces in typelib
-    HRESULT hr = _AtlModule.DllRegisterServer();
-	return hr;
-}
+        return *ppv != NULL ? S_OK : E_FAIL;
+    }
 
-
-// DllUnregisterServer - Removes entries from the system registry
-STDAPI DllUnregisterServer(void)
-{
-	HRESULT hr = _AtlModule.DllUnregisterServer();
-	return hr;
+    return S_OK;
 }
 

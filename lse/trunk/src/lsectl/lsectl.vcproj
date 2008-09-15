@@ -144,7 +144,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
-				FavorSizeOrSpeed="2"
+				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL"
 				ExceptionHandling="0"
@@ -251,6 +251,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\public\lsecaller.h"
+				>
+			</File>
+			<File
 				RelativePath="..\public\lseiddef.h"
 				>
 			</File>
@@ -282,27 +286,11 @@
 			Name="SvrCaller"
 			>
 			<File
-				RelativePath="..\public\IDataBuffer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\public\lsectl.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SvrCaller.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\SvrCaller.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SvrCallerSink.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SvrCallerSink.h"
 				>
 			</File>
 		</Filter>

@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by lsectl.rc
 //
-#define IDS_PROJNAME                    100
 #define IDR_LSECTL                      101
 #define IDR_SVRCALLER                   102
 

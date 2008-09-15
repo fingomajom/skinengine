@@ -276,9 +276,13 @@ HRESULT CModuleInfo::Uninit()
     }
     else if ( m_utype == em_info_type_caller )
     {
-        m_spCallback->Invoke(dispAPI_Quit, 
-            IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, 
-            NULL, NULL, NULL, NULL);
+        CComVariant varResult;
+        DISPPARAMS params = { NULL, NULL, 0, 0 };
+
+        Call_Thread_Invoke( m_uCookie, 
+            dispAPI_Quit,
+            &params,
+            &varResult);
     }
 
     return S_OK;
