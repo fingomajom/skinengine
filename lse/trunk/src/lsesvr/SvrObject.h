@@ -41,8 +41,6 @@ class ATL_NO_VTABLE CSvrObject :
 public:
 	CSvrObject()
 	{
-        InternalAddRef();
-        InternalAddRef();
 	}
 
 
