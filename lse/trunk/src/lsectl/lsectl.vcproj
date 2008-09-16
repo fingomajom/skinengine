@@ -205,6 +205,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy Release\lsectl.dll ..\bin"
 			/>
 		</Configuration>
 	</Configurations>

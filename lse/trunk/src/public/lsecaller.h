@@ -247,11 +247,13 @@ protected:
             if (pDispParams == NULL || pDispParams->cArgs != 5)
                 return E_FAIL;
 
-            if (  pDispParams->rgvarg[4].vt != VT_UI4 ||
-                pDispParams->rgvarg[3].vt != VT_UI4 ||
-                pDispParams->rgvarg[2].vt != VT_UI4 ||
+            if (   pDispParams->rgvarg[4].vt != VT_UI4 ||
+                   pDispParams->rgvarg[3].vt != VT_UI4 ||
+                   pDispParams->rgvarg[2].vt != VT_UI4 ||
                 !( pDispParams->rgvarg[1].vt & VT_ARRAY ) )
+            {
                 return E_FAIL;
+            }
 
             spParameter = SafeArray2DataBuffer( pDispParams->rgvarg[1].parray );
 

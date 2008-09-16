@@ -137,7 +137,7 @@ public :
                 return hResult;
         }
 
-#if 0
+#if TRUE
 
         hResult = RegisterClassObjects(CLSCTX_LOCAL_SERVER, 
             REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED);
@@ -238,21 +238,27 @@ public :
             // RegModule      xx.exe RegModule name id type dllfile
             if (WordCmpI(lpszToken, _T("RegModule"))==0)
             {
+                TCHAR szBuffer[MAX_PATH] = { 0 };
+
                 *pnRetCode = E_FAIL;
 
                 Module_Config_Info info = { 0 };
 
                 lpszToken += ( wcslen(L"RegModule") + 1 );
 
-                wcsncpy_s(info.szModuleName, 
+                wcsncpy_s(szBuffer, 
                     lpszToken, 
-                    sizeof(info.szModuleName) / sizeof(TCHAR));
+                    sizeof(szBuffer) / sizeof(TCHAR));
 
-                LPCTSTR lpszSpace = FindOneOf( info.szModuleName, _T(" "));
+                LPCTSTR lpszSpace = FindOneOf( szBuffer, _T(" "));
                 if (lpszSpace != NULL)
                 {
                     *const_cast<WCHAR*>(lpszSpace - 1) = 0;   
                 }
+
+                wcsncpy_s(info.szModuleName, 
+                    szBuffer, 
+                    sizeof(info.szModuleName) / sizeof(TCHAR));
 
                 lpszToken = FindOneOf( lpszToken, _T(" ") );
                 info.uModuleId = Str2Int( lpszToken );

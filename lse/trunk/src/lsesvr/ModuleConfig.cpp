@@ -139,7 +139,15 @@ BOOL CModuleConfigReg::SetModuleConfig(const Module_Config_Info& config)
     {
         if (regNew.Create( reg, config.szModuleName ) != ERROR_SUCCESS )
             return FALSE;
+
+        regNew.Close();
     }
+
+    if ( regNew.Open( reg , config.szModuleName, KEY_READ | KEY_WRITE) != ERROR_SUCCESS )
+    {
+        return FALSE;
+    }
+
 
     if ( regNew.SetStringValue( _T("ImagePathFile"), config.szModulePathFile) != ERROR_SUCCESS )
         return FALSE;
