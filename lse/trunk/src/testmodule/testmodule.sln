@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmodule", "testmodule.vcproj", "{760ED92F-752E-4CAA-A6B4-C19D8112D9CB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmodulePS", "testmodulePS.vcproj", "{AB20ABC8-F08B-41D1-A139-CB74672DAF19}"
+	ProjectSection(ProjectDependencies) = postProject
+		{760ED92F-752E-4CAA-A6B4-C19D8112D9CB} = {760ED92F-752E-4CAA-A6B4-C19D8112D9CB}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{760ED92F-752E-4CAA-A6B4-C19D8112D9CB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{760ED92F-752E-4CAA-A6B4-C19D8112D9CB}.Debug|Win32.Build.0 = Debug|Win32
+		{760ED92F-752E-4CAA-A6B4-C19D8112D9CB}.Release|Win32.ActiveCfg = Release|Win32
+		{760ED92F-752E-4CAA-A6B4-C19D8112D9CB}.Release|Win32.Build.0 = Release|Win32
+		{AB20ABC8-F08B-41D1-A139-CB74672DAF19}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AB20ABC8-F08B-41D1-A139-CB74672DAF19}.Release|Win32.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

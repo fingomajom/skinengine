@@ -1,0 +1,9 @@
+; testmodule.def : Declares the module parameters.
+
+LIBRARY      "testmodule.DLL"
+
+EXPORTS
+	DllCanUnloadNow		PRIVATE
+	DllGetClassObject	PRIVATE
+;	DllRegisterServer	PRIVATE
+;	DllUnregisterServer	PRIVATE
