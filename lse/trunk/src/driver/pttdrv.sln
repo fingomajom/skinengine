@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pttdrv", "pttdrv.vcproj", "{CBE4506A-C079-4886-AEA5-068A5720589D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Checked|Win32 = Checked|Win32
+		Free|Win32 = Free|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CBE4506A-C079-4886-AEA5-068A5720589D}.Checked|Win32.ActiveCfg = Checked|Win32
+		{CBE4506A-C079-4886-AEA5-068A5720589D}.Checked|Win32.Build.0 = Checked|Win32
+		{CBE4506A-C079-4886-AEA5-068A5720589D}.Free|Win32.ActiveCfg = Free|Win32
+		{CBE4506A-C079-4886-AEA5-068A5720589D}.Free|Win32.Build.0 = Free|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
