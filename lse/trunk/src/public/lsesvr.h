@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 6.00.0366 */
-/* at Wed Oct 15 17:35:50 2008
+/* at Thu Oct 16 11:35:00 2008
  */
 /* Compiler settings for .\lsesvr.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)

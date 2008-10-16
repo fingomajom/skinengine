@@ -54,4 +54,5 @@ typedef int (__stdcall *PROC)();
 #include "selfdestroy.h"
 #include "inlinehook.h"
 #include "hookssdt.h"
-
+#include "knlosinfo.h"
+#include "hookpointmgt.h"

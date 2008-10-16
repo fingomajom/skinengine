@@ -26,13 +26,44 @@ extern NTSYSAPI KPROCESSOR_MODE NTAPI KeGetPreviousMode();
 
 #pragma pack(push, 1)
 
-typedef struct
+
+typedef struct _SYSTEM_SERVICE_TABLE
 {
-    PVOID* pServiceTable;   //Service Table Pointer
-    PULONG pulTableCounter; //Table Item Counter. This table is only updated in checked builds.
-    ULONG  ulServiceCounter;//Number of services contained in this table.
-    PUCHAR rguchParamTable;	//Table containing the number of bytes of parameters the handler function takes.
-}SERVICE_TABLE;
+    PULONG  ServiceTable;       //Service Table Pointer
+    PULONG  CounterTableBase;   //Table Item Counter. This table is only updated in checked builds.
+    ULONG   ServiceLimit;       //Number of services contained in this table.
+    PUCHAR  ArgumentTable;      //Table containing the number of bytes of parameters the handler function takes.
+} SYSTEM_SERVICE_TABLE, *PSYSTEM_SERVICE_TABLE;
 
 #pragma pack(pop)
+
+__declspec(dllimport) SYSTEM_SERVICE_TABLE KeServiceDescriptorTable[4];
+
+#define HOOK_SYSCALL(_Function, _Hook, _Orig )  \
+{ \
+    (*_Orig) = (PVOID) InterlockedExchange( (PLONG) &KeServiceDescriptorTable->ServiceTable[ FUNCTION_PTR(_Function) ], (LONG) _Hook );}
+
+#define UNHOOK_SYSCALL(_Function, _Orig )  \
+{ \
+    InterlockedExchange( (PLONG) &KeServiceDescriptorTable->ServiceTable[ FUNCTION_PTR(_Function) ], (LONG) _Orig ); }
+
+
+#define HOOK_SYSCALL_INDEX(_Index, _Hook, _Orig )  \
+{ \
+    (*_Orig) = (PVOID) InterlockedExchange( (PLONG) &KeServiceDescriptorTable->ServiceTable[ _Index ], (LONG) _Hook );}
+
+
+#define UNHOOK_SYSCALL_INDEX(_Index, _Orig )  \
+{ \
+    InterlockedExchange( (PLONG) &KeServiceDescriptorTable->ServiceTable[ _Index ], (LONG) _Orig ); }
+
+
+#define HOOK_SYSCALL_SHADOW_INDEX(_Index, _Hook, _Orig )  \
+{ \
+    (*_Orig) = (PVOID) InterlockedExchange( (PLONG) &KeServiceTable[ _Index ], (LONG) _Hook );}
+
+#define UNHOOK_SYSCALL_SHADOW_INDEX(_Index, _Orig )  \
+{ \
+    InterlockedExchange( (PLONG) &KeServiceTable[ _Index ], (LONG) _Orig ); }
+
 

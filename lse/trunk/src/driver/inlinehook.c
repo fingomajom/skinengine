@@ -2,10 +2,6 @@
 #pragma hdrstop
 
 
-
-hook_item_info g_hook_function_array[ hook_function_count ] = { 0 };
-
-
 //////////////////////////////////////////////////////////////////////////
 
 NTSYSAPI NTSTATUS NTAPI KeUserModeCallback(
@@ -16,93 +12,21 @@ NTSYSAPI NTSTATUS NTAPI KeUserModeCallback(
     PULONG OutputLength);
 
 
-NTSYSCALLAPI NTSTATUS NTAPI ZwOpenProcess (
-    PHANDLE ProcessHandle,
-    ACCESS_MASK DesiredAccess,
-    POBJECT_ATTRIBUTES ObjectAttributes,
-    PCLIENT_ID ClientId); 
+NTSYSAPI NTSTATUS NTAPI ZwQuerySystemInformation(
+    ULONG SystemInformationClass,
+    PVOID SystemInformation,
+    ULONG SystemInformationLength,
+    PULONG ReturnLength);
+
+//NTSYSAPI NTSTATUS NTAPI ZwQuerySection(
+//    HANDLE SectionHandle,
+//    SECTION_INFORMATION_CLASS SectionInformationClass,
+//    PVOID SectionInformation,
+//    SIZE_T Length,
+//    PSIZE_T ResultLength);
 
 //////////////////////////////////////////////////////////////////////////
 
-
-BOOL init_hook()
-{
-    RtlZeroMemory(g_hook_function_array, sizeof(g_hook_function_array));
-
-    g_hook_function_array[hook_ke_user_mode_callback].bcanhook    = TRUE;
-    g_hook_function_array[hook_ke_user_mode_callback].ptargetfunc = (void *)KeUserModeCallback;
-    g_hook_function_array[hook_ke_user_mode_callback].phookfunc   = (void *)HookKeUserModeCallback;
-
-    g_hook_function_array[hook_nt_open_process].bcanhook    = TRUE;
-    g_hook_function_array[hook_nt_open_process].ptargetfunc = GetServiceAddress(ZwOpenProcess);
-    g_hook_function_array[hook_nt_open_process].phookfunc   = (void *)HookNtOpenProcess;
-
-
-    return TRUE;
-}
-
-BOOL uninit_hook()
-{
-    return TRUE;
-}
-
-
-BOOL install_all_hook()
-{
-    int nLoop = 0;
-
-    init_hook();
-
-
-    for (nLoop = 0; nLoop < hook_function_count; nLoop ++)
-    {
-        if (g_hook_function_array[nLoop].bcanhook && g_hook_function_array[nLoop].ptargetfunc == NULL)
-        {
-            g_hook_function_array[nLoop].bcanhook = FALSE;
-        }
-    }
-
-    for (nLoop = 0; nLoop < hook_function_count; nLoop ++)
-    {
-        if (g_hook_function_array[nLoop].bcanhook == TRUE)
-        {
-            install_hook( &g_hook_function_array[nLoop] );
-        }
-    }
-
-    return TRUE;
-
-}
-
-BOOL uninstall_all_hook()
-{
-    LARGE_INTEGER liSleepTime;
-    int nLoop;
-
-    for (nLoop = 0; nLoop < hook_function_count; nLoop ++)
-    {
-        if (g_hook_function_array[nLoop].bcanhook == TRUE)
-        {
-            uninstall_hook( &g_hook_function_array[nLoop] );
-        }
-    }
-
-    liSleepTime.QuadPart = - 2/*seconds*/ *1000*1000*10 ;
-
-    KeDelayExecutionThread (KernelMode, TRUE, &liSleepTime) ;
-
-
-    return TRUE;
-}
-
-
-PROC get_stub_func_address( em_hook_func_type funcid )
-{
-    if (funcid >= hook_function_count)
-        return NULL;
-
-    return (PROC)g_hook_function_array[funcid].pstubbuf;
-}
 
 
 

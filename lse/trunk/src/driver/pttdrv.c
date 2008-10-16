@@ -104,6 +104,9 @@ NTSTATUS StartWorking()
 
     do 
     {
+        if ( !InitKernelVersion() )
+            break;
+
         ntStatus = InitProcessNotify();
         if ( ntStatus != STATUS_SUCCESS )
             break;
@@ -127,9 +130,9 @@ NTSTATUS StopWorking()
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
-    UninitProcessNotify();
+    //UninitProcessNotify();
 
-    uninstall_all_hook();
+    //uninstall_all_hook();
 
     return ntStatus;
 }

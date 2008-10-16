@@ -4,7 +4,6 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-__declspec(dllimport) SERVICE_TABLE KeServiceDescriptorTable[4];
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +41,7 @@ PVOID HookSystemService(ULONG ulService, PVOID pfnNewHandler)
 {
     ULONG ulSST, ulIndex;
     PVOID *pfnHandler, pfnOldHandler;
-    SERVICE_TABLE *pDescriptor;
+    SYSTEM_SERVICE_TABLE *pDescriptor;
 
     if (!ValidId (ulService)) 
     {
@@ -58,12 +57,12 @@ PVOID HookSystemService(ULONG ulService, PVOID pfnNewHandler)
         return NULL;
     }
 
-    if (pDescriptor->ulServiceCounter < ulIndex) 
+    if (pDescriptor->ServiceLimit < ulIndex) 
     {
         return NULL;
     }
 
-    pfnHandler = &pDescriptor->pServiceTable[ulIndex];
+    pfnHandler = (PVOID *)&pDescriptor->ServiceTable[ulIndex];
 
     pfnOldHandler = *pfnHandler;
 
@@ -100,7 +99,7 @@ PVOID GetServiceAddress(PVOID pFunc)
     ULONG ulService;
     ULONG ulSST, ulIndex;
     PVOID *pfnHandler, pfnOldHandler;
-    SERVICE_TABLE *pDescriptor;
+    SYSTEM_SERVICE_TABLE *pDescriptor;
 
     ulService = ServiceIdFromFn(pFunc);
     if (ulService == 0UL)
@@ -120,12 +119,12 @@ PVOID GetServiceAddress(PVOID pFunc)
         return NULL;
     }
 
-    if (pDescriptor->ulServiceCounter < ulIndex) 
+    if (pDescriptor->ServiceLimit < ulIndex) 
     {
         return NULL;
     }
 
-    pfnHandler = &pDescriptor->pServiceTable[ulIndex];
+    pfnHandler = (PVOID*)&pDescriptor->ServiceTable[ulIndex];
 
     pfnOldHandler = *pfnHandler;
 

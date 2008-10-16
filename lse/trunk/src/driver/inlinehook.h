@@ -36,37 +36,12 @@ typedef struct tag_hook_item_info
 
 }hook_item_info, *lp_hook_item_info;
 
-//////////////////////////////////////////////////////////////////////////
-
-
-BOOL install_all_hook();
-BOOL uninstall_all_hook();
 
 //////////////////////////////////////////////////////////////////////////
 
 BOOL install_hook     ( lp_hook_item_info phookinfo );
 BOOL uninstall_hook   ( lp_hook_item_info phookinfo );
 BOOL safe_install_hook( lp_hook_item_info phookinfo );
-
-
-//BOOL init_hook();
-//BOOL uninit_hook();
-
-
-
-typedef enum{
-
-    hook_ke_user_mode_callback = 0,
-
-    hook_nt_open_process = 1,
-
-    hook_function_count
-
-} em_hook_func_type ;
-
-
-PROC get_stub_func_address( em_hook_func_type funcid );
-
 
 
 #define WPOFF() \
@@ -80,17 +55,4 @@ PROC get_stub_func_address( em_hook_func_type funcid );
     _asm mov cr0, eax
 
 
-//////////////////////////////////////////////////////////////////////////
 
-NTSTATUS NTAPI HookKeUserModeCallback(
-    ULONG  ApiNumber, 
-    PVOID  InputBuffer, 
-    ULONG  InputLength, 
-    PVOID *OutputBuffer,
-    PULONG OutputLength);
-
-NTSTATUS NTAPI HookNtOpenProcess(
-    PHANDLE     ProcessHandle,
-    ACCESS_MASK DesiredAccess,
-    POBJECT_ATTRIBUTES ObjectAttributes,
-    PCLIENT_ID  ClientId);

@@ -44,7 +44,7 @@
 				UseUnicodeResponseFiles="true"
 				Optimization="0"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="E:\WINDDK\3790\inc\ifs\w2k;E:\WINDDK\3790\inc\ddk\w2k;E:\WINDDK\3790\inc\w2k;E:\WINDDK\3790\inc\crt"
+				AdditionalIncludeDirectories="E:\WINDDK\3790\inc\ifs\wnet;E:\WINDDK\3790\inc\ddk\wnet;E:\WINDDK\3790\inc\wnet;E:\WINDDK\3790\inc\crt"
 				PreprocessorDefinitions="_X86_=1;i386=1;STD_CALL;CONDITION_HANDLING=1;NT_INST=0;_NT1X_=100;WINNT=1;WIN32_LEAN_AND_MEAN=1;DEVL=1;FPO=0;NDEBUG;_DLL=1;DBG=1;DEPRECATE_DDK_FUNCTIONS"
 				IgnoreStandardIncludePath="true"
 				StringPooling="true"
@@ -80,11 +80,11 @@
 				Version="5.0"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="D:\ntddk\lib\w2k\i386;D:\ntddk\lib\wlh\i386"
+				AdditionalLibraryDirectories="E:\WINDDK\3790\lib\w2k\i386;E:\WINDDK\3790\lib\wlh\i386"
 				GenerateManifest="false"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/KSSafeBoxSys.pdb"
+				ProgramDatabaseFile="..\product\win32d\$(ProjectName).pdb"
 				StackReserveSize="262144"
 				StackCommitSize="4096"
 				OptimizeReferences="2"
@@ -149,7 +149,7 @@
 				Optimization="3"
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="d:\WINDDK\3790\inc\ifs\w2k;d:\WINDDK\3790\inc\ddk\w2k;d:\WINDDK\3790\inc\w2k;d:\WINDDK\3790\inc\crt;..\..\Common;.\"
+				AdditionalIncludeDirectories="E:\WINDDK\3790\inc\ifs\wnet;E:\WINDDK\3790\inc\ddk\wnet;E:\WINDDK\3790\inc\wnet;E:\WINDDK\3790\inc\crt"
 				PreprocessorDefinitions="_X86_=1;i386=1;STD_CALL;CONDITION_HANDLING=1;NT_INST=0;WIN32=100;_NT1X_=100;WINNT=1;WIN32_LEAN_AND_MEAN=1;DEVL=1;FPO=0;NDEBUG;_DLL=1"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -182,7 +182,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/subsystem:native /ignore:4010,4037,4039,4065,4070,4078,4087,4089,4221,4210 /driver&#x0D;&#x0A;/SAFESEH:NO"
 				AdditionalDependencies="ntoskrnl.lib hal.lib wmilib.lib sehupd.lib"
-				OutputFile="../../product/win32/KPPDriver.sys"
+				OutputFile="..\product\win32\$(ProjectName).sys"
 				Version="5.0"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -241,11 +241,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\hookpointmgt.c"
+				>
+			</File>
+			<File
 				RelativePath=".\hookssdt.c"
 				>
 			</File>
 			<File
 				RelativePath=".\inlinehook.c"
+				>
+			</File>
+			<File
+				RelativePath=".\knlosinfo.c"
 				>
 			</File>
 			<File
@@ -270,11 +278,19 @@
 			Filter=".h"
 			>
 			<File
+				RelativePath=".\hookpointmgt.h"
+				>
+			</File>
+			<File
 				RelativePath=".\hookssdt.h"
 				>
 			</File>
 			<File
 				RelativePath=".\inlinehook.h"
+				>
+			</File>
+			<File
+				RelativePath=".\knlosinfo.h"
 				>
 			</File>
 			<File
