@@ -196,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EditRuleDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mfckpstest.cpp"
 				>
 			</File>
@@ -234,6 +238,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EditRuleDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mfckpstest.h"
 				>
 			</File>
@@ -265,6 +273,18 @@
 			</File>
 			<File
 				RelativePath=".\res\mfckpstest.rc2"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="pttdrvctl"
+			>
+			<File
+				RelativePath=".\ProtectDevC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProtectDevC.h"
 				>
 			</File>
 		</Filter>

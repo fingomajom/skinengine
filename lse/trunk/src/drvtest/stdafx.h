@@ -53,6 +53,7 @@
 
 
 
+#include "..\public\pttdrvcom.h"
 
 
 

@@ -5,8 +5,8 @@
 #include "mfckpstest.h"
 #include "mfckpstestDlg.h"
 #include "CommonFunc.h"
+#include "EditRuleDlg.h"
 
-#include "..\public\pttdrvcom.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -57,7 +57,10 @@ CmfckpstestDlg::CmfckpstestDlg(CWnd* pParent /*=NULL*/)
 
 void CmfckpstestDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+    CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_BLACK_LIST, m_black_rule_list);
+    DDX_Control(pDX, IDC_WHITE_LIST, m_white_rule_list);
+    DDX_Control(pDX, IDC_PROTECT_LIST, m_protect_rule_list);
 }
 
 BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
@@ -68,6 +71,17 @@ BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
     ON_BN_CLICKED(IDC_INSTALL, &CmfckpstestDlg::OnBnClickedInstall)
     ON_BN_CLICKED(IDC_UNINSTALL, &CmfckpstestDlg::OnBnClickedUninstall)
     ON_BN_CLICKED(IDC_ADD_PROTECT_FILE, &CmfckpstestDlg::OnBnClickedAddProtectFile)
+    ON_BN_CLICKED(IDC_ADD_BLACK_FILE, &CmfckpstestDlg::OnBnClickedAddBlackFile)
+    ON_BN_CLICKED(IDC_ADD_WHITE_FILE, &CmfckpstestDlg::OnBnClickedAddWhiteFile)
+    ON_BN_CLICKED(IDC_CLEAR_BLACK_FILE, &CmfckpstestDlg::OnBnClickedClearBlackFile)
+    ON_BN_CLICKED(IDC_CLEAR_WHITE_FILE, &CmfckpstestDlg::OnBnClickedClearWhiteFile)
+    ON_BN_CLICKED(IDC_CLEAR_PROTECT_FILE, &CmfckpstestDlg::OnBnClickedClearProtectFile)
+    ON_NOTIFY(NM_DBLCLK, IDC_BLACK_LIST, &CmfckpstestDlg::OnNMDblclkBlackList)
+    ON_NOTIFY(NM_DBLCLK, IDC_WHITE_LIST, &CmfckpstestDlg::OnNMDblclkWhiteList)
+    ON_NOTIFY(NM_DBLCLK, IDC_PROTECT_LIST, &CmfckpstestDlg::OnNMDblclkProtectList)
+    ON_BN_CLICKED(IDC_SET_BLACK_FILE, &CmfckpstestDlg::OnBnClickedSetBlackFile)
+    ON_BN_CLICKED(IDC_SET_WHITE_FILE, &CmfckpstestDlg::OnBnClickedSetWhiteFile)
+    ON_BN_CLICKED(IDC_SET_PROTECT_FILE, &CmfckpstestDlg::OnBnClickedSetProtectFile)
 END_MESSAGE_MAP()
 
 
@@ -101,8 +115,13 @@ BOOL CmfckpstestDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
 
+    InitRuleList(m_black_rule_list);
+    InitRuleList(m_white_rule_list);
+    InitRuleList(m_protect_rule_list);
+
+    if ( !m_devc.InitDevC() )
+        AfxMessageBox(_T("打开驱动设置错误。。。"));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -183,37 +202,239 @@ void CmfckpstestDlg::OnBnClickedUninstall()
 
 }
 
+
+void CmfckpstestDlg::InitRuleList(CListCtrl& ListCtrl)
+{
+    ListCtrl.InsertColumn(0, _T("Type"), 0, 50);
+    ListCtrl.InsertColumn(1, _T("Content"), 0, 215);
+
+    ListCtrl.SetExtendedStyle( LVS_EX_FULLROWSELECT );
+}
+
+void CmfckpstestDlg::UpdateRuleList( CListCtrl& ListCtrl, DRIVER_RULE_INFO& RuleInfo, int idx )
+{
+    CString strType;
+    CString strContent;
+
+    switch( RuleInfo.uContentType )
+    {
+    case CT_ID:
+        
+        strType = L"ID";
+
+        break;
+
+    case CT_NAME:
+
+        strType = L"NAME";
+
+        break;
+
+    case CT_PATH:
+
+        strType = L"PATH";
+
+        break;
+
+    case CT_PATHFILE:
+
+        strType = L"PATHFILE";
+
+        break;
+
+    default:
+
+        strType = L"NONE";
+
+    }
+
+    if ( RuleInfo.uContentType == CT_ID )
+        strContent.Format( _T("%d"), RuleInfo.uProcessId );
+    else
+        strContent = RuleInfo.wszFileName;
+
+
+    ListCtrl.SetItemText( idx, 0, strType);
+    ListCtrl.SetItemText( idx, 1, strContent);
+}
+
+
+
+void CmfckpstestDlg::AddRule( CListCtrl& ListCtrl, std::vector<DRIVER_RULE_INFO>& vtRule )
+{
+    CEditRuleDlg dlg;
+
+    if ( dlg.DoModal() == IDOK )
+    {
+        vtRule.push_back( dlg.m_RuleInfo );
+
+        int idx = ListCtrl.InsertItem( 0xFFFF, L"" );
+
+        UpdateRuleList( ListCtrl, dlg.m_RuleInfo, idx);
+    }
+
+}
+
+void CmfckpstestDlg::DelRule( CListCtrl& ListCtrl, std::vector<DRIVER_RULE_INFO>& vtRule , int idx )
+{
+    ListCtrl.DeleteItem( idx );
+    vtRule.erase( vtRule.begin() + idx );
+
+    if ( idx >= ListCtrl.GetItemCount() )
+        ListCtrl.SetItemState( idx - 1, LVIS_SELECTED, LVIS_SELECTED);
+    else
+        ListCtrl.SetItemState( idx, LVIS_SELECTED, LVIS_SELECTED);
+
+}
+
+void CmfckpstestDlg::EditRule( CListCtrl& ListCtrl, std::vector<DRIVER_RULE_INFO>& vtRule , int idx )
+{
+
+    CEditRuleDlg dlg;
+
+    dlg.m_RuleInfo = vtRule[idx];
+
+    if ( dlg.DoModal() == IDOK )
+    {
+        vtRule[idx] = dlg.m_RuleInfo;
+
+        UpdateRuleList( ListCtrl, dlg.m_RuleInfo, idx);
+    }
+
+}
+
+
+void CmfckpstestDlg::OnBnClickedAddBlackFile()
+{
+    AddRule( m_black_rule_list, m_vtblack_rule_list );
+}
+
+void CmfckpstestDlg::OnBnClickedAddWhiteFile()
+{
+    AddRule( m_white_rule_list, m_vtwhite_rule_list );
+}
+
 void CmfckpstestDlg::OnBnClickedAddProtectFile()
 {
-    HANDLE hHandle = NULL;
+    AddRule( m_protect_rule_list, m_vtprotect_rule_list );
+}
 
-    DWORD dwBuffLen = sizeof(DRIVER_RULE_INFO);
 
-    if ( !OpenDevice( DriverName, &hHandle ) )
+void CmfckpstestDlg::OnBnClickedClearBlackFile()
+{
+    int idx = m_black_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
         return;
 
-    OutputDebugString(L"OpenDevice success");
+    DelRule( m_black_rule_list, m_vtblack_rule_list, idx);
+}
 
+void CmfckpstestDlg::OnBnClickedClearWhiteFile()
+{
+    int idx = m_white_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
+        return;
 
-    DRIVER_RULE_INFO RuleInfo = { 0 };
+    DelRule( m_white_rule_list, m_vtwhite_rule_list, idx);
+}
 
-    RuleInfo.uRuleType = RT_PROTECTRULE;
-    RuleInfo.uContentType = CT_PATHFILE;
+void CmfckpstestDlg::OnBnClickedClearProtectFile()
+{
+    int idx = m_protect_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
+        return;
 
-    ::GetModuleFileNameW(NULL, RuleInfo.wszProcessPathFile, MAX_PATH);
+    DelRule( m_protect_rule_list, m_vtprotect_rule_list, idx);
+}
 
+void CmfckpstestDlg::OnNMDblclkBlackList(NMHDR *pNMHDR, LRESULT *pResult)
+{
 
-    DeviceIoControl(
-        hHandle,
-        IOCTL_PTTDRV_APPEND_RULE_INFO,
-        &RuleInfo,
-        sizeof(DRIVER_RULE_INFO),
-        &RuleInfo,
-        dwBuffLen,
-        &dwBuffLen,
-        NULL
-        );
+    int idx = m_black_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
+        return;
+    
+    EditRule( m_black_rule_list, m_vtblack_rule_list, idx);
 
+    *pResult = 0;
+}
 
-    CloseHandle( hHandle );
+void CmfckpstestDlg::OnNMDblclkWhiteList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+
+    int idx = m_white_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
+        return;
+
+    EditRule( m_white_rule_list, m_vtwhite_rule_list, idx);
+
+    *pResult = 0;
+}
+
+void CmfckpstestDlg::OnNMDblclkProtectList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    int idx = m_protect_rule_list.GetNextItem( -1, LVIS_SELECTED );
+    if (idx < 0)
+        return;
+
+    EditRule( m_protect_rule_list, m_vtprotect_rule_list, idx);
+
+    *pResult = 0;
+}
+
+void CmfckpstestDlg::OnBnClickedSetBlackFile()
+{
+    if ( !m_devc.ClearRule( RT_BLACKRULE) )
+        return;
+
+    for (size_t idx = 0; idx < m_vtblack_rule_list.size(); idx++)
+    {
+        DRIVER_RULE_INFO RuleInfo = m_vtblack_rule_list[idx];
+
+        RuleInfo.uRuleType = RT_BLACKRULE;
+        RuleInfo.uEnable = TRUE;
+
+        if ( !m_devc.AppendRule(&RuleInfo) )
+            return;
+    }
+
+    AfxMessageBox(_T("重置成功！！"));
+}
+
+void CmfckpstestDlg::OnBnClickedSetWhiteFile()
+{
+    if ( !m_devc.ClearRule( RT_WHITERULE) )
+        return;
+
+    for (size_t idx = 0; idx < m_vtblack_rule_list.size(); idx++)
+    {
+        DRIVER_RULE_INFO RuleInfo = m_vtblack_rule_list[idx];
+
+        RuleInfo.uRuleType = RT_WHITERULE;
+        RuleInfo.uEnable = TRUE;
+
+        if ( !m_devc.AppendRule(&RuleInfo) )
+            return;
+    }
+
+    AfxMessageBox(_T("重置成功！！"));
+}
+
+void CmfckpstestDlg::OnBnClickedSetProtectFile()
+{
+    if ( !m_devc.ClearRule( RT_PROTECTRULE) )
+        return;
+
+    for (size_t idx = 0; idx < m_vtblack_rule_list.size(); idx++)
+    {
+        DRIVER_RULE_INFO RuleInfo = m_vtblack_rule_list[idx];
+
+        RuleInfo.uRuleType = RT_PROTECTRULE;
+        RuleInfo.uEnable = TRUE;
+
+        if ( !m_devc.AppendRule(&RuleInfo) )
+            return;
+    }
+
+    AfxMessageBox(_T("重置成功！！"));
 }

@@ -45,7 +45,7 @@ enum{
 };
 
 enum {
-    CT_ID,
+    CT_ID = 0,
     CT_NAME,
     CT_PATH,
     CT_PATHFILE
