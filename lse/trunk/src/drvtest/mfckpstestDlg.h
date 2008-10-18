@@ -31,4 +31,5 @@ protected:
 public:
     afx_msg void OnBnClickedInstall();
     afx_msg void OnBnClickedUninstall();
+    afx_msg void OnBnClickedAddProtectFile();
 };

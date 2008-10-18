@@ -87,21 +87,21 @@ BOOL OpenDevice(LPCTSTR DriverName, HANDLE *lphDevice)
     TCHAR completeDeviceName[64];
     HANDLE hDevice;
 
-    if ((GetVersion() & 0xFF) >= 5)
-        wsprintf(completeDeviceName, TEXT("\\\\.\\Global\\%s"), DriverName);
-    else
+    //if ((GetVersion() & 0xFF) >= 5)
+    //    wsprintf(completeDeviceName, TEXT("\\\\.\\Global\\%s"), DriverName);
+    //else
         wsprintf(completeDeviceName, TEXT("\\\\.\\%s"), DriverName);
 
     hDevice = CreateFile(
         completeDeviceName, 
-        GENERIC_READ | GENERIC_WRITE, 
+        MAXIMUM_ALLOWED, 
         0, 
         NULL,
         OPEN_EXISTING, 
         FILE_ATTRIBUTE_NORMAL, 
         NULL);
 
-    if (hDevice == ((HANDLE)-1))
+    if ( hDevice == INVALID_HANDLE_VALUE )
         return FALSE;
 
     if (lphDevice)

@@ -67,10 +67,12 @@ BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
 	//}}AFX_MSG_MAP
     ON_BN_CLICKED(IDC_INSTALL, &CmfckpstestDlg::OnBnClickedInstall)
     ON_BN_CLICKED(IDC_UNINSTALL, &CmfckpstestDlg::OnBnClickedUninstall)
+    ON_BN_CLICKED(IDC_ADD_PROTECT_FILE, &CmfckpstestDlg::OnBnClickedAddProtectFile)
 END_MESSAGE_MAP()
 
 
 // CmfckpstestDlg 消息处理程序
+
 
 BOOL CmfckpstestDlg::OnInitDialog()
 {
@@ -100,6 +102,7 @@ BOOL CmfckpstestDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -178,4 +181,39 @@ void CmfckpstestDlg::OnBnClickedUninstall()
 
     MessageBox( bResult ? _T("Uninstall Successed") : _T("Uninstall Failed"), _T("Install"), MB_OK);
 
+}
+
+void CmfckpstestDlg::OnBnClickedAddProtectFile()
+{
+    HANDLE hHandle = NULL;
+
+    DWORD dwBuffLen = sizeof(DRIVER_RULE_INFO);
+
+    if ( !OpenDevice( DriverName, &hHandle ) )
+        return;
+
+    OutputDebugString(L"OpenDevice success");
+
+
+    DRIVER_RULE_INFO RuleInfo = { 0 };
+
+    RuleInfo.uRuleType = RT_PROTECTRULE;
+    RuleInfo.uContentType = CT_PATHFILE;
+
+    ::GetModuleFileNameW(NULL, RuleInfo.wszProcessPathFile, MAX_PATH);
+
+
+    DeviceIoControl(
+        hHandle,
+        IOCTL_PTTDRV_APPEND_RULE_INFO,
+        &RuleInfo,
+        sizeof(DRIVER_RULE_INFO),
+        &RuleInfo,
+        dwBuffLen,
+        &dwBuffLen,
+        NULL
+        );
+
+
+    CloseHandle( hHandle );
 }

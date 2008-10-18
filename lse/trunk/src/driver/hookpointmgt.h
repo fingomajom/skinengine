@@ -1,4 +1,14 @@
-
+/********************************************************************
+	created:	2008/10/24
+	created:	24:10:2008   16:32
+	filename: 	d:\lidengwang\lse\trunk\src\driver\hookpointmgt.h
+	file path:	d:\lidengwang\lse\trunk\src\driver
+	file base:	hookpointmgt
+	file ext:	h
+	author:		lidengwang
+	
+	purpose:	
+*********************************************************************/
 
 #pragma once
 

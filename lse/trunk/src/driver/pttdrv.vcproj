@@ -269,6 +269,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rule.c"
+				>
+			</File>
+			<File
 				RelativePath=".\selfdestroy.c"
 				>
 			</File>
@@ -303,6 +307,10 @@
 			</File>
 			<File
 				RelativePath=".\reg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rule.h"
 				>
 			</File>
 			<File

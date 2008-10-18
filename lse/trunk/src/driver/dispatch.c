@@ -5,7 +5,8 @@
 
 LONG g_lFileHandleCount = 0;
 
-
+BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo );
+BOOL ClearRule( UINT uRuleType );
 
 NTSTATUS DeviceShutDown(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
@@ -90,8 +91,6 @@ DeviceIoControl(
     NTSTATUS              ntStatus = STATUS_UNSUCCESSFUL;
     PIO_STACK_LOCATION    irpStack = IoGetCurrentIrpStackLocation(Irp);
 
-    LONG                  l_long   = 0;
-    PULONG                p_long   = 0;
     PVOID                 p_buffer = Irp->AssociatedIrp.SystemBuffer;
 
     ULONG uInputBufferLength  = irpStack->Parameters.DeviceIoControl.InputBufferLength;
@@ -103,14 +102,76 @@ DeviceIoControl(
 
     switch( irpStack->Parameters.DeviceIoControl.IoControlCode )
     {
+    case IOCTL_PTTDRV_GET_VERSION:
         //////////////////////////////////////////////////////////////////////////
-        // 获取防火墙 版本 
+        // 获取驱动版本 
         //////////////////////////////////////////////////////////////////////////
-    //case IOCTL_ANTIARP_GET_VERSION:
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_GET_VERSION\n") );
+
+            if ( uOutputBufferLength >= sizeof( ULONG ) )
+            {
+                if (p_buffer != NULL)
+                {
+                    *((PLONG)p_buffer) = ( ULONG ) PTTDRV_DRIVER_VERSION_1 ;
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_GET_VERSION\n") );
+            }
+        }
+        break;
+
+    case IOCTL_PTTDRV_GET_STATUS:
+        break;
+    case IOCTL_PTTDRV_SET_STATUS:
+        break;
+    case IOCTL_PTTDRV_APPEND_RULE_INFO:
+        //////////////////////////////////////////////////////////////////////////
+        // 设置规则
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_APPEND_RULE_INFO %d,%d,%x\n", uInputBufferLength,sizeof( DRIVER_RULE_INFO ), p_buffer) );
+
+            if ( uInputBufferLength == sizeof( DRIVER_RULE_INFO ) && p_buffer != NULL )
+            {
+                if ( !AddRule( (LP_DRIVER_RULE_INFO)p_buffer ) )
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_APPEND_RULE_INFO\n") );
+            }
+        }
+        break;
+
+    case IOCTL_PTTDRV_CLEAR_RULE:        
+        //////////////////////////////////////////////////////////////////////////
+        // 清除规则
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_CLEAR_RULE %d,%x\n", uInputBufferLength, p_buffer) );
+
+            if ( uInputBufferLength == sizeof( UINT ) && p_buffer != NULL )
+            {
+                if ( !ClearRule( *(UINT*)p_buffer ) )
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_CLEAR_RULE\n") );
+            }
+
+        }
+
+        break;
+
     default:
         break;
 
-        //-----------------------------------------------------------------------------------
     }
 
     Irp->IoStatus.Status = ntStatus;
@@ -125,4 +186,63 @@ DeviceIoControl(
     DbgPrint( ("<== DeviceIoControl\n") );
 
     return ntStatus;
+}
+
+
+BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo )
+{
+    BOOL bResult = FALSE;
+
+    RULE_INFO AddRuleInfo = { 0 };
+
+    AddRuleInfo.uContentType = RuleInfo->uContentType;
+    AddRuleInfo.uEnable      = RuleInfo->uEnable;
+
+    RtlMoveMemory( AddRuleInfo.wszPathFile,
+        RuleInfo->wszPathFile,
+        sizeof(AddRuleInfo.wszPathFile));
+
+    switch( RuleInfo->uRuleType )
+    {
+    case RT_BLACKRULE:
+        bResult = AppendRule(&g_BlackRuleList, &AddRuleInfo);
+        break;
+    case RT_WHITERULE:
+        bResult = AppendRule(&g_WhiteRuleList, &AddRuleInfo);
+        break;
+    case RT_PROTECTRULE:
+        bResult = AppendRule(&g_ProtectRuleList, &AddRuleInfo);
+        break;
+    default:
+        DbgPrint( ("AddRule default \n") );
+
+        bResult = FALSE;
+    }
+
+    return bResult;
+}
+
+
+BOOL ClearRule( UINT uRuleType )
+{
+    BOOL bResult = TRUE;
+    
+    if ( uRuleType & RT_BLACKRULE )
+    {   
+        UninitRuleList( &g_BlackRuleList );
+    }
+
+    if ( uRuleType & RT_WHITERULE )
+    {   
+        UninitRuleList( &g_WhiteRuleList );
+    }
+
+    if ( uRuleType & RT_PROTECTRULE )
+    {   
+        UninitRuleList( &g_ProtectRuleList );
+    }
+
+    InitDefaultRuleList( uRuleType );
+
+    return bResult;
 }

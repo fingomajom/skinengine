@@ -111,6 +111,10 @@ NTSTATUS StartWorking()
         if ( ntStatus != STATUS_SUCCESS )
             break;
 
+        InitRuleList( &g_BlackRuleList   );
+        InitRuleList( &g_WhiteRuleList   );
+        InitRuleList( &g_ProtectRuleList );
+
         ntStatus = STATUS_UNSUCCESSFUL;
 
         if ( !install_all_hook() )

@@ -35,7 +35,7 @@ typedef void *HDESK;
 
 typedef int (__stdcall *PROC)();
 
-#define MAX_PATH    266
+#define MAX_PATH    260
 
 
 #define MEM_TAG     'pttd'
@@ -49,7 +49,10 @@ typedef int (__stdcall *PROC)();
 
 #include "..\public\pttdrvcom.h"
 
+
+
 #include "reg.h"
+#include "rule.h"
 #include "pttdrv.h"
 #include "selfdestroy.h"
 #include "inlinehook.h"

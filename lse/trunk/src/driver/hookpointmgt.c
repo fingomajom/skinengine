@@ -151,6 +151,19 @@ BOOL uninit_hook()
             SysNtCreateThread);
     }
 
+    if ( g_knl_current_offset.dwNtReadVirtualMemorySysId != -1 )
+    {
+        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtReadVirtualMemorySysId, 
+            &SysNtReadVirtualMemory);
+    }
+
+    if ( g_knl_current_offset.dwNtWriteVirtualMemorySysId != -1 )
+    {
+        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtWriteVirtualMemorySysId, 
+            &SysNtWriteVirtualMemory);
+    }
+
+
     return TRUE;
 }
 
