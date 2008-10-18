@@ -49,9 +49,6 @@ BOOL AppendRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
         sizeof(RULE_INFO), 
         MEM_TAG);
 
-    DbgPrint( ("AppendRule %x,%x,%x \n", RuleList, RuleInfo, NewRuleItem) );
-
-
     if ( RuleList != NULL && RuleInfo != NULL && NewRuleItem != NULL )
     {
         RtlMoveMemory( NewRuleItem, RuleList, sizeof(RULE_INFO) );
@@ -119,8 +116,8 @@ PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
                     break;
 
                 case CT_NAME:
-                    if ( !_wcsicmp( FRuleInfo->wszFileName, 
-                                    RuleInfo->wszFileName) )
+                    if ( !_wcsnicmp( FRuleInfo->wszFileName, 
+                                    RuleInfo->wszFileName, MAX_PATH) )
                     {
                         EntryResult = NextEntry;
                     }
@@ -128,8 +125,8 @@ PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
                     break;
 
                 case CT_PATH:
-                    if ( !_wcsicmp( FRuleInfo->wszPath, 
-                        RuleInfo->wszFileName) )
+                    if ( !_wcsnicmp( FRuleInfo->wszPath, 
+                                     RuleInfo->wszFileName, MAX_PATH) )
                     {
                         EntryResult = NextEntry;
                     }
@@ -137,8 +134,8 @@ PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
                     break;
 
                 case CT_PATHFILE:
-                    if ( !_wcsicmp( FRuleInfo->wszPathFile, 
-                                    RuleInfo->wszPathFile) )
+                    if ( !_wcsnicmp( FRuleInfo->wszPathFile, 
+                                     RuleInfo->wszPathFile, MAX_PATH) )
                     {
                         EntryResult = NextEntry;
                     }
@@ -160,6 +157,98 @@ PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
     return EntryResult;
 }
 
+
+PLIST_ENTRY MatchingRule( 
+    UINT  uRuleType,
+    UINT  uContentType,
+    VOID* pContent)
+{
+    LP_RULE_LIST RuleList    = NULL;
+    PLIST_ENTRY  EntryResult = NULL;
+    PLIST_ENTRY  NextEntry   = NULL;
+    LP_RULE_INFO FRuleInfo   = NULL;
+
+    switch( uRuleType )
+    {
+        case RT_BLACKRULE:
+            RuleList = &g_BlackRuleList;
+            break;
+        case RT_WHITERULE:
+            RuleList = &g_WhiteRuleList;
+            break;
+        case RT_PROTECTRULE:
+            RuleList = &g_ProtectRuleList;
+            break;
+    }
+
+    if (  RuleList != NULL && 
+          pContent != NULL && 
+         !IsListEmpty( &RuleList->RuleList ) )
+    {
+
+        NextEntry = RuleList->RuleList.Flink;
+
+        while ( NextEntry != &RuleList->RuleList )
+        {
+            FRuleInfo = CONTAINING_RECORD(NextEntry, RULE_INFO, ListEntry);
+
+            if ( FRuleInfo->uContentType == uContentType )
+            {
+                switch( uContentType )
+                {
+                case CT_ID:
+
+                    if ( FRuleInfo->uProcessId == *((UINT*)pContent) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+
+                    break;
+
+                case CT_NAME:
+
+                    if ( !_wcsnicmp( FRuleInfo->wszFileName + ( wcslen(FRuleInfo->wszFileName) - wcslen(pContent) ), 
+                                     pContent, wcslen(pContent)) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+
+                    break;
+
+                case CT_PATH:
+                    if ( !_wcsnicmp( FRuleInfo->wszPath, 
+                        pContent , wcslen(FRuleInfo->wszPath) ) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+
+                    break;
+
+                case CT_PATHFILE:
+                    if ( !_wcsnicmp( FRuleInfo->wszPathFile, 
+                        pContent, MAX_PATH ) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+
+                    break;
+
+                default:
+                    break;
+                }
+            }
+
+            if ( EntryResult != NULL )
+                break;
+
+            NextEntry = NextEntry->Flink;
+        }
+    }
+
+    return EntryResult;
+}
+
+
 BOOL AppendRule_I(
     LP_RULE_LIST RuleList, 
     UINT  uContentType,
@@ -176,25 +265,47 @@ BOOL AppendRule_I(
     switch( uContentType )
     {
     case CT_ID:
+
         RuleInfo.uProcessId = *((ULONG*)pContent);
+
+        DbgPrint( ("AppendRule_I(%x, CT_ID, %d, %d)", RuleList, uEnable, RuleInfo.uProcessId) );
+
         break;
+
     case CT_NAME:
+
         wcsncpy( RuleInfo.wszFileName, 
             pContent, MAX_PATH);
+
+        DbgPrint( ("AppendRule_I(%x, CT_NAME, %d, %ws)", RuleList, uEnable, RuleInfo.wszFileName) );
+
         break;
+
     case CT_PATH:
+
         wcsncpy( RuleInfo.wszPath, 
             pContent, MAX_PATH);
+
+        DbgPrint( ("AppendRule_I(%x, CT_PATH, %d, %ws)", RuleList, uEnable, RuleInfo.wszPath) );
+
         break;
+
     case CT_PATHFILE:
+
         wcsncpy( RuleInfo.wszPathFile, 
             pContent, MAX_PATH);
+
+        DbgPrint( ("AppendRule_I(%x, CT_PATHFILE, %d, %ws)", RuleList, uEnable, RuleInfo.wszPathFile) );
+
         break;
     default:
         return FALSE;
     }
 
     bResult = AppendRule( RuleList, &RuleInfo );
+
+    DbgPrint( ("<<==AppendRule_I() = %s", bResult ? "TRUE" : "FALSE" ) );
+
 
     return bResult;
 }

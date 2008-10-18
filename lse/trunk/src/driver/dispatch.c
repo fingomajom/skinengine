@@ -193,29 +193,28 @@ BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo )
 {
     BOOL bResult = FALSE;
 
-    RULE_INFO AddRuleInfo = { 0 };
-
-    AddRuleInfo.uContentType = RuleInfo->uContentType;
-    AddRuleInfo.uEnable      = RuleInfo->uEnable;
-
-    RtlMoveMemory( AddRuleInfo.wszPathFile,
-        RuleInfo->wszPathFile,
-        sizeof(AddRuleInfo.wszPathFile));
 
     switch( RuleInfo->uRuleType )
     {
     case RT_BLACKRULE:
-        bResult = AppendRule(&g_BlackRuleList, &AddRuleInfo);
+        bResult = AppendRule_I(&g_BlackRuleList, 
+            RuleInfo->uContentType, 
+            RuleInfo->uEnable,
+            &RuleInfo->uProcessId);
         break;
     case RT_WHITERULE:
-        bResult = AppendRule(&g_WhiteRuleList, &AddRuleInfo);
+        bResult = AppendRule_I(&g_BlackRuleList, 
+            RuleInfo->uContentType, 
+            RuleInfo->uEnable,
+            &RuleInfo->uProcessId);
         break;
     case RT_PROTECTRULE:
-        bResult = AppendRule(&g_ProtectRuleList, &AddRuleInfo);
+        bResult = AppendRule_I(&g_BlackRuleList, 
+            RuleInfo->uContentType, 
+            RuleInfo->uEnable,
+            &RuleInfo->uProcessId);
         break;
     default:
-        DbgPrint( ("AddRule default \n") );
-
         bResult = FALSE;
     }
 
