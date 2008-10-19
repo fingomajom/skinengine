@@ -96,6 +96,8 @@ void CEditRuleDlg::OnBnClickedBButton()
     {
         m_strTarget = openDlg.GetPathName();
 
+        UpdateData(FALSE);
+
         m_strTarget.MakeLower();
 
         UpdateData(FALSE);

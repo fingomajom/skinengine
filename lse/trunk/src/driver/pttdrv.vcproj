@@ -233,10 +233,6 @@
 			Filter=".c;.cpp"
 			>
 			<File
-				RelativePath=".\disasm.c"
-				>
-			</File>
-			<File
 				RelativePath=".\dispatch.c"
 				>
 			</File>
@@ -245,27 +241,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\hookssdt.c"
-				>
-			</File>
-			<File
-				RelativePath=".\inlinehook.c"
-				>
-			</File>
-			<File
-				RelativePath=".\knlosinfo.c"
-				>
-			</File>
-			<File
 				RelativePath=".\process.c"
 				>
 			</File>
 			<File
 				RelativePath=".\pttdrv.c"
-				>
-			</File>
-			<File
-				RelativePath=".\reg.c"
 				>
 			</File>
 			<File
@@ -286,27 +266,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\hookssdt.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inlinehook.h"
-				>
-			</File>
-			<File
-				RelativePath=".\knlosinfo.h"
-				>
-			</File>
-			<File
 				RelativePath=".\precomp.h"
 				>
 			</File>
 			<File
 				RelativePath=".\pttdrv.h"
-				>
-			</File>
-			<File
-				RelativePath=".\reg.h"
 				>
 			</File>
 			<File
@@ -328,6 +292,54 @@
 			>
 			<File
 				RelativePath="..\public\pttdrvcom.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="misc"
+			>
+			<File
+				RelativePath=".\disasm.c"
+				>
+			</File>
+			<File
+				RelativePath=".\hookssdt.c"
+				>
+			</File>
+			<File
+				RelativePath=".\hookssdt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\inlinehook.c"
+				>
+			</File>
+			<File
+				RelativePath=".\inlinehook.h"
+				>
+			</File>
+			<File
+				RelativePath=".\knlosinfo.c"
+				>
+			</File>
+			<File
+				RelativePath=".\knlosinfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\misc.c"
+				>
+			</File>
+			<File
+				RelativePath=".\misc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\reg.c"
+				>
+			</File>
+			<File
+				RelativePath=".\reg.h"
 				>
 			</File>
 		</Filter>

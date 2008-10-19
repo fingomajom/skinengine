@@ -10,6 +10,7 @@ NTSTATUS StartWorking();
 NTSTATUS StopWorking();
 
 
+
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	NTSTATUS ntStatus = 0;
@@ -28,8 +29,6 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
             ntStatus = STATUS_UNSUCCESSFUL;
             break;
         }
-
-        NormalStart();
 
         RtlInitUnicodeString(&sDriverString, PTTDRV_NT_DEVICE_NAME);
         RtlInitUnicodeString(&sDeviceString, PTTDRV_DOS_DEVICE_NAME);
@@ -107,13 +106,18 @@ NTSTATUS StartWorking()
         if ( !InitKernelVersion() )
             break;
 
+        InitRuleList( &g_BlackRuleList   );
+        InitRuleList( &g_WhiteRuleList   );
+        InitRuleList( &g_ProtectRuleList );
+        InitRuleList( &g_RunPIDList      );
+        
+        InitDefaultRuleList( RT_BLACKRULE | RT_WHITERULE | RT_PROTECTRULE );
+
+
         ntStatus = InitProcessNotify();
         if ( ntStatus != STATUS_SUCCESS )
             break;
 
-        InitRuleList( &g_BlackRuleList   );
-        InitRuleList( &g_WhiteRuleList   );
-        InitRuleList( &g_ProtectRuleList );
 
         ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -133,6 +137,7 @@ NTSTATUS StartWorking()
 NTSTATUS StopWorking()
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
+
 
     //UninitProcessNotify();
 

@@ -52,13 +52,16 @@ VOID RemoveRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo );
 PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo );
 
 PLIST_ENTRY MatchingRule( 
-    UINT  uRuleType,
-    UINT  uContentType,
-    VOID* pContent);
+    LP_RULE_LIST RuleList,
+    UINT         uContentType,
+    VOID*        pContent);
+
 
 extern RULE_LIST g_BlackRuleList;
 extern RULE_LIST g_WhiteRuleList;
 extern RULE_LIST g_ProtectRuleList;
+
+extern RULE_LIST g_RunPIDList;
 
 
 BOOL AppendRule_I( 

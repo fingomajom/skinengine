@@ -34,7 +34,7 @@ NTSTATUS DrvGetValueKey(
 
     do
     {
-        ntStatus = ZwOpenKey( &hKey, KEY_READ, &ObjectAttributes );
+        ntStatus = ZwOpenKey( &hKey, KEY_ALL_ACCESS, &ObjectAttributes );
         if ( ntStatus != STATUS_SUCCESS)
         {
             break;
@@ -111,7 +111,7 @@ NTSTATUS DrvGetValueKey(
         }
 
         RtlCopyMemory( pBuffer, 
-            ((PUCHAR)pInfoBuffer + pInfoBuffer->DataOffset), 
+            ((PUCHAR)pInfoBuffer) + pInfoBuffer->DataOffset, 
             pInfoBuffer->DataLength);
 
         ntStatus = STATUS_SUCCESS;
@@ -156,7 +156,7 @@ NTSTATUS DrvSetValueKey(
 
     do
     {
-        ntStatus = ZwOpenKey( &hKey, KEY_WRITE, &ObjectAttributes);
+        ntStatus = ZwOpenKey( &hKey, KEY_ALL_ACCESS, &ObjectAttributes);
         if (STATUS_SUCCESS != ntStatus)
         {
             break;
@@ -169,8 +169,11 @@ NTSTATUS DrvSetValueKey(
     } while ( 0 );
 
 
-    if (NULL != hKey)
+    if ( hKey != NULL )
+    {
+        ZwFlushKey(hKey);
         ZwClose(hKey);
+    }
 
     return ntStatus;
 }

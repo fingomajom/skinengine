@@ -4,13 +4,15 @@
 
 
 LONG g_lFileHandleCount = 0;
+LONG g_lDriverStatus    = DRIVER_STATUS_STOP;
+
 
 BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo );
 BOOL ClearRule( UINT uRuleType );
 
 NTSTATUS DeviceShutDown(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-    NormalStop();
+    ResumeErrorCount();
 
     Irp->IoStatus.Information = 0;
     Irp->IoStatus.Status = STATUS_SUCCESS;

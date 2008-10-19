@@ -21,9 +21,9 @@
 #define PTTDRV_DRIVER_VERSION_4     (4)
 
 
-#define PTTDRV_DEVICE_NAME          L"ProtectDriver_2008_9_26"
-#define PTTDRV_NT_DEVICE_NAME       L"\\Device\\ProtectDriver_2008_9_26"
-#define PTTDRV_DOS_DEVICE_NAME      L"\\DosDevices\\ProtectDriver_2008_9_26"
+#define PTTDRV_DEVICE_NAME          L"szpttdrv"
+#define PTTDRV_NT_DEVICE_NAME       L"\\Device\\szpttdrv"
+#define PTTDRV_DOS_DEVICE_NAME      L"\\DosDevices\\szpttdrv"
 
 
 #define PTTDRV_DRIVER               0x8000

@@ -17,5 +17,4 @@
 
 BOOL IsSelfDestroy();
 
-void NormalStart();
-void NormalStop();
+void ResumeErrorCount();

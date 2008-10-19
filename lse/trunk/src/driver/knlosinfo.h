@@ -43,26 +43,8 @@ typedef struct _tag_knl_os_info_offset
     DWORD dwNtReadVirtualMemorySysId;
     DWORD dwNtWriteVirtualMemorySysId;
     DWORD dwNtOpenSectionSysId;
-
-    DWORD dwUnknown1;
-    DWORD dwUnknown2;
-    DWORD dwUnknown3;
-    DWORD dwUnknown4;
-    DWORD dwUnknown5;
-    DWORD dwUnknown6;
-    DWORD dwUnknown7;
-    DWORD dwUnknown8;
-    DWORD dwUnknown9;
-    DWORD dwUnknown10;
-    DWORD dwUnknown11;
-    DWORD dwUnknown12;
-    DWORD dwUnknown13;
-    DWORD dwUnknown14;
-    DWORD dwUnknown15;
-    DWORD dwUnknown16;
-    DWORD dwUnknown17;
-    DWORD dwUnknown18;
-    DWORD dwUnknown19;
+    
+    DWORD dwProcessPebOffset;
 
 }knl_os_info_offset, *lp_knl_os_info_offset;
 

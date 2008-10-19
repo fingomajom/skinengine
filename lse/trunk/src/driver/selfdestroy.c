@@ -1,9 +1,13 @@
 #include "precomp.h"
 #pragma hdrstop
 
+extern PULONG InitSafeBootMode;
+
+
 DWORD g_dwErrorCount = 0;
 
 #define RegRootPath      L"\\REGISTRY\\MACHINE\\SYSTEM\\CurrentControlSet\\Control\\" 
+#define RegPTTPath       L"\\REGISTRY\\MACHINE\\SYSTEM\\CurrentControlSet\\Services\\" PTTDRV_DEVICE_NAME
 #define ValueErrorCount  L"DrvErrorCount"
 
 DWORD GetErrorCount()
@@ -12,12 +16,7 @@ DWORD GetErrorCount()
     DWORD dwType   = 0;
     DWORD dwRetLen = 0;
 
-    WCHAR szRegKey[MAX_PATH] = RegRootPath;
-
-
-    wcsncat(szRegKey, PTTDRV_DEVICE_NAME, MAX_PATH);
-
-    DrvGetValueKey(szRegKey, 
+    DrvGetValueKey(RegRootPath PTTDRV_DEVICE_NAME, 
         ValueErrorCount, 
         &dwType,
         dwResult, 
@@ -31,11 +30,7 @@ void SetErrorCount( DWORD dwCount )
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
-    WCHAR szRegKey[MAX_PATH] = RegRootPath;
-
-    wcsncat(szRegKey, PTTDRV_DEVICE_NAME, MAX_PATH);
-
-    ntStatus = DrvSetValueKey( szRegKey, 
+    ntStatus = DrvSetValueKey( RegRootPath PTTDRV_DEVICE_NAME, 
         ValueErrorCount, 
         REG_DWORD, 
         &dwCount, 
@@ -43,9 +38,9 @@ void SetErrorCount( DWORD dwCount )
 
     if ( ntStatus != STATUS_SUCCESS )
     {
-        DrvCreateKey( szRegKey );
+        DrvCreateKey( RegRootPath PTTDRV_DEVICE_NAME );
 
-        DrvSetValueKey( szRegKey, 
+        DrvSetValueKey( RegRootPath PTTDRV_DEVICE_NAME, 
             ValueErrorCount, 
             REG_DWORD, 
             &dwCount, 
@@ -57,20 +52,23 @@ void SetErrorCount( DWORD dwCount )
 
 BOOL IsSelfDestroy()
 {
+    if ( *InitSafeBootMode > 0 )
+        return TRUE;
+
     g_dwErrorCount = GetErrorCount();
 
-    if ( g_dwErrorCount >= MAX_ERROR_COUNT ) 
+    if ( g_dwErrorCount >= MAX_ERROR_COUNT  ) 
+    {
         return TRUE;
+    }
+    
+    SetErrorCount( g_dwErrorCount + 1 );
 
     return FALSE;
 }
 
-void NormalStart()
-{
-    SetErrorCount( g_dwErrorCount + 1 );
-}
 
-void NormalStop()
+void ResumeErrorCount()
 {
     SetErrorCount( 0 );
 }

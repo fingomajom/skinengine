@@ -6,6 +6,9 @@ RULE_LIST g_BlackRuleList;
 RULE_LIST g_WhiteRuleList;
 RULE_LIST g_ProtectRuleList;
 
+RULE_LIST g_RunPIDList;
+
+
 
 VOID InitRuleList( LP_RULE_LIST RuleList )
 {
@@ -44,18 +47,20 @@ BOOL AppendRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
 
     LP_RULE_INFO NewRuleItem = NULL;
 
+
     NewRuleItem = 
-        ExAllocatePoolWithTag(NonPagedPool, 
-        sizeof(RULE_INFO), 
-        MEM_TAG);
+        ExAllocatePool(NonPagedPool, 
+        sizeof(RULE_INFO) );
+
 
     if ( RuleList != NULL && RuleInfo != NULL && NewRuleItem != NULL )
     {
-        RtlMoveMemory( NewRuleItem, RuleList, sizeof(RULE_INFO) );
+        RtlMoveMemory( NewRuleItem, RuleInfo, sizeof(RULE_INFO) );
 
         KeAcquireSpinLock(&RuleList->RuleLock, &OldIrql);
 
         InsertTailList( &RuleList->RuleList, &NewRuleItem->ListEntry);
+
 
         KeReleaseSpinLock(&RuleList->RuleLock, OldIrql);
 
@@ -159,32 +164,23 @@ PLIST_ENTRY FindRule( LP_RULE_LIST RuleList, LP_RULE_INFO RuleInfo )
 
 
 PLIST_ENTRY MatchingRule( 
-    UINT  uRuleType,
-    UINT  uContentType,
-    VOID* pContent)
+    LP_RULE_LIST RuleList,
+    UINT         uContentType,
+    VOID*        pContent)
 {
-    LP_RULE_LIST RuleList    = NULL;
     PLIST_ENTRY  EntryResult = NULL;
     PLIST_ENTRY  NextEntry   = NULL;
     LP_RULE_INFO FRuleInfo   = NULL;
 
-    switch( uRuleType )
-    {
-        case RT_BLACKRULE:
-            RuleList = &g_BlackRuleList;
-            break;
-        case RT_WHITERULE:
-            RuleList = &g_WhiteRuleList;
-            break;
-        case RT_PROTECTRULE:
-            RuleList = &g_ProtectRuleList;
-            break;
-    }
+    //DbgPrint (("MatchingRule"));
 
     if (  RuleList != NULL && 
           pContent != NULL && 
          !IsListEmpty( &RuleList->RuleList ) )
     {
+
+        //DbgPrint (("IsListEmpty"));
+
 
         NextEntry = RuleList->RuleList.Flink;
 
@@ -192,50 +188,57 @@ PLIST_ENTRY MatchingRule(
         {
             FRuleInfo = CONTAINING_RECORD(NextEntry, RULE_INFO, ListEntry);
 
-            if ( FRuleInfo->uContentType == uContentType )
+//DbgPrint (("FRuleInfo  uContentType %ws , %d", FRuleInfo->wszFileName,uContentType  ));
+
+            switch( uContentType )
             {
-                switch( uContentType )
+            case CT_ID:
+
+                if ( FRuleInfo->uContentType == CT_ID &&
+                     FRuleInfo->uProcessId   == *((UINT*)pContent) )
                 {
-                case CT_ID:
+                    EntryResult = NextEntry;
+                }
+                break;
 
-                    if ( FRuleInfo->uProcessId == *((UINT*)pContent) )
+            case CT_PATHFILE:
+
+                if ( FRuleInfo->uContentType == CT_PATHFILE )
+                {
+                    if ( !_wcsnicmp( FRuleInfo->wszPathFile, pContent, MAX_PATH ) )
                     {
                         EntryResult = NextEntry;
                     }
 
-                    break;
-
-                case CT_NAME:
-
-                    if ( !_wcsnicmp( FRuleInfo->wszFileName + ( wcslen(FRuleInfo->wszFileName) - wcslen(pContent) ), 
-                                     pContent, wcslen(pContent)) )
-                    {
-                        EntryResult = NextEntry;
-                    }
-
-                    break;
-
-                case CT_PATH:
-                    if ( !_wcsnicmp( FRuleInfo->wszPath, 
-                        pContent , wcslen(FRuleInfo->wszPath) ) )
-                    {
-                        EntryResult = NextEntry;
-                    }
-
-                    break;
-
-                case CT_PATHFILE:
-                    if ( !_wcsnicmp( FRuleInfo->wszPathFile, 
-                        pContent, MAX_PATH ) )
-                    {
-                        EntryResult = NextEntry;
-                    }
-
-                    break;
-
-                default:
                     break;
                 }
+
+            case CT_PATH:
+
+                if ( FRuleInfo->uContentType == CT_PATH &&
+                     !_wcsnicmp( FRuleInfo->wszPath, pContent , wcslen(FRuleInfo->wszPath) ) )
+                {
+                    EntryResult = NextEntry;
+                    break;
+                }
+
+            case CT_NAME:
+
+                if ( uContentType == CT_PATH )
+                    break;
+
+//DbgPrint (("MatchingRule  %ws , %ws , %ws", pContent, FRuleInfo->wszFileName, (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ) ));
+
+
+                if ( FRuleInfo->uContentType == CT_NAME &&
+                    !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ), FRuleInfo->wszFileName, wcslen(FRuleInfo->wszFileName)) )
+                {
+                    EntryResult = NextEntry;
+                }
+
+
+                break;
+
             }
 
             if ( EntryResult != NULL )
@@ -306,7 +309,6 @@ BOOL AppendRule_I(
 
     DbgPrint( ("<<==AppendRule_I() = %s", bResult ? "TRUE" : "FALSE" ) );
 
-
     return bResult;
 }
 
@@ -314,35 +316,58 @@ BOOL AppendRule_I(
 
 BOOL InitDefaultRuleList( UINT uRuleType )
 {
-    BOOL bResult = TRUE;
+    BOOL  bResult = TRUE;
+    UINT  uLength = 0;
+    WCHAR wszBuffer[MAX_PATH] = { 0 };
 
     if ( uRuleType & RT_BLACKRULE )
     {   
     }
 
     if ( uRuleType & RT_WHITERULE )
-    {   
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\explorer.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\svchost.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\lsass.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\conime.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\ctfmon.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\winlogon.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\csrss.exe" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\rundll32.exe" );
+    {
+        if ( !GetWindowsDirectory( wszBuffer, sizeof(wszBuffer) ) )
+            return FALSE;
 
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\msctf.dll" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\browseui.dll" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\uxtheme.dll" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\ieframe.dll" );
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\system32\\ieui.dll" );
+        uLength = wcslen(wszBuffer);
 
+        if ( wszBuffer[uLength - 1] == '\\' )
+        {
+             wszBuffer[uLength - 1] = '\0'; uLength--;
+        }
 
-        AppendRule_I( &g_WhiteRuleList, CT_NAME, TRUE, L"\\lserv.exe" );
+    #define APPEND_SYS_WHITE_RULE( PathFile ) \
+        wcsncpy(wszBuffer + uLength, PathFile, MAX_PATH - uLength);     \
+        AppendRule_I( &g_WhiteRuleList, CT_PATHFILE, TRUE, wszBuffer);
+
+        
+        APPEND_SYS_WHITE_RULE(L"\\explorer.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\svchost.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\lsass.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\conime.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\ctfmon.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\winlogon.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\csrss.exe");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\rundll32.exe");
+
+        APPEND_SYS_WHITE_RULE(L"\\system32\\msctf.dll");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\browseui.dll");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\uxtheme.dll");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\ieframe.dll");
+        APPEND_SYS_WHITE_RULE(L"\\system32\\ieui.dll");
+
+    #undef APPEND_SYS_WHITE_RULE
+            
+        uLength = 4;
+        AppendRule_I( &g_WhiteRuleList, CT_ID,   TRUE, &uLength );
+        uLength = 8;
+        AppendRule_I( &g_WhiteRuleList, CT_ID,   TRUE, &uLength );
     }
 
     if ( uRuleType & RT_PROTECTRULE )
-    {   
+    {
+        AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\lserv.exe" );
+        AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\mfckpstest.exe" );
     }
 
     return bResult;

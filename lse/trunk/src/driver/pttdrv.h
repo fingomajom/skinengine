@@ -64,3 +64,6 @@ BOOL dasm_move_program(
     BYTE* pDst, 
     UINT* pnDstSize, 
     UINT  nDstMax);
+
+
+extern LONG g_lDriverStatus;

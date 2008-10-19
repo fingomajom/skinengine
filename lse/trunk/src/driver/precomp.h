@@ -47,11 +47,17 @@ typedef int (__stdcall *PROC)();
 #endif
 
 
+#define REG_CURRENT_VERSION_PATH	L"\\REGISTRY\\MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
+#define CSD_VERSION					L"CSDVersion"
+#define WINDOWSROOT                 L"SystemRoot"
+
+
 #include "..\public\pttdrvcom.h"
 
 
 
 #include "reg.h"
+#include "misc.h"
 #include "rule.h"
 #include "pttdrv.h"
 #include "selfdestroy.h"
