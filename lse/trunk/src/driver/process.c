@@ -89,24 +89,73 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
     PVOID *OutputBuffer,
     PULONG OutputLength)
 {
-    NTSTATUS ntResult = STATUS_ACCESS_DENIED;
+    NTSTATUS ntResult = STATUS_SUCCESS;
 
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
+    UNICODE_STRING CurProcessPathFile = { 0 };
 
     const int ulApiWatch = 66; // ClientLoadLibrary;
+
+    WCHAR wszDllPath[MAX_PATH] = { 0 };
 
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_ke_user_mode_callback);
 
-    if ( ApiNumber == ulApiWatch )
+    if ( ApiNumber != ulApiWatch )
+        goto call_default;
+
+
+    do 
     {
-        DbgPrint ( ("HookKeUserModeCallback ClientLoadLibrary PID=%d", uCurProcessId ) );
-    }
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &CurProcessPathFile ) )
+            break;
+
+        DbgPrint (("SzHookKeUserModeCallback CurProcessPathFile = %ws", CurProcessPathFile.Buffer ));
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) == NULL )
+            break;
+
+        if ( g_dwOsVersion == os_vista_sp0 ||
+             g_dwOsVersion == os_vista_sp1 )
+        {
+            wcsncpy(wszDllPath, (WCHAR *) ((char *)InputBuffer + 0x30), InputLength - 0x30);
+        }
+        else
+        {
+            wcsncpy(wszDllPath, (WCHAR *) ((char *)InputBuffer + 0x28), InputLength - 0x28);
+        }
+
+        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, wszDllPath ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, wszDllPath ) != NULL )
+            goto skip_default;
+
+        DbgPrint (("SzHookKeUserModeCallback [%ws] [%ws]", CurProcessPathFile.Buffer,wszDllPath ));
+
+
+        goto skip_default;
+
+    } while( 0 );
+
+
+call_default:
+
+    if (ApiNumber == 66)
+        DbgPrint (("->SzHookKeUserModeCallback return[0x%x] [0x%x] [0x%x]", ntResult, *OutputBuffer, *OutputLength));
 
     ntResult = (NTSTATUS)pfnStubFunc(ApiNumber, InputBuffer, InputLength, OutputBuffer, OutputLength);
 
+    if (ApiNumber == 66)
+        DbgPrint (("-<SzHookKeUserModeCallback return[0x%x] [0x%x] [0x%x]", ntResult, *OutputBuffer, *OutputLength));
+
+skip_default:
+
+    if (CurProcessPathFile.Buffer != NULL) ExFreePool(CurProcessPathFile.Buffer);
 
     return ntResult;
 
@@ -133,8 +182,6 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
 
     do 
     {
-        break;
-
         if ( !(DesiredAccess & PROCESS_TERMINATE)      &&
              !(DesiredAccess & PROCESS_SUSPEND_RESUME) &&
              !(DesiredAccess & PROCESS_CREATE_THREAD) )
@@ -228,16 +275,81 @@ NTSTATUS NTAPI SzHookCreateSection(
     ULONG AllocationAttributes,
     HANDLE FileHandle)
 {
-    NTSTATUS ntResult = STATUS_ACCESS_DENIED;
+    NTSTATUS ntResult  = STATUS_ACCESS_DENIED;
+    NTSTATUS ntRetCode = STATUS_ACCESS_DENIED;
 
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
+    ULONG	CheckDesireAccess = SECTION_MAP_EXECUTE ;
+    ULONG	CheckSectionPageProtection = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+
+
+    UNICODE_STRING CurProcessPathFile = { 0 };
+    UNICODE_STRING TagProcessPathFile = { 0 };
+
+    UNICODE_STRING DriverName = { 0 };
+    UNICODE_STRING FullName   = { 0 };
+
+    WCHAR wszFullName[MAX_PATH] = { 0 };
+
+    PFILE_OBJECT pFileObject = NULL;
+
+
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_create_section);
 
+    do 
+    {
+        if ( !(DesiredAccess & CheckDesireAccess)      &&
+             !(SectionPageProtection & CheckSectionPageProtection) && 0 )
+        {
+            break;
+        }
 
-    //DbgPrint ( ("SzHookCreateSection  PID=%d", uCurProcessId ) );
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &CurProcessPathFile ) )
+            break;
+
+        DbgPrint (("SzHookCreateSection CurProcessPathFile = %ws", CurProcessPathFile.Buffer ));
+
+        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            goto skipdefault;
+
+        ntRetCode = ObReferenceObjectByHandle(FileHandle, 0, 0, KernelMode, &pFileObject, NULL);
+        if ( !NT_SUCCESS(ntRetCode) ||
+              pFileObject == NULL ||
+              pFileObject->FileName.Length == 0 ||
+              pFileObject->FileName.Buffer == NULL)
+            break;
+
+        ntRetCode = RtlVolumeDeviceToDosName(pFileObject->DeviceObject, &DriverName);
+        if ( !NT_SUCCESS(ntRetCode) ||
+              DriverName.Length == 0 || 
+              DriverName.Buffer == NULL)
+            break;
+
+        if ( (DriverName.Length + pFileObject->FileName.Length) > MAX_PATH * 2)
+            break;
+
+        wcsncpy(wszFullName, DriverName.Buffer, MAX_PATH);
+        wcsncpy(wszFullName + wcslen(wszFullName), pFileObject->FileName.Buffer, MAX_PATH);
+
+        wszFullName[MAX_PATH - 1] = L'\0';
+
+        RtlInitUnicodeString(&FullName, wszFullName);
+        FullName.Length += sizeof(WCHAR);
+
+        DbgPrint (("SzHookCreateSection FullName = %ws", FullName.Buffer ));
+
+
+    } while( 0 );
+
 
     ntResult = (NTSTATUS)pfnStubFunc(
         SectionHandle,
@@ -247,6 +359,14 @@ NTSTATUS NTAPI SzHookCreateSection(
         SectionPageProtection,
         AllocationAttributes,
         FileHandle);
+
+skipdefault:
+
+    if (CurProcessPathFile.Buffer != NULL) ExFreePool(CurProcessPathFile.Buffer);
+    if (TagProcessPathFile.Buffer != NULL) ExFreePool(TagProcessPathFile.Buffer);
+
+    if (DriverName.Buffer != NULL) ExFreePool(DriverName.Buffer);
+    if (FullName.Buffer != NULL) ExFreePool(FullName.Buffer);
 
     return ntResult;
 }
@@ -262,11 +382,12 @@ NTSTATUS NTAPI SzHookOpenSection(
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
+
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_open_section);
 
 
-    DbgPrint ( ("SzHookOpenSection  PID=%d", uCurProcessId ) );
+    //DbgPrint ( ("SzHookOpenSection  PID=%d", uCurProcessId ) );
 
     ntResult = (NTSTATUS)pfnStubFunc(
         SectionHandle,
@@ -329,11 +450,11 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
                 if (0xC000042C == ExitStatus)  // STATUS_ELEVATION_REQUIRED
                 {
                     // vista UAC提权
-                    goto defaultf;
+                    goto call_default;
                 }
                 else if (mode == KernelMode )
                 {
-                    goto defaultf;
+                    goto call_default;
                 }
             }
 
@@ -343,7 +464,8 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
 
     } while( 0 );
 
-defaultf:
+call_default:
+
     nResult = SysNtTerminateProcess( ProcessHandle, ExitStatus );
 
 skipdefault:
@@ -365,9 +487,53 @@ NTSTATUS SzHookNtCreateThread(
     IN PINITIAL_TEB         InitialTeb,
     IN BOOLEAN              CreateSuspended)
 {
-    //DbgPrint ( ("SzHookNtCreateThread  PID=%d", (UINT)PsGetCurrentProcessId() ) );
 
-    return SysNtCreateThread( 
+    int nResult = STATUS_ACCESS_DENIED;
+
+    PEPROCESS pEprocess = NULL;
+
+    UNICODE_STRING CurProcessPathFile = { 0 };
+    UNICODE_STRING TagProcessPathFile = { 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    do 
+    {
+        pEprocess = GetEProcessByHandle(ProcessHandle);
+        if (pEprocess == NULL)
+            break;
+
+        if ( PsGetCurrentProcess() == pEprocess )
+            break;
+
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &CurProcessPathFile ) )
+            break;
+
+        if ( !GetProcessFullPath( pEprocess, &TagProcessPathFile ) )
+            break;
+
+        DbgPrint (("SzHookNtCreateThread CurProcessPathFile = %ws %ws", CurProcessPathFile.Buffer, TagProcessPathFile.Buffer ));
+
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, TagProcessPathFile.Buffer ) == NULL )
+            break;
+
+        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            goto skipdefault;
+        
+        goto skipdefault;
+
+    } while( 0 );
+
+
+    nResult = SysNtCreateThread( 
         ThreadHandle,
         DesiredAccess,
         ObjectAttributes,
@@ -376,6 +542,13 @@ NTSTATUS SzHookNtCreateThread(
         ThreadContext,
         InitialTeb,
         CreateSuspended);
+
+skipdefault:
+
+    if (CurProcessPathFile.Buffer != NULL) ExFreePool(CurProcessPathFile.Buffer);
+    if (TagProcessPathFile.Buffer != NULL) ExFreePool(TagProcessPathFile.Buffer);
+
+    return nResult;
 }
 
 
@@ -386,14 +559,62 @@ NTSTATUS SzHookNtReadVirtualMemory (
     IN  ULONG       BufferLength,
     OUT PULONG      ReturnLength OPTIONAL)
 {
-    DbgPrint ( ("SzHookNtReadVirtualMemory  PID=%d", (UINT)PsGetCurrentProcessId() ) );
+    int nResult = STATUS_ACCESS_DENIED;
 
-    return SysNtReadVirtualMemory( 
+    PEPROCESS pEprocess = NULL;
+
+    UNICODE_STRING CurProcessPathFile = { 0 };
+    UNICODE_STRING TagProcessPathFile = { 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    do 
+    {
+        pEprocess = GetEProcessByHandle(ProcessHandle);
+        if (pEprocess == NULL)
+            break;
+
+        if ( PsGetCurrentProcess() == pEprocess )
+            break;
+
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &CurProcessPathFile ) )
+            break;
+
+        DbgPrint (("SzHookNtReadVirtualMemory CurProcessPathFile = %ws %ws", CurProcessPathFile.Buffer, TagProcessPathFile.Buffer ));
+
+        if ( !GetProcessFullPath( pEprocess, &TagProcessPathFile ) )
+            break;
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, TagProcessPathFile.Buffer ) == NULL )
+            break;
+
+        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            goto skipdefault;
+
+    } while( 0 );
+
+
+    nResult = SysNtReadVirtualMemory( 
         ProcessHandle,
         BaseAddress,
         Buffer,
         BufferLength,
         ReturnLength);
+
+skipdefault:
+
+    if (CurProcessPathFile.Buffer != NULL) ExFreePool(CurProcessPathFile.Buffer);
+    if (TagProcessPathFile.Buffer != NULL) ExFreePool(TagProcessPathFile.Buffer);
+
+    return nResult;
+
 }
 
 NTSTATUS SzHookNtWriteVirtualMemory(
@@ -403,13 +624,61 @@ NTSTATUS SzHookNtWriteVirtualMemory(
     IN ULONG        BufferLength,
     OUT PULONG      ReturnLength OPTIONAL)
 {
-    DbgPrint ( ("SzHookNtWriteVirtualMemory  PID=%d", (UINT)PsGetCurrentProcessId() ) );
+    int nResult = STATUS_ACCESS_DENIED;
 
-    return SysNtWriteVirtualMemory( 
+    PEPROCESS pEprocess = NULL;
+
+    UNICODE_STRING CurProcessPathFile = { 0 };
+    UNICODE_STRING TagProcessPathFile = { 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    do 
+    {
+        pEprocess = GetEProcessByHandle(ProcessHandle);
+        if (pEprocess == NULL)
+            break;
+
+        if ( PsGetCurrentProcess() == pEprocess )
+            break;
+
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &CurProcessPathFile ) )
+            break;
+
+        DbgPrint (("SzHookNtWriteVirtualMemory CurProcessPathFile = %ws %ws", CurProcessPathFile.Buffer, TagProcessPathFile.Buffer ));
+
+        if ( !GetProcessFullPath( pEprocess, &TagProcessPathFile ) )
+            break;
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, TagProcessPathFile.Buffer ) == NULL )
+            break;
+
+        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, CurProcessPathFile.Buffer ) != NULL )
+            goto skipdefault;
+
+    } while( 0 );
+
+
+    nResult = SysNtWriteVirtualMemory( 
         ProcessHandle,
         BaseAddress,
         Buffer,
         BufferLength,
         ReturnLength);
+
+skipdefault:
+
+    if (CurProcessPathFile.Buffer != NULL) ExFreePool(CurProcessPathFile.Buffer);
+    if (TagProcessPathFile.Buffer != NULL) ExFreePool(TagProcessPathFile.Buffer);
+
+    return nResult;
+
 }
 
