@@ -28,6 +28,7 @@
 #define IDC_RADIO2                      1004
 #define IDC_RADIO3                      1005
 #define IDC_BLACK_LIST2                 1005
+#define IDC_LOG_LIST                    1005
 #define IDC_RADIO4                      1006
 #define IDC_C_EDIT                      1007
 #define IDC_B_BUTTON                    1008

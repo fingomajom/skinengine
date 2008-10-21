@@ -61,6 +61,7 @@ void CmfckpstestDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BLACK_LIST, m_black_rule_list);
     DDX_Control(pDX, IDC_WHITE_LIST, m_white_rule_list);
     DDX_Control(pDX, IDC_PROTECT_LIST, m_protect_rule_list);
+    DDX_Control(pDX, IDC_LOG_LIST, m_log_list);
 }
 
 BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
@@ -86,6 +87,22 @@ END_MESSAGE_MAP()
 
 
 // CmfckpstestDlg 消息处理程序
+
+void CmfckpstestDlg::ReportLog( LP_DRIVER_EVENT_INFO EventInfo )
+{
+    CString strtmp;
+
+    strtmp.Format(L"%d", EventInfo->uEventType);
+    int idx = m_log_list.InsertItem( 0xFFFFFF, strtmp);
+
+
+    strtmp.Format(L"%d", EventInfo->uSrcPID);
+    m_log_list.SetItemText(idx, 1, strtmp);
+    m_log_list.SetItemText(idx, 2, EventInfo->wszSrcFileName);
+    strtmp.Format(L"%d", EventInfo->uTagPID);
+    m_log_list.SetItemText(idx, 3, strtmp);
+    m_log_list.SetItemText(idx, 4, EventInfo->wszTagFileName);
+}
 
 
 BOOL CmfckpstestDlg::OnInitDialog()
@@ -120,8 +137,20 @@ BOOL CmfckpstestDlg::OnInitDialog()
     InitRuleList(m_white_rule_list);
     InitRuleList(m_protect_rule_list);
 
+    m_log_list.InsertColumn(0, _T("Type")   , 0, 60);
+    m_log_list.InsertColumn(1, _T("SrcPID") , 0, 60);
+    m_log_list.InsertColumn(2, _T("SrcFile"), 0, 300);
+    m_log_list.InsertColumn(3, _T("TagPID") , 0, 60);
+    m_log_list.InsertColumn(4, _T("TagFile"), 0, 300);
+
+
+
     if ( !m_devc.InitDevC() )
         AfxMessageBox(_T("打开驱动设置错误。。。"));
+
+    m_devc.SetCallback(this);
+
+
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -406,9 +435,9 @@ void CmfckpstestDlg::OnBnClickedSetWhiteFile()
     if ( !m_devc.ClearRule( RT_WHITERULE) )
         return;
 
-    for (size_t idx = 0; idx < m_vtblack_rule_list.size(); idx++)
+    for (size_t idx = 0; idx < m_vtwhite_rule_list.size(); idx++)
     {
-        DRIVER_RULE_INFO RuleInfo = m_vtblack_rule_list[idx];
+        DRIVER_RULE_INFO RuleInfo = m_vtwhite_rule_list[idx];
 
         RuleInfo.uRuleType = RT_WHITERULE;
         RuleInfo.uEnable = TRUE;
@@ -425,9 +454,9 @@ void CmfckpstestDlg::OnBnClickedSetProtectFile()
     if ( !m_devc.ClearRule( RT_PROTECTRULE) )
         return;
 
-    for (size_t idx = 0; idx < m_vtblack_rule_list.size(); idx++)
+    for (size_t idx = 0; idx < m_vtprotect_rule_list.size(); idx++)
     {
-        DRIVER_RULE_INFO RuleInfo = m_vtblack_rule_list[idx];
+        DRIVER_RULE_INFO RuleInfo = m_vtprotect_rule_list[idx];
 
         RuleInfo.uRuleType = RT_PROTECTRULE;
         RuleInfo.uEnable = TRUE;

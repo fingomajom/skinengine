@@ -2,7 +2,11 @@
 #include "ProtectDevC.h"
 
 CProtectDevC::CProtectDevC(void) :
-    m_hDevcHandle(INVALID_HANDLE_VALUE)
+    m_hDevcHandle(INVALID_HANDLE_VALUE),
+    m_piCallback(NULL),
+    m_hReadEventThread(NULL),
+    m_hExitEvent(NULL),
+    m_hReportEvent(NULL)
 {
 }
 
@@ -64,6 +68,14 @@ BOOL __stdcall CProtectDevC::InitDevC()
         goto Exit0;
     }
 
+    m_hExitEvent   = CreateEvent( NULL, FALSE, FALSE, NULL );
+    m_hReportEvent = CreateEvent( NULL, FALSE, FALSE, NULL );
+    if ( m_hReportEvent == NULL || !SetReportEvent(m_hReportEvent) )
+        goto Exit0;
+
+    if ( m_piCallback != NULL )
+        StartReadEventThread();
+
     return TRUE;
 
 Exit0:
@@ -81,6 +93,8 @@ void __stdcall CProtectDevC::UninitDevC()
         CloseHandle(m_hDevcHandle);
         m_hDevcHandle = INVALID_HANDLE_VALUE;
     }
+
+    SetEvent(m_hExitEvent);
 
 }
 
@@ -213,4 +227,129 @@ BOOL __stdcall CProtectDevC::ClearRule( UINT uRuleType )
         );
 
     return bResult;    
+}
+
+
+BOOL __stdcall CProtectDevC::SetReportEvent( HANDLE hReportEvent )
+{
+    BOOL bResult = FALSE;
+
+    DWORD dwBuffLen = sizeof(DWORD);
+
+    DWORD dwSet = (DWORD)(LONG_PTR)hReportEvent;
+
+    bResult = DeviceIoControl(
+        m_hDevcHandle,
+        IOCTL_PTTDRV_SET_REPORT_EVENT,
+        &dwSet,
+        sizeof(DWORD),
+        &dwSet,
+        dwBuffLen,
+        &dwBuffLen,
+        NULL
+        );
+
+    return bResult;    
+}
+
+BOOL __stdcall CProtectDevC::GetReportLog( LP_DRIVER_EVENT_INFO EventInfo )
+{
+    int nResult = DRIVER_STATUS_INVALID;
+
+    if (m_hDevcHandle == INVALID_HANDLE_VALUE)
+        return nResult;
+
+    DWORD dwBuffLen = sizeof(DRIVER_EVENT_INFO);
+
+    nResult = DeviceIoControl(
+        m_hDevcHandle,
+        IOCTL_PTTDRV_GET_REPORT_INFO,
+        NULL,
+        0,
+        EventInfo,
+        dwBuffLen,
+        &dwBuffLen,
+        NULL
+        );
+
+
+    return nResult;
+}
+
+
+void __stdcall CProtectDevC::SetCallback(IProtectDevCallback* piCallback)
+{
+    m_piCallback = piCallback;
+
+    if ( m_piCallback != NULL )
+        StartReadEventThread();
+}
+
+
+BOOL CProtectDevC::StartReadEventThread()
+{
+    BOOL bResult = FALSE;
+
+    if (m_hReadEventThread != NULL)
+        return TRUE;
+
+    DWORD dwThread = NULL;
+
+    m_hReadEventThread = CreateThread(NULL, 1024, ThreadReadEventFunc, this, 0, &dwThread);
+    if (m_hReadEventThread == NULL)
+        return FALSE;
+
+    bResult = TRUE;
+
+    return bResult;
+
+}
+
+DWORD WINAPI CProtectDevC::ThreadReadEventFunc(LPVOID lpParam)
+{
+    CProtectDevC* pThis = (CProtectDevC*)lpParam;
+
+    pThis->RunReadEventFunc();
+
+    return 0;
+}
+
+void CProtectDevC::RunReadEventFunc()
+{
+    DWORD  dwResult       = 0;
+    HANDLE hWaitEvents[2] = { m_hReportEvent, m_hExitEvent };
+
+    DRIVER_EVENT_INFO EventInfo  = { 0 };
+
+    while (true)
+    {
+
+        Sleep(20);
+
+        dwResult = WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
+
+        switch ( dwResult )
+        {
+
+        case WAIT_OBJECT_0 + 0:
+            {
+                while ( GetReportLog(&EventInfo) )
+                {
+                    if ( m_piCallback != NULL)
+                        m_piCallback->ReportLog(&EventInfo);
+                }
+            }
+            break;
+
+        case WAIT_OBJECT_0 + 1:
+
+            return;
+
+        case WAIT_TIMEOUT:
+        default:
+
+            return;
+
+        }
+    }
 }

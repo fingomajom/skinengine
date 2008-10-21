@@ -110,9 +110,11 @@ NTSTATUS StartWorking()
         InitRuleList( &g_WhiteRuleList   );
         InitRuleList( &g_ProtectRuleList );
         InitRuleList( &g_RunPIDList      );
-        
-        InitDefaultRuleList( RT_BLACKRULE | RT_WHITERULE | RT_PROTECTRULE );
 
+       
+        InitDefaultRuleList( RT_BLACKRULE | RT_WHITERULE | RT_PROTECTRULE );
+        
+        InitEventList( & g_event_list );
 
         ntStatus = InitProcessNotify();
         if ( ntStatus != STATUS_SUCCESS )

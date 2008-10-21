@@ -59,6 +59,7 @@ typedef int (__stdcall *PROC)();
 #include "reg.h"
 #include "misc.h"
 #include "rule.h"
+#include "eventrep.h"
 #include "pttdrv.h"
 #include "selfdestroy.h"
 #include "inlinehook.h"

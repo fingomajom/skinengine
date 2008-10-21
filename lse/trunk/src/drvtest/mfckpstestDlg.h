@@ -9,7 +9,9 @@
 
 
 // CmfckpstestDlg 对话框
-class CmfckpstestDlg : public CDialog
+class CmfckpstestDlg : 
+    public CDialog,
+    public IProtectDevCallback
 {
 // 构造
 public:
@@ -21,6 +23,7 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
+    virtual void ReportLog( LP_DRIVER_EVENT_INFO EventInfo );
 
 public:
 
@@ -61,6 +64,8 @@ public:
     CListCtrl m_black_rule_list;
     CListCtrl m_white_rule_list;
     CListCtrl m_protect_rule_list;
+    CListCtrl m_log_list;
+
     afx_msg void OnBnClickedAddWhiteFile();
     afx_msg void OnBnClickedClearBlackFile();
     afx_msg void OnBnClickedClearWhiteFile();

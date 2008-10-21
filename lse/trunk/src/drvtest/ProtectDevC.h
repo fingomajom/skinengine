@@ -12,6 +12,14 @@
 
 #pragma once
 
+
+class IProtectDevCallback
+{
+public:
+    virtual void ReportLog( LP_DRIVER_EVENT_INFO EventInfo ) = 0;
+};
+
+
 class CProtectDevC
 {
 public:
@@ -31,8 +39,33 @@ public:
     virtual BOOL __stdcall AppendRule( LP_DRIVER_RULE_INFO RuleInfo );
     virtual BOOL __stdcall ClearRule( UINT uRuleType );
 
+    virtual BOOL __stdcall GetReportLog( LP_DRIVER_EVENT_INFO EventInfo );
+
+    virtual void __stdcall SetCallback(IProtectDevCallback* piCallback);
+
+protected:
+
+    virtual BOOL __stdcall SetReportEvent( HANDLE hReportEvent );
+
+
+protected:
+
+    BOOL StartReadEventThread();
+    
+
+    static DWORD WINAPI ThreadReadEventFunc(LPVOID lpParam);
+
+    void RunReadEventFunc();
+
+
+    HANDLE m_hReadEventThread;
+    HANDLE m_hExitEvent;
+
 private:
 
     HANDLE m_hDevcHandle;
+    HANDLE m_hReportEvent;
+
+    IProtectDevCallback* m_piCallback;
 
 };

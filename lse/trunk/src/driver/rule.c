@@ -367,7 +367,10 @@ BOOL InitDefaultRuleList( UINT uRuleType )
     if ( uRuleType & RT_PROTECTRULE )
     {
         AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\lserv.exe" );
-        AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\mfckpstest.exe" );
+        AppendRule_I( &g_ProtectRuleList, CT_PATHFILE, TRUE, L"c:\\program files\\kingsoft antispy\\kasmain.exe" );
+
+        
+        //AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\mfckpstest.exe" );
     }
 
     return bResult;

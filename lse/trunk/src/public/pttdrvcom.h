@@ -69,6 +69,18 @@ union{
 }DRIVER_RULE_INFO, *LP_DRIVER_RULE_INFO;
 
 
+typedef struct tag_DRIVER_EVENT_INFO
+{
+    UINT  uEventType;
+
+    UINT  uSrcPID;
+    WCHAR wszSrcFileName[MAX_PATH];
+
+    UINT  uTagPID;
+    WCHAR wszTagFileName[MAX_PATH];
+
+}DRIVER_EVENT_INFO, *LP_DRIVER_EVENT_INFO;
+
 #pragma pack(pop)
 
 
@@ -101,9 +113,23 @@ union{
 //////////////////////////////////////////////////////////////////////////
 // 清除规则
 //////////////////////////////////////////////////////////////////////////
-#define IOCTL_PTTDRV_CLEAR_RULE          \
+#define IOCTL_PTTDRV_CLEAR_RULE                 \
     CTL_CODE(PTTDRV_DRIVER, 0x22, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+
+
+//////////////////////////////////////////////////////////////////////////
+// 设置日志事件句柄
+//////////////////////////////////////////////////////////////////////////
+#define IOCTL_PTTDRV_SET_REPORT_EVENT          \
+    CTL_CODE(PTTDRV_DRIVER, 0x31, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+
+//////////////////////////////////////////////////////////////////////////
+// 获取日志
+//////////////////////////////////////////////////////////////////////////
+#define IOCTL_PTTDRV_GET_REPORT_INFO          \
+    CTL_CODE(PTTDRV_DRIVER, 0x32, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #endif // __PTTDRVCOM_H__
 

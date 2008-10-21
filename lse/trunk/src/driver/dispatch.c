@@ -171,6 +171,58 @@ DeviceIoControl(
 
         break;
 
+    case IOCTL_PTTDRV_SET_REPORT_EVENT:        
+        //////////////////////////////////////////////////////////////////////////
+        // 设置日志事件句柄
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_SET_REPORT_EVENT %d,%x\n", uInputBufferLength, p_buffer) );
+
+            if ( uInputBufferLength == sizeof( HANDLE ) && p_buffer != NULL )
+            {
+                ntStatus = ObReferenceObjectByHandle( 
+                    *((HANDLE*)p_buffer),
+                    0, (POBJECT_TYPE) NULL, UserMode, 
+                    (PVOID) & g_event_list.ReportEvent, 
+                    (POBJECT_HANDLE_INFORMATION) NULL);
+
+                if ( !NT_SUCCESS(ntStatus) )
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_SET_REPORT_EVENT\n") );
+            }
+        }
+
+        break;
+
+    case IOCTL_PTTDRV_GET_REPORT_INFO:        
+        //////////////////////////////////////////////////////////////////////////
+        // 获取日志
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_GET_REPORT_INFO %d,%x\n", uOutputBufferLength, p_buffer) );
+
+            if ( uOutputBufferLength >= sizeof( DRIVER_EVENT_INFO ) && p_buffer != NULL )
+            {
+                LP_EVENT_INFO pInfo = PopHeadEvent(&g_event_list);
+
+                if ( pInfo != NULL )
+                {
+                    *((LP_DRIVER_EVENT_INFO)p_buffer) = pInfo->EventInfo;
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_GET_REPORT_INFO\n") );
+            }
+        }
+
+        break;
+
     default:
         break;
 

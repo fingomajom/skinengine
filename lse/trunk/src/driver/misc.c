@@ -65,7 +65,7 @@ PEPROCESS GetEProcessByHandle( HANDLE hProcess )
 
 BOOL GetProcessFullPathByID(
     UINT uPID,
-    PUNICODE_STRING pUniCodeFullPath)
+    PUNICODE_STRING psUniCodeFullPath)
 {
     NTSTATUS nRetCode = 0;
 
@@ -75,13 +75,13 @@ BOOL GetProcessFullPathByID(
     if ( !NT_SUCCESS(nRetCode) )
         return FALSE;
     
-    return GetProcessFullPath( pEProcess, pUniCodeFullPath );
+    return GetProcessFullPath( pEProcess, psUniCodeFullPath );
 }
 
 
 BOOL GetProcessFullPath(
     PEPROCESS       pPeProcess,
-    PUNICODE_STRING pUniCodeFullPath)
+    PUNICODE_STRING psUniCodeFullPath)
 {
     BOOL        bResult = FALSE;
     KAPC_STATE  APCState;
@@ -179,26 +179,26 @@ BOOL GetProcessFullPath(
         ReturnLength = usActualLength + sizeof(UNICODE_NULL);
 
 
-        pUniCodeFullPath->Buffer = ExAllocatePoolWithTag(NonPagedPool, ReturnLength, MEM_TAG);
-        if (pUniCodeFullPath->Buffer == NULL)
+        psUniCodeFullPath->Buffer = ExAllocatePoolWithTag(NonPagedPool, ReturnLength, MEM_TAG);
+        if (psUniCodeFullPath->Buffer == NULL)
             goto Exit0;
 
-        RtlCopyMemory(pUniCodeFullPath->Buffer, pImageFileName->Buffer, usActualLength);
+        RtlCopyMemory(psUniCodeFullPath->Buffer, pImageFileName->Buffer, usActualLength);
 
-        pUniCodeFullPath->Length = usActualLength;
-        pUniCodeFullPath->MaximumLength = ReturnLength;
+        psUniCodeFullPath->Length = usActualLength;
+        psUniCodeFullPath->MaximumLength = ReturnLength;
 
-        nRetCode = _wcsnicmp(pUniCodeFullPath->Buffer, L"\\??\\", 4);
+        nRetCode = _wcsnicmp(psUniCodeFullPath->Buffer, L"\\??\\", 4);
         if (nRetCode == 0)
         {
-            RtlCopyMemory(pUniCodeFullPath->Buffer, pUniCodeFullPath->Buffer + 4, usActualLength - 4 * sizeof(WCHAR));
-            pUniCodeFullPath->Length -= 8;
-            pUniCodeFullPath->MaximumLength -= 8;
+            RtlCopyMemory(psUniCodeFullPath->Buffer, psUniCodeFullPath->Buffer + 4, usActualLength - 4 * sizeof(WCHAR));
+            psUniCodeFullPath->Length -= 8;
+            psUniCodeFullPath->MaximumLength -= 8;
         }
         //
         // ½áÎ²ÖÃNULL
         //
-        pUniCodeFullPath->Buffer[ usActualLength / sizeof(WCHAR) ] = UNICODE_NULL;
+        psUniCodeFullPath->Buffer[ usActualLength / sizeof(WCHAR) ] = UNICODE_NULL;
     }
     __except(EXCEPTION_EXECUTE_HANDLER)
     {
