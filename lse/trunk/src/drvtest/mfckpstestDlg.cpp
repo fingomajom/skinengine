@@ -6,6 +6,9 @@
 #include "mfckpstestDlg.h"
 #include "CommonFunc.h"
 #include "EditRuleDlg.h"
+#include "ConfigDlg.h"
+#include <shlwapi.h>
+#include <Psapi.h>
 
 
 #ifdef _DEBUG
@@ -62,6 +65,7 @@ void CmfckpstestDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_WHITE_LIST, m_white_rule_list);
     DDX_Control(pDX, IDC_PROTECT_LIST, m_protect_rule_list);
     DDX_Control(pDX, IDC_LOG_LIST, m_log_list);
+    DDX_Control(pDX, IDC_SET_STATUS, m_status_btn);
 }
 
 BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
@@ -83,6 +87,11 @@ BEGIN_MESSAGE_MAP(CmfckpstestDlg, CDialog)
     ON_BN_CLICKED(IDC_SET_BLACK_FILE, &CmfckpstestDlg::OnBnClickedSetBlackFile)
     ON_BN_CLICKED(IDC_SET_WHITE_FILE, &CmfckpstestDlg::OnBnClickedSetWhiteFile)
     ON_BN_CLICKED(IDC_SET_PROTECT_FILE, &CmfckpstestDlg::OnBnClickedSetProtectFile)
+    ON_WM_DESTROY()
+    ON_WM_SIZE()
+    ON_BN_CLICKED(IDC_CLEAR_LOG_BUTTON, &CmfckpstestDlg::OnBnClickedClearLogButton)
+    ON_BN_CLICKED(IDC_SET_STATUS, &CmfckpstestDlg::OnBnClickedSetStatus)
+    ON_BN_CLICKED(IDC_SET_CONFIG, &CmfckpstestDlg::OnBnClickedSetConfig)
 END_MESSAGE_MAP()
 
 
@@ -92,7 +101,58 @@ void CmfckpstestDlg::ReportLog( LP_DRIVER_EVENT_INFO EventInfo )
 {
     CString strtmp;
 
-    strtmp.Format(L"%d", EventInfo->uEventType);
+
+    switch(EventInfo->uEventType)
+    {
+    case LOG_TYPE_CREATE_PROCESS:
+        strtmp = L"CreateProcess";
+        break;
+    case LOG_TYPE_USERMODECALLBACK:
+        strtmp = L"UserModeCallback";
+        break;
+    case LOG_TYPE_OPENPROCESS:
+        strtmp = L"OpenProcess";
+        break;
+    case LOG_TYPE_QUERYSYSTEMINFORMATION:
+        strtmp = L"QuerySystemInformation";
+        break;
+    case LOG_TYPE_CREATESECTION:
+        strtmp = L"CreateSection";
+        break;
+    case LOG_TYPE_OPENSECTION:
+        strtmp = L"OpenSection";
+        break;
+    case LOG_TYPE_TERMINATEPROCESS:
+        strtmp = L"TerminateProcess";
+        break;
+    case LOG_TYPE_CREATETHREAD:
+        strtmp = L"CreateThread";
+        break;
+    case LOG_TYPE_READVIRTUALMEMORY:
+        strtmp = L"ReadVirtualMemory";
+        break;
+    case LOG_TYPE_WRITEVIRTUALMEMORY:
+        strtmp = L"WriteVirtualMemory";
+        break;
+
+
+    case LOG_TYPE_USERMESSAGECALL:
+        strtmp = L"UserMessageCall";
+        break;
+    case LOG_TYPE_USERSENDINPUT:
+        strtmp = L"UserSendInput";
+        break;
+    case LOG_TYPE_USERPOSTMESSAGE:
+        strtmp = L"UserPostMessage";
+        break;
+    case LOG_TYPE_USERPOSTTHREADMESSAGE:
+        strtmp = L"UserPostThreadMessage";
+        break;
+
+    default:
+        strtmp.Format(L"%d", EventInfo->uEventType);
+    }
+
     int idx = m_log_list.InsertItem( 0xFFFFFF, strtmp);
 
 
@@ -101,7 +161,22 @@ void CmfckpstestDlg::ReportLog( LP_DRIVER_EVENT_INFO EventInfo )
     m_log_list.SetItemText(idx, 2, EventInfo->wszSrcFileName);
     strtmp.Format(L"%d", EventInfo->uTagPID);
     m_log_list.SetItemText(idx, 3, strtmp);
-    m_log_list.SetItemText(idx, 4, EventInfo->wszTagFileName);
+
+    //if ( EventInfo->uEventType == LOG_TYPE_CREATE_PROCESS )
+    //{
+    //    TCHAR szPathFile[ MAX_PATH ] = { 0 };
+
+    //    HANDLE hProcess = OpenProcess( PROCESS_QUERY_INFORMATION , NULL, EventInfo->uTagPID);
+
+    //    GetProcessImageFileName( hProcess, szPathFile, MAX_PATH );
+
+    //    CloseHandle(hProcess);
+
+    //    m_log_list.SetItemText(idx, 4, szPathFile);
+
+    //}
+    //else
+        m_log_list.SetItemText(idx, 4, EventInfo->wszTagFileName);
 }
 
 
@@ -132,12 +207,18 @@ BOOL CmfckpstestDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
+    LoadRuleList(L"black_rule"  , m_vtblack_rule_list);
+    LoadRuleList(L"white_rule"  , m_vtwhite_rule_list);
+    LoadRuleList(L"protect_rule", m_vtprotect_rule_list);
 
-    InitRuleList(m_black_rule_list);
-    InitRuleList(m_white_rule_list);
-    InitRuleList(m_protect_rule_list);
+    InitRuleList(m_black_rule_list, m_vtblack_rule_list);
+    InitRuleList(m_white_rule_list, m_vtwhite_rule_list);
+    InitRuleList(m_protect_rule_list, m_vtprotect_rule_list);
 
-    m_log_list.InsertColumn(0, _T("Type")   , 0, 60);
+
+    m_log_list.SetExtendedStyle( LVS_EX_FULLROWSELECT );
+
+    m_log_list.InsertColumn(0, _T("Type")   , 0, 120);
     m_log_list.InsertColumn(1, _T("SrcPID") , 0, 60);
     m_log_list.InsertColumn(2, _T("SrcFile"), 0, 300);
     m_log_list.InsertColumn(3, _T("TagPID") , 0, 60);
@@ -151,6 +232,8 @@ BOOL CmfckpstestDlg::OnInitDialog()
     m_devc.SetCallback(this);
 
 
+    m_status_btn.SetWindowText( 
+        m_devc.GetStatus() == DRIVER_STATUS_RUNNING ? L"关闭" : L"开启");
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -232,12 +315,18 @@ void CmfckpstestDlg::OnBnClickedUninstall()
 }
 
 
-void CmfckpstestDlg::InitRuleList(CListCtrl& ListCtrl)
+void CmfckpstestDlg::InitRuleList(CListCtrl& ListCtrl, std::vector<DRIVER_RULE_INFO>& vtRule)
 {
     ListCtrl.InsertColumn(0, _T("Type"), 0, 50);
     ListCtrl.InsertColumn(1, _T("Content"), 0, 215);
 
     ListCtrl.SetExtendedStyle( LVS_EX_FULLROWSELECT );
+
+    for ( size_t idx = 0; idx < vtRule.size(); idx++ )
+    {
+        int index = ListCtrl.InsertItem(0xFFFFFF, L"");
+        UpdateRuleList(ListCtrl, vtRule[idx], (int)idx);
+    }
 }
 
 void CmfckpstestDlg::UpdateRuleList( CListCtrl& ListCtrl, DRIVER_RULE_INFO& RuleInfo, int idx )
@@ -466,4 +555,146 @@ void CmfckpstestDlg::OnBnClickedSetProtectFile()
     }
 
     AfxMessageBox(_T("重置成功！！"));
+}
+
+void CmfckpstestDlg::OnDestroy()
+{
+    __super::OnDestroy();
+
+    SaveRuleList(L"black_rule"  , m_vtblack_rule_list);
+    SaveRuleList(L"white_rule"  , m_vtwhite_rule_list);
+    SaveRuleList(L"protect_rule", m_vtprotect_rule_list);
+
+}
+
+void CmfckpstestDlg::LoadRuleList( PWCHAR wszRuleName, std::vector<DRIVER_RULE_INFO>& vtRule)
+{
+    WCHAR szIniFile[MAX_PATH] = { 0 };
+    ::GetModuleFileName(AfxGetResourceHandle(), szIniFile, MAX_PATH );
+    ::PathRemoveFileSpec(szIniFile);
+    ::PathAppend(szIniFile, L"config.ini");
+
+    int nRuleCount = 0;
+
+    nRuleCount = ::GetPrivateProfileInt( L"RuleCount", wszRuleName, 0, szIniFile );
+
+    vtRule.clear();
+
+    for ( int idx = 0; idx < nRuleCount; idx++ )
+    {
+        DRIVER_RULE_INFO RuleInfo = { 0 };
+
+        CString strAppName;
+
+        strAppName.Format(L"%s(%d)", wszRuleName, idx);
+
+        RuleInfo.uContentType = ::GetPrivateProfileInt( strAppName,
+            L"uContentType", 0, szIniFile);
+
+        RuleInfo.uEnable = ::GetPrivateProfileInt( strAppName,
+            L"uEnable", 0, szIniFile);
+
+
+        if ( RuleInfo.uContentType < CT_ID || RuleInfo.uContentType > CT_PATHFILE )
+            continue;
+
+        ::GetPrivateProfileString( strAppName, 
+            L"ContentString", L"", RuleInfo.wszPathFile, MAX_PATH, szIniFile );
+
+        if ( RuleInfo.uContentType == CT_ID )
+            RuleInfo.uProcessId = _wtol(RuleInfo.wszPathFile);
+
+        vtRule.push_back(RuleInfo);
+    }
+}
+
+
+void CmfckpstestDlg::SaveRuleList( PWCHAR wszRuleName, std::vector<DRIVER_RULE_INFO>& vtRule)
+{
+    WCHAR szIniFile[MAX_PATH] = { 0 };
+    ::GetModuleFileName(AfxGetResourceHandle(), szIniFile, MAX_PATH );
+    ::PathRemoveFileSpec(szIniFile);
+    ::PathAppend(szIniFile, L"config.ini");
+
+    int nRuleCount = (int)vtRule.size();
+
+    CString strValue;
+
+    strValue.Format(L"%d", nRuleCount);
+
+    ::WritePrivateProfileString( L"RuleCount", wszRuleName, strValue, szIniFile );
+
+
+    for ( int idx = 0; idx < nRuleCount; idx++ )
+    {
+        const DRIVER_RULE_INFO& RuleInfo = vtRule[idx];
+
+        CString strAppName;
+
+        strAppName.Format(L"%s(%d)", wszRuleName, idx);
+        strValue.Format(L"%d", RuleInfo.uContentType);
+
+        ::WritePrivateProfileString( strAppName, L"uContentType", strValue, szIniFile );
+        strValue.Format(L"%d", RuleInfo.uEnable);
+        ::WritePrivateProfileString( strAppName, L"uEnable", strValue, szIniFile );
+
+        if ( RuleInfo.uContentType < CT_ID || RuleInfo.uContentType > CT_PATHFILE )
+            continue;
+
+        if ( RuleInfo.uContentType == CT_ID )
+            strValue.Format(L"%d", RuleInfo.uProcessId);
+        else
+            strValue = RuleInfo.wszPathFile;
+
+        ::WritePrivateProfileString( strAppName, L"ContentString", strValue, szIniFile );
+
+    }
+}
+
+
+void CmfckpstestDlg::OnSize(UINT nType, int cx, int cy)
+{
+    __super::OnSize(nType, cx, cy);
+
+    if ( !::IsWindow(m_log_list.GetSafeHwnd()) )
+        return;
+
+    RECT rcClient = { 0 };
+    RECT rcList = { 0 };
+
+    GetClientRect(&rcClient);
+    
+    m_log_list.GetWindowRect(&rcList);
+    ScreenToClient(&rcList);
+
+    rcList.bottom = rcClient.bottom - 10;
+
+    m_log_list.MoveWindow(&rcList);
+}
+
+void CmfckpstestDlg::OnBnClickedClearLogButton()
+{
+    m_log_list.DeleteAllItems();
+}
+
+void CmfckpstestDlg::OnBnClickedSetStatus()
+{
+    m_devc.SetStatus( 
+        m_devc.GetStatus() == DRIVER_STATUS_RUNNING ?
+        DRIVER_STATUS_STOP : DRIVER_STATUS_RUNNING);
+
+    m_status_btn.SetWindowText( 
+        m_devc.GetStatus() == DRIVER_STATUS_RUNNING ? L"关闭" : L"开启");
+}
+
+void CmfckpstestDlg::OnBnClickedSetConfig()
+{
+    CConfigDlg dlg;
+
+    m_devc.GetConfig(&dlg.m_cfg);
+    
+    if ( dlg.DoModal() == IDOK )
+    {
+        m_devc.SetConfig(&dlg.m_cfg);
+    }
 }

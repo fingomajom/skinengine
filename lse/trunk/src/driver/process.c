@@ -2,7 +2,6 @@
 #pragma hdrstop
 
 
-
 #define PROCESS_TERMINATE         (0x0001)  
 #define PROCESS_CREATE_THREAD     (0x0002)  
 #define PROCESS_SET_SESSIONID     (0x0004)  
@@ -17,7 +16,6 @@
 #define PROCESS_SUSPEND_RESUME    (0x0800)  
 
 
-
 void CreateProcessNotify(
     HANDLE ParentId,
     HANDLE ProcessId,
@@ -26,11 +24,37 @@ void CreateProcessNotify(
     KIRQL       OldIrql;
     PLIST_ENTRY MatchEntry = NULL;
 
-    DbgPrint( ("ParentId = 0x%08x  ProcessId = 0x%08x Create = %d ", ParentId, ProcessId, bCreate) );
+    UNICODE_STRING sPathSrcProcess =    { 0, 0, 0 };
+    UNICODE_STRING sPathParentProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess =    { 0, 0, 0 };
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        return;
+
+    if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ))
+        ;
+
+    if ( !GetProcessFullPathByID( (UINT)ParentId, &sPathParentProcess ) )
+        ;//return;
+
+    if ( !GetProcessFullPathByID( (UINT)ProcessId, &sPathTagProcess ) )
+        ;//return;
+
+    DbgPrint( ("%s SID = %d PPID=%d  PID = %d SID = %ws PPID=%ws PID=%ws", 
+        bCreate ? "CreateP" : "DestoryP", 
+        PsGetCurrentProcessId(), ParentId, ProcessId, 
+        sPathSrcProcess.Buffer, 
+        sPathParentProcess.Buffer, 
+        sPathTagProcess.Buffer) );
 
 
     if ( bCreate )
     {
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_CREATE_PROCESS, 
+            (UINT)ParentId , sPathSrcProcess.Buffer,
+            (UINT)ProcessId, sPathTagProcess.Buffer);       
+
         KeAcquireSpinLock(&g_RunPIDList.RuleLock, &OldIrql);
         
         MatchEntry = MatchingRule( &g_RunPIDList, CT_ID, &ParentId );
@@ -94,7 +118,7 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
 
     const int ulApiWatch = 66; // ClientLoadLibrary;
 
@@ -103,20 +127,18 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_ke_user_mode_callback);
 
-    if ( ApiNumber != ulApiWatch )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
         goto call_default;
 
+    if ( ApiNumber != ulApiWatch )
+        goto call_default;
 
     do 
     {
         if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
             break;
 
-        //DbgPrint (("SzHookKeUserModeCallback sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
-
-        // 是否是要保护对象
-        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) == NULL )
-            break;
+        DbgPrint (("SzHookKeUserModeCallback sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
 
         if ( g_dwOsVersion == os_vista_sp0 ||
              g_dwOsVersion == os_vista_sp1 )
@@ -127,6 +149,18 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
         {
             wcsncpy(wszDllPath, (WCHAR *) ((char *)InputBuffer + 0x28), InputLength - 0x28);
         }
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_USERMODECALLBACK, 
+            uCurProcessId, sPathSrcProcess.Buffer,
+            uCurProcessId, wszDllPath);
+        //////////////////////////////////////////////////////////////////////////
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) == NULL )
+            break;
 
         if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, wszDllPath ) != NULL )
             break;
@@ -139,12 +173,8 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
 
 checkend:
 
-        AppendEvent_I( &g_event_list,
-            0, 
-            uCurProcessId, sPathSrcProcess.Buffer,
-            0, wszDllPath);
-
-        goto skip_default;
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
 
     } while( 0 );
 
@@ -179,12 +209,15 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
 
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_open_process);
-    
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
 
     do 
     {
@@ -203,8 +236,18 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
         if ( !GetProcessFullPathByID( (UINT)ClientId->UniqueProcess, &sPathTagProcess ) )
             break;
 
-        DbgPrint (("SzHookNtOpenProcess sPathTagProcess = %ws", sPathTagProcess.Buffer ));
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
+            break;
 
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_OPENPROCESS, 
+            uCurProcessId , sPathSrcProcess.Buffer,
+            (UINT)ClientId->UniqueProcess, sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+        DbgPrint (("SzHookNtOpenProcess sPathTagProcess = %ws", sPathTagProcess.Buffer ));
 
         // 是否是要保护对象
         if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) == NULL )
@@ -213,8 +256,6 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
         DbgPrint (("SzHookNtOpenProcess g_ProtectRuleList MatchingRule = %ws ", sPathTagProcess.Buffer ));
 
 
-        if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
-            break;
 
         if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
             break;
@@ -223,21 +264,23 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
 
         // 未出现在黑名单中
         if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
+            goto skip_default;
 
         if (sPathSrcProcess.Buffer != NULL && sPathTagProcess.Buffer != NULL)
         {
             DbgPrint (("SzHookNtOpenProcess skipdefault cur = %ws, tag = %ws", sPathSrcProcess.Buffer, sPathTagProcess.Buffer ));
         }
 
-
-        goto skipdefault;
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
 
     } while( 0 );
 
+call_default:
+
     ntResult = (NTSTATUS)pfnStubFunc(ProcessHandle, DesiredAccess, ObjectAttributes, ClientId );
 
-skipdefault:
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
     if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
@@ -256,17 +299,113 @@ NTSTATUS NTAPI SzHookQuerySystemInformation(
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
+
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
+    SYSTEM_PROCESS_INFORMATION* pcurp  = NULL;
+    SYSTEM_PROCESS_INFORMATION* pprevp = NULL;
+
+
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_query_system_information);
 
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    {
+        return (NTSTATUS)pfnStubFunc(SystemInformationClass, 
+            SystemInformation, 
+            SystemInformationLength, 
+            ReturnLength );
+    }
 
-    //DbgPrint ( ("SzHookQuerySystemInformation  PID=%d", uCurProcessId ) );
+    if ( SystemInformationClass == 5 )
+    {
+        if ( GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
+        {
+            if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+                return ntResult;
+        }
+    }
 
     ntResult = (NTSTATUS)pfnStubFunc(SystemInformationClass, 
         SystemInformation, 
         SystemInformationLength, 
         ReturnLength );
 
+    if ( !g_drv_config.usEnableHideProcess )
+        goto call_default;
+
+    if ( SystemInformationClass != 5 || !NT_SUCCESS(ntResult) )
+        goto call_default;
+
+    if ( sPathSrcProcess.Buffer == NULL )
+        goto call_default;
+
+    //////////////////////////////////////////////////////////////////////////
+    //
+    AppendEvent_I( &g_event_list,
+        LOG_TYPE_QUERYSYSTEMINFORMATION, 
+        uCurProcessId , sPathSrcProcess.Buffer,
+        0, NULL);       
+    //////////////////////////////////////////////////////////////////////////
+
+    
+    if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+        goto call_default;
+    if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+        goto call_default;
+    
+    DbgPrint (("SzHookQuerySystemInformation sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
+
+
+    pcurp = (SYSTEM_PROCESS_INFORMATION *)SystemInformation;
+
+    while (pcurp != NULL)
+    {
+        if ( GetProcessFullPathByID( pcurp->ProcessId, &sPathTagProcess ) )
+        {
+            if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) != NULL )
+            {
+                DbgPrint (("SzHookQuerySystemInformation Hide = %ws", sPathTagProcess.Buffer ));
+
+                if ( pprevp != NULL )
+                {
+                    if ( pcurp->NextEntryDelta != 0 )
+                    {
+                        pprevp->NextEntryDelta += pcurp->NextEntryDelta;
+                    }
+                    else
+                    {
+                        pprevp->NextEntryDelta = 0;
+                    }
+                }
+                else
+                {
+                    if ( pcurp->NextEntryDelta != 0 )
+                    {
+                        (char *)SystemInformation += pcurp->NextEntryDelta;
+                    }
+                    else
+                    {
+                        SystemInformation = NULL;					
+                    }
+                }
+            }
+            else
+                pprevp = pcurp;
+        }
+
+        if (pcurp->NextEntryDelta) 
+            ((char *)pcurp += pcurp->NextEntryDelta);
+        else 
+            pcurp = NULL;
+
+    }
+
+
+call_default:
+
+    if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
 
     return ntResult;
 }
@@ -290,20 +429,23 @@ NTSTATUS NTAPI SzHookCreateSection(
     ULONG	CheckDesireAccess = SECTION_MAP_EXECUTE ;
     ULONG	CheckSectionPageProtection = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
 
+    ULONG actualLen = 0;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
 
-    UNICODE_STRING DriverName = { 0 };
-    UNICODE_STRING FullName   = { 0 };
+    WCHAR wszFullName[MAX_PATH * 2 ] = { 0 };
 
-    WCHAR wszFullName[MAX_PATH] = { 0 };
+    //UNICODE_STRING sFileObject = { 0, MAX_PATH * 2 * sizeof(WCHAR), wszFullName + 2 };
+    //UNICODE_STRING DriverName  = { 0, 0, 0 };
 
-    PFILE_OBJECT pFileObject = NULL;
+    //PFILE_OBJECT   pFileObject = NULL;
 
 
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_create_section);
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
 
     do 
     {
@@ -316,7 +458,54 @@ NTSTATUS NTAPI SzHookCreateSection(
         if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
             break;
 
-        DbgPrint (("SzHookCreateSection sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
+        if ( !GetFullPathNameByHandle(FileHandle, wszFullName, sizeof(wszFullName) - 2 ) )
+            break;
+
+        //ntRetCode = ObReferenceObjectByHandle(FileHandle, 
+        //    0, *IoFileObjectType, ExGetPreviousMode(), &pFileObject, NULL);
+        //if ( !NT_SUCCESS(ntRetCode) || pFileObject == NULL )
+        //    break;
+
+        //ntRetCode = ObQueryNameString( 
+        //    (PVOID)pFileObject,
+        //    (POBJECT_NAME_INFORMATION)&sFileObject,
+        //    sFileObject.MaximumLength,
+        //    (PULONG)&actualLen );
+        //if ( !NT_SUCCESS(ntRetCode) )
+        //    break;
+
+        //ntRetCode = RtlVolumeDeviceToDosName(pFileObject->DeviceObject, &DriverName);
+        //if ( !NT_SUCCESS(ntRetCode) ||
+        //    DriverName.Length == 0 || 
+        //    DriverName.Buffer == NULL)
+        //    break;
+
+        //if ( (DriverName.Buffer[0] >= 'a' && DriverName.Buffer[0] <= 'z') ||
+        //     (DriverName.Buffer[0] >= 'A' && DriverName.Buffer[0] <= 'Z') )
+        //{
+        //    wszFullName[0] = DriverName.Buffer[0];
+        //    wszFullName[1] = L':';
+        //}
+        //else
+        //    break;
+        //    wszFullName[0] = L'C';
+        //    wszFullName[1] = L':';
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_CREATESECTION, 
+            uCurProcessId , sPathSrcProcess.Buffer,
+            uCurProcessId , wszFullName);       
+        //////////////////////////////////////////////////////////////////////////
+
+
+        DbgPrint (("SzHookCreateSection sPathSrcProcess = %ws %ws", 
+            sPathSrcProcess.Buffer, wszFullName ));
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) == NULL )
+            break;
 
         if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
             break;
@@ -325,37 +514,18 @@ NTSTATUS NTAPI SzHookCreateSection(
 
         // 未出现在黑名单中
         if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
+            goto skip_default;
 
-        ntRetCode = ObReferenceObjectByHandle(FileHandle, 0, 0, KernelMode, &pFileObject, NULL);
-        if ( !NT_SUCCESS(ntRetCode) ||
-              pFileObject == NULL ||
-              pFileObject->FileName.Length == 0 ||
-              pFileObject->FileName.Buffer == NULL)
-            break;
 
-        ntRetCode = RtlVolumeDeviceToDosName(pFileObject->DeviceObject, &DriverName);
-        if ( !NT_SUCCESS(ntRetCode) ||
-              DriverName.Length == 0 || 
-              DriverName.Buffer == NULL)
-            break;
+        DbgPrint (("SzHookCreateSection FullName = %ws", wszFullName ));
 
-        if ( (DriverName.Length + pFileObject->FileName.Length) > MAX_PATH * 2)
-            break;
 
-        wcsncpy(wszFullName, DriverName.Buffer, MAX_PATH);
-        wcsncpy(wszFullName + wcslen(wszFullName), pFileObject->FileName.Buffer, MAX_PATH);
-
-        wszFullName[MAX_PATH - 1] = L'\0';
-
-        RtlInitUnicodeString(&FullName, wszFullName);
-        FullName.Length += sizeof(WCHAR);
-
-        DbgPrint (("SzHookCreateSection FullName = %ws", FullName.Buffer ));
-
+        //if ( g_drv_config.usEnableBlockUnknown )
+        //    goto skip_default;
 
     } while( 0 );
 
+call_default:
 
     ntResult = (NTSTATUS)pfnStubFunc(
         SectionHandle,
@@ -366,13 +536,13 @@ NTSTATUS NTAPI SzHookCreateSection(
         AllocationAttributes,
         FileHandle);
 
-skipdefault:
+
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
-    if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
 
-    if (DriverName.Buffer != NULL) ExFreePool(DriverName.Buffer);
-    if (FullName.Buffer != NULL) ExFreePool(FullName.Buffer);
+    //if (DriverName.Buffer != NULL) ExFreePool(DriverName.Buffer);
+    //if (FullName.Buffer != NULL) ExFreePool(FullName.Buffer);
 
     return ntResult;
 }
@@ -388,12 +558,16 @@ NTSTATUS NTAPI SzHookOpenSection(
     PROC     pfnStubFunc   = NULL;
     UINT     uCurProcessId = 0;
 
-
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_open_section);
 
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+
 
     //DbgPrint ( ("SzHookOpenSection  PID=%d", uCurProcessId ) );
+
+call_default:
 
     ntResult = (NTSTATUS)pfnStubFunc(
         SectionHandle,
@@ -414,28 +588,18 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
 
     //DbgPrint ( ("SzHookNtTerminateProcess  PID=%d %d", (UINT)PsGetCurrentProcessId(), ProcessHandle ) );
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
     
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+
     do 
     {
         if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
             break;
-
-        DbgPrint (("SzHookNtTerminateProcess sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
-
-
-        if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            break;
-        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            break;
-
-        // 未出现在黑名单中
-        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
-
 
         pEprocess = GetEProcessByHandle(ProcessHandle);
         if (pEprocess == NULL)
@@ -443,6 +607,28 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
 
         if ( !GetProcessFullPath( pEprocess, &sPathTagProcess ) )
             break;
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_TERMINATEPROCESS, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            GetPidByProcessHandle(ProcessHandle, NULL) , sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+        DbgPrint (("SzHookNtTerminateProcess sPathSrcProcess = %ws", sPathSrcProcess.Buffer ));
+
+
+        //if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+        //    break;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            break;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            goto skip_default;
+
+
 
         DbgPrint (("SzHookNtTerminateProcess sPathTagProcess = %ws", sPathTagProcess.Buffer ));
 
@@ -464,7 +650,8 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
                 }
             }
 
-            goto skipdefault;
+            if ( g_drv_config.usEnableBlockUnknown )
+                goto skip_default;
         }
 
 
@@ -474,7 +661,7 @@ call_default:
 
     nResult = SysNtTerminateProcess( ProcessHandle, ExitStatus );
 
-skipdefault:
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
     if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
@@ -498,10 +685,13 @@ NTSTATUS SzHookNtCreateThread(
 
     PEPROCESS pEprocess = NULL;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
 
     do 
     {
@@ -518,6 +708,15 @@ NTSTATUS SzHookNtCreateThread(
         if ( !GetProcessFullPath( pEprocess, &sPathTagProcess ) )
             break;
 
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_CREATETHREAD, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            GetPidByProcessHandle(ProcessHandle, NULL) , sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+
         DbgPrint (("SzHookNtCreateThread sPathSrcProcess = %ws %ws", sPathSrcProcess.Buffer, sPathTagProcess.Buffer ));
 
 
@@ -532,12 +731,14 @@ NTSTATUS SzHookNtCreateThread(
 
         // 未出现在黑名单中
         if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
+            goto skip_default;
         
-        goto skipdefault;
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
 
     } while( 0 );
 
+call_default:
 
     nResult = SysNtCreateThread( 
         ThreadHandle,
@@ -549,7 +750,7 @@ NTSTATUS SzHookNtCreateThread(
         InitialTeb,
         CreateSuspended);
 
-skipdefault:
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
     if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
@@ -569,10 +770,13 @@ NTSTATUS SzHookNtReadVirtualMemory (
 
     PEPROCESS pEprocess = NULL;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
 
     do 
     {
@@ -591,6 +795,15 @@ NTSTATUS SzHookNtReadVirtualMemory (
         if ( !GetProcessFullPath( pEprocess, &sPathTagProcess ) )
             break;
 
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_READVIRTUALMEMORY, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            GetPidByProcessHandle(ProcessHandle, NULL) , sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+
         // 是否是要保护对象
         if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) == NULL )
             break;
@@ -602,10 +815,15 @@ NTSTATUS SzHookNtReadVirtualMemory (
 
         // 未出现在黑名单中
         if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
+            goto skip_default;
+        
+
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
 
     } while( 0 );
 
+call_default:
 
     nResult = SysNtReadVirtualMemory( 
         ProcessHandle,
@@ -614,7 +832,7 @@ NTSTATUS SzHookNtReadVirtualMemory (
         BufferLength,
         ReturnLength);
 
-skipdefault:
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
     if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
@@ -634,10 +852,13 @@ NTSTATUS SzHookNtWriteVirtualMemory(
 
     PEPROCESS pEprocess = NULL;
 
-    UNICODE_STRING sPathSrcProcess = { 0 };
-    UNICODE_STRING sPathTagProcess = { 0 };
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
 
     do 
     {
@@ -656,6 +877,14 @@ NTSTATUS SzHookNtWriteVirtualMemory(
         if ( !GetProcessFullPath( pEprocess, &sPathTagProcess ) )
             break;
 
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_WRITEVIRTUALMEMORY, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            GetPidByProcessHandle(ProcessHandle, NULL) , sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
         // 是否是要保护对象
         if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) == NULL )
             break;
@@ -667,10 +896,14 @@ NTSTATUS SzHookNtWriteVirtualMemory(
 
         // 未出现在黑名单中
         if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
-            goto skipdefault;
+            goto skip_default;
+
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
 
     } while( 0 );
 
+call_default:
 
     nResult = SysNtWriteVirtualMemory( 
         ProcessHandle,
@@ -679,7 +912,7 @@ NTSTATUS SzHookNtWriteVirtualMemory(
         BufferLength,
         ReturnLength);
 
-skipdefault:
+skip_default:
 
     if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
     if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
@@ -688,3 +921,261 @@ skipdefault:
 
 }
 
+
+#define WM_DESTROY      0x0002
+#define WM_CLOSE        0x0010
+#define WM_NCDESTROY    0x0082
+#define WM_QUIT         0x0012
+
+
+LRESULT NTAPI SzHookNtUserMessageCall(
+    IN HWND        hwnd,
+    IN UINT        msg,
+    IN WPARAM      wParam,
+    IN LPARAM      lParam,
+    IN ULONG_PTR   xParam,
+    IN DWORD       xpfnProc,
+    IN BOOL        bAnsi)
+{
+    LRESULT nResult = FALSE;
+
+    PEPROCESS pEprocess = NULL;
+
+    UINT uTagPID = 0;
+
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+
+    uTagPID = (ULONG) SysNtUserQueryWindow(hwnd, 0);
+    if ( uTagPID == 0 )
+        goto call_default;
+
+    if ( uTagPID == (UINT)PsGetCurrentProcessId() )
+        goto call_default;
+
+
+    if ( msg == WM_DESTROY ||
+         msg == WM_CLOSE ||
+         msg == WM_NCDESTROY ||
+         msg == WM_QUIT )
+    {
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
+            goto call_default;
+        if ( !GetProcessFullPathByID( uTagPID, &sPathTagProcess ) )
+            goto call_default;
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_USERMESSAGECALL, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            uTagPID, sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+        DbgPrint (("SzHookNtUserMessageCall msg = %d sPathSrcProcess = %ws sPathTagProcess = %ws", 
+            msg, sPathSrcProcess.Buffer, sPathTagProcess.Buffer ));
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) == NULL )
+            goto call_default;
+
+        //if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+        //    goto call_default;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            goto call_default;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            goto skip_default;
+
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
+
+    }
+
+call_default:
+
+    nResult = SysNtUserMessageCall( 
+        hwnd,
+        msg,
+        wParam,
+        lParam,
+        xParam,
+        xpfnProc,
+        bAnsi);
+
+skip_default:
+
+    if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
+    if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
+
+    return nResult;
+}
+
+
+
+BOOL NTAPI SzHookNtUserPostMessage(
+    IN HWND     hwnd,
+    IN UINT     msg,
+    IN WPARAM   wParam,
+    IN LPARAM   lParam)
+{
+    BOOL nResult = FALSE;
+
+    PEPROCESS pEprocess = NULL;
+
+    UINT uTagPID = 0;
+
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+    
+    uTagPID = (ULONG) SysNtUserQueryWindow(hwnd, 0);
+    if ( uTagPID == 0 )
+        goto call_default;
+
+    if ( uTagPID == (UINT)PsGetCurrentProcessId() )
+        goto call_default;
+
+
+    if ( msg == WM_DESTROY ||
+         msg == WM_CLOSE ||
+         msg == WM_NCDESTROY ||
+         msg == WM_QUIT )
+    {
+        if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
+            goto call_default;
+        if ( !GetProcessFullPathByID( uTagPID, &sPathTagProcess ) )
+            goto call_default;
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        AppendEvent_I( &g_event_list,
+            LOG_TYPE_USERPOSTMESSAGE, 
+            (UINT)PsGetCurrentProcessId() , sPathSrcProcess.Buffer,
+            uTagPID, sPathTagProcess.Buffer);       
+        //////////////////////////////////////////////////////////////////////////
+
+        DbgPrint (("SzHookNtUserPostMessage msg = %d sPathSrcProcess = %ws sPathTagProcess = %ws", 
+            msg, sPathSrcProcess.Buffer, sPathTagProcess.Buffer ));
+
+        // 是否是要保护对象
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathTagProcess.Buffer ) == NULL )
+            goto call_default;
+
+        //if ( MatchingRule( &g_WhiteRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+        //    goto call_default;
+        if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            goto call_default;
+
+        // 未出现在黑名单中
+        if ( MatchingRule( &g_BlackRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) != NULL )
+            goto skip_default;
+
+        if ( g_drv_config.usEnableBlockUnknown )
+            goto skip_default;
+
+    }
+
+call_default:
+
+    nResult = SysNtUserPostMessage( 
+        hwnd,
+        msg,
+        wParam,
+        lParam);
+
+skip_default:
+
+    if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
+    if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
+
+    return nResult;
+}
+
+BOOL NTAPI SzHookNtUserPostThreadMessage(
+    IN DWORD    id,
+    IN UINT     msg,
+    IN WPARAM   wParam,
+    IN LPARAM   lParam)
+{
+    BOOL nResult = FALSE;
+
+    PEPROCESS pEprocess = NULL;
+
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+
+    if ( msg != WM_QUIT )
+        goto call_default;
+
+
+    if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ) )
+        goto call_default;
+    
+    DbgPrint (("SzHookNtUserPostThreadMessage msg = %d sPathTagProcess = %ws sPathTagProcess = %ws", 
+        msg, sPathTagProcess.Buffer, sPathTagProcess.Buffer ));
+
+
+call_default:
+
+    nResult = SysNtUserPostThreadMessage( 
+        id,
+        msg,
+        wParam,
+        lParam);
+
+skip_default:
+
+    if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
+    if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
+
+    return nResult;
+}
+
+
+UINT NTAPI SzHookNtUserSendInput (
+    IN UINT				cInputs,
+    IN CONST INPUT		*pInputs,
+    IN int				cbSize)
+{
+    UINT nResult = 0;
+
+    PEPROCESS pEprocess = NULL;
+
+    UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
+    UNICODE_STRING sPathTagProcess = { 0, 0, 0 };
+
+    KPROCESSOR_MODE mode = ExGetPreviousMode();
+
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+        goto call_default;
+
+call_default:
+
+    nResult = SysNtUserSendInput( 
+        cInputs,
+        pInputs,
+        cbSize );
+
+skip_default:
+
+    if (sPathSrcProcess.Buffer != NULL) ExFreePool(sPathSrcProcess.Buffer);
+    if (sPathTagProcess.Buffer != NULL) ExFreePool(sPathTagProcess.Buffer);
+
+    return nResult;
+}

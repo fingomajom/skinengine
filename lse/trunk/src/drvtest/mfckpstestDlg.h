@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "ProtectDevC.h"
+#include "afxwin.h"
 
 
 // CmfckpstestDlg 对话框
@@ -27,7 +28,7 @@ public:
 
 public:
 
-    void InitRuleList(CListCtrl& ListCtrl);
+    void InitRuleList(CListCtrl& ListCtrl, std::vector<DRIVER_RULE_INFO>& vtRule);
 
     void UpdateRuleList( CListCtrl& ListCtrl, DRIVER_RULE_INFO& RuleInfo, int idx );
 
@@ -42,6 +43,9 @@ public:
     
 
     CProtectDevC m_devc;
+
+    void LoadRuleList( PWCHAR wszRuleName, std::vector<DRIVER_RULE_INFO>& vtRule);
+    void SaveRuleList( PWCHAR wszRuleName, std::vector<DRIVER_RULE_INFO>& vtRule);
 
 // 实现
 protected:
@@ -76,4 +80,10 @@ public:
     afx_msg void OnBnClickedSetBlackFile();
     afx_msg void OnBnClickedSetWhiteFile();
     afx_msg void OnBnClickedSetProtectFile();
+    afx_msg void OnDestroy();
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnBnClickedClearLogButton();
+    afx_msg void OnBnClickedSetStatus();
+    afx_msg void OnBnClickedSetConfig();
+    CButton m_status_btn;
 };

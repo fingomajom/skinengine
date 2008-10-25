@@ -33,6 +33,83 @@ typedef void *LPVOID;
 typedef LARGE_INTEGER QWORD;
 typedef void *HDESK;
 
+typedef LONG_PTR            LRESULT;
+typedef unsigned int        UINT_PTR, *PUINT_PTR;
+typedef UINT_PTR            WPARAM;
+typedef LONG_PTR            LPARAM;
+typedef HANDLE HICON;
+typedef HICON HCURSOR;
+
+
+#define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
+
+#ifndef CALLBACK
+#define CALLBACK __stdcall
+#endif
+typedef int (CALLBACK *PROC)();
+
+typedef struct tagPOINT
+{
+    LONG x;
+    LONG y;
+} 	POINT;
+
+typedef struct tagPOINT *PPOINT;
+
+typedef struct tagPOINT *LPPOINT;
+
+typedef struct tagMOUSEINPUT 
+{
+    LONG					dx;
+    LONG					dy;
+    DWORD					mouseData;
+    DWORD					dwFlags;
+    DWORD					time;
+    ULONG_PTR				dwExtraInfo;
+} MOUSEINPUT, *PMOUSEINPUT, FAR* LPMOUSEINPUT;
+
+typedef struct tagKEYBDINPUT 
+{
+    WORD					wVk;
+    WORD					wScan;
+    DWORD					dwFlags;
+    DWORD					time;
+    ULONG_PTR				dwExtraInfo;
+} KEYBDINPUT, *PKEYBDINPUT, FAR* LPKEYBDINPUT;
+
+typedef struct tagHARDWAREINPUT {
+    DWORD					uMsg;
+    WORD					wParamL;
+    WORD					wParamH;
+} HARDWAREINPUT, *PHARDWAREINPUT, FAR* LPHARDWAREINPUT;
+
+#define INPUT_MOUSE     0
+#define INPUT_KEYBOARD  1
+#define INPUT_HARDWARE  2
+
+typedef struct tagINPUT {
+    DWORD   type;
+
+    union
+    {
+        MOUSEINPUT			mi;
+        KEYBDINPUT			ki;
+        HARDWAREINPUT		hi;
+    };
+} INPUT, *PINPUT, FAR* LPINPUT;
+
+// 线程监控模块用到的一些结构定义:
+typedef struct _THREAD_BASIC_INFORMATION 
+{
+    NTSTATUS                ExitStatus;
+    PVOID                   TebBaseAddress;
+    CLIENT_ID               ClientId;
+    KAFFINITY               AffinityMask;
+    KPRIORITY               Priority;
+    KPRIORITY               BasePriority;
+} THREAD_BASIC_INFORMATION, *PTHREAD_BASIC_INFORMATION;
+
+
 typedef int (__stdcall *PROC)();
 
 #define MAX_PATH    260

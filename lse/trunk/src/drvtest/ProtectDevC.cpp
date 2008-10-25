@@ -188,6 +188,52 @@ BOOL __stdcall CProtectDevC::SetStatus(int nStatus)
     return bResult;
 }
 
+BOOL __stdcall CProtectDevC::GetConfig(LP_DRIVER_CONFIG pconfig)
+{
+    BOOL  bResult = FALSE;
+
+    if (m_hDevcHandle == INVALID_HANDLE_VALUE)
+        return bResult;
+
+    DWORD dwBuffLen = sizeof(DRIVER_CONFIG);
+
+    bResult = DeviceIoControl(
+        m_hDevcHandle,
+        IOCTL_PTTDRV_GET_CONFIG,
+        pconfig,
+        sizeof(DRIVER_CONFIG),
+        pconfig,
+        dwBuffLen,
+        &dwBuffLen,
+        NULL
+        );
+
+    return bResult;
+}
+
+BOOL __stdcall CProtectDevC::SetConfig(LP_DRIVER_CONFIG pconfig)
+{
+    BOOL  bResult = FALSE;
+
+    if (m_hDevcHandle == INVALID_HANDLE_VALUE)
+        return bResult;
+
+    DWORD dwBuffLen = sizeof(DRIVER_CONFIG);
+
+    bResult = DeviceIoControl(
+        m_hDevcHandle,
+        IOCTL_PTTDRV_SET_CONFIG,
+        pconfig,
+        sizeof(DRIVER_CONFIG),
+        pconfig,
+        dwBuffLen,
+        &dwBuffLen,
+        NULL
+        );
+
+    return bResult;
+}
+
 
 BOOL __stdcall CProtectDevC::AppendRule( LP_DRIVER_RULE_INFO RuleInfo )
 {

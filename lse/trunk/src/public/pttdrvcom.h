@@ -30,12 +30,10 @@
 
 
 enum{
-
     DRIVER_STATUS_INVALID = 0,
     DRIVER_STATUS_STOP,
     DRIVER_STATUS_RUNNING,
     DRIVER_STATUS_RESET
-
 };
 
 enum{
@@ -49,6 +47,25 @@ enum {
     CT_NAME,
     CT_PATH,
     CT_PATHFILE
+};
+
+enum {
+    LOG_TYPE_CREATE_PROCESS = 0,
+    LOG_TYPE_USERMODECALLBACK,
+    LOG_TYPE_OPENPROCESS,
+    LOG_TYPE_QUERYSYSTEMINFORMATION,
+    LOG_TYPE_CREATESECTION,
+    LOG_TYPE_OPENSECTION,
+    LOG_TYPE_TERMINATEPROCESS,
+    LOG_TYPE_CREATETHREAD,
+    LOG_TYPE_READVIRTUALMEMORY,
+    LOG_TYPE_WRITEVIRTUALMEMORY,
+
+    LOG_TYPE_USERMESSAGECALL,
+    LOG_TYPE_USERSENDINPUT,
+    LOG_TYPE_USERPOSTMESSAGE,
+    LOG_TYPE_USERPOSTTHREADMESSAGE
+
 };
 
 #pragma pack(push, 1)
@@ -81,6 +98,14 @@ typedef struct tag_DRIVER_EVENT_INFO
 
 }DRIVER_EVENT_INFO, *LP_DRIVER_EVENT_INFO;
 
+typedef struct tag_DRIVER_CONFIG
+{
+    USHORT usEnableReportLog;
+    USHORT usEnableBlockUnknown;
+    USHORT usEnableHideProcess;
+
+}DRIVER_CONFIG, *LP_DRIVER_CONFIG;
+
 #pragma pack(pop)
 
 
@@ -103,6 +128,18 @@ typedef struct tag_DRIVER_EVENT_INFO
 #define IOCTL_PTTDRV_SET_STATUS			        \
     CTL_CODE(PTTDRV_DRIVER, 0x11, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+
+//////////////////////////////////////////////////////////////////////////
+//  设置
+//////////////////////////////////////////////////////////////////////////
+#define IOCTL_PTTDRV_GET_CONFIG			        \
+    CTL_CODE(PTTDRV_DRIVER, 0x13, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+//////////////////////////////////////////////////////////////////////////
+//  设置
+//////////////////////////////////////////////////////////////////////////
+#define IOCTL_PTTDRV_SET_CONFIG			        \
+    CTL_CODE(PTTDRV_DRIVER, 0x14, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 //////////////////////////////////////////////////////////////////////////
 // 设置规则

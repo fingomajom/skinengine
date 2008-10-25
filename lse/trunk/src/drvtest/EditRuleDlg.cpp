@@ -94,10 +94,9 @@ void CEditRuleDlg::OnBnClickedBButton()
 
     if (IDOK == openDlg.DoModal())
     {
+        UpdateData(TRUE);
+
         m_strTarget = openDlg.GetPathName();
-
-        UpdateData(FALSE);
-
         m_strTarget.MakeLower();
 
         UpdateData(FALSE);

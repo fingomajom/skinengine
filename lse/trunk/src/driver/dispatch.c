@@ -4,7 +4,10 @@
 
 
 LONG g_lFileHandleCount = 0;
-LONG g_lDriverStatus    = DRIVER_STATUS_STOP;
+//LONG g_lDriverStatus    = DRIVER_STATUS_STOP;
+LONG g_lDriverStatus    = DRIVER_STATUS_RUNNING;
+
+DRIVER_CONFIG g_drv_config = { 1, 1, 1 };
 
 
 BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo );
@@ -128,9 +131,97 @@ DeviceIoControl(
         break;
 
     case IOCTL_PTTDRV_GET_STATUS:
+        //////////////////////////////////////////////////////////////////////////
+        // 获取状态 
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_GET_VERSION\n") );
+
+            if ( uOutputBufferLength >= sizeof( ULONG ) )
+            {
+                if (p_buffer != NULL)
+                {
+                    *((PLONG)p_buffer) = ( ULONG ) g_lDriverStatus ;
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_GET_VERSION\n") );
+            }
+        }
         break;
     case IOCTL_PTTDRV_SET_STATUS:
+        //////////////////////////////////////////////////////////////////////////
+        // 设置状态 
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_SET_STATUS\n") );
+
+            if ( uInputBufferLength >= sizeof( ULONG ) )
+            {
+                if (p_buffer != NULL)
+                {
+                    InterlockedExchange( &g_lDriverStatus,
+                        *((PLONG)p_buffer));
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_SET_STATUS\n") );
+            }
+        }
         break;
+        
+    case IOCTL_PTTDRV_GET_CONFIG:
+        //////////////////////////////////////////////////////////////////////////
+        // 设置 
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_GET_CONFIG\n") );
+
+            if ( uOutputBufferLength >= sizeof( DRIVER_CONFIG ) )
+            {
+                if (p_buffer != NULL)
+                {
+                    *((DRIVER_CONFIG*)p_buffer) = g_drv_config;
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_GET_CONFIG\n") );
+            }
+        }
+        break;
+
+    case IOCTL_PTTDRV_SET_CONFIG:
+        //////////////////////////////////////////////////////////////////////////
+        // 设置 
+        //////////////////////////////////////////////////////////////////////////
+        {
+            DbgPrint( ("DeviceIoControl IOCTL_PTTDRV_SET_CONFIG\n") );
+
+            if ( uInputBufferLength >= sizeof( DRIVER_CONFIG ) )
+            {
+                if (p_buffer != NULL)
+                {
+                    g_drv_config = *((DRIVER_CONFIG*)p_buffer);
+                }
+                else
+                    break;
+
+                ntStatus = STATUS_SUCCESS;
+
+                DbgPrint( ("Success DeviceIoControl IOCTL_PTTDRV_SET_CONFIG\n") );
+            }
+        }
+        break;
+
     case IOCTL_PTTDRV_APPEND_RULE_INFO:
         //////////////////////////////////////////////////////////////////////////
         // 设置规则
@@ -257,13 +348,13 @@ BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo )
             &RuleInfo->uProcessId);
         break;
     case RT_WHITERULE:
-        bResult = AppendRule_I(&g_BlackRuleList, 
+        bResult = AppendRule_I(&g_WhiteRuleList, 
             RuleInfo->uContentType, 
             RuleInfo->uEnable,
             &RuleInfo->uProcessId);
         break;
     case RT_PROTECTRULE:
-        bResult = AppendRule_I(&g_BlackRuleList, 
+        bResult = AppendRule_I(&g_ProtectRuleList, 
             RuleInfo->uContentType, 
             RuleInfo->uEnable,
             &RuleInfo->uProcessId);

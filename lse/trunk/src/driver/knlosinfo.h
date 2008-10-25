@@ -43,6 +43,13 @@ typedef struct _tag_knl_os_info_offset
     DWORD dwNtReadVirtualMemorySysId;
     DWORD dwNtWriteVirtualMemorySysId;
     DWORD dwNtOpenSectionSysId;
+
+    DWORD dwUserMessageCallSysId;
+    DWORD dwUserSendInputSysId;
+    DWORD dwUserPostMessageSysId;
+    DWORD dwUserPostThreadMessageSysId;
+
+    DWORD dwNtUserQueryWindowSysId;
     
     DWORD dwProcessPebOffset;
 

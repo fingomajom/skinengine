@@ -67,3 +67,6 @@ BOOL dasm_move_program(
 
 
 extern LONG g_lDriverStatus;
+extern LONG g_lFileHandleCount;
+
+extern DRIVER_CONFIG g_drv_config;

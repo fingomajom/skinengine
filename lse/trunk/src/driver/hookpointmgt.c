@@ -4,6 +4,7 @@
 
 hook_item_info g_hook_function_array[ hook_function_count ] = { 0 };
 
+#define CSRSSNAME   L"csrss.exe"
 
 
 NTSYSAPI NTSTATUS NTAPI ZwQuerySection(
@@ -72,9 +73,82 @@ NTKERNELAPI NTSTATUS KeAddSystemServiceTable(
     ULONG dwTableID);
 
 
+ULONG*	KAVBMapServiceTable(ULONG *ServiceTable, ULONG Size, PMDL *ppMdl)
+{
+    ULONG	*puReturnAddr = NULL;
+
+
+    *ppMdl = IoAllocateMdl(ServiceTable, Size, FALSE, FALSE, NULL);
+    if ( !(*ppMdl) )
+        goto exit0;
+
+    MmBuildMdlForNonPagedPool(*ppMdl);
+
+    puReturnAddr = (ULONG*)MmMapLockedPagesSpecifyCache(
+        *ppMdl,
+        KernelMode,
+        MmNonCached,
+        NULL,
+        FALSE,
+        NormalPagePriority 
+        );
+
+exit0:
+    return puReturnAddr;
+
+}
+
+int KAVBUnMapServiceTable(ULONG *ServiceTable, PMDL pMdl)
+{
+    int nResult = FALSE;
+
+
+    MmUnmapLockedPages(ServiceTable, pMdl);
+    if (pMdl)
+    {
+        ExFreePool(pMdl);
+        pMdl = NULL;
+
+    }
+
+    nResult = TRUE;
+    return nResult;
+}
+
 
 BOOL init_hook()
 {
+    BOOL  bResult   = FALSE ;
+    PVOID pEprocess = NULL  ;
+
+    DbgPrint (("init_hook"));
+
+    pEprocess = GetEProcessByProcName(CSRSSNAME);
+    if ( pEprocess == NULL )
+        return bResult;
+
+    DbgPrint (("GetEProcessByProcName"));
+
+    KeAttachProcess(pEprocess);
+
+    KeServiceDescriptorTableShadow = SzFindShadowTable();
+    if ( KeServiceDescriptorTableShadow == NULL)
+        goto exit0;
+
+    DbgPrint (("SzFindShadowTable"));
+
+
+    KeServiceDescriptorTableShadow ++;	
+
+    KeServiceTable = KAVBMapServiceTable (	
+        KeServiceDescriptorTableShadow->ServiceTable, 
+        KeServiceDescriptorTableShadow->ServiceLimit * sizeof(ULONG),
+        &KeServiceDescriptorTableShadowMDL);
+    if ( KeServiceTable == NULL )
+        goto exit0;
+
+    DbgPrint (("KAVBMapServiceTable"));
+
     RtlZeroMemory(g_hook_function_array, sizeof(g_hook_function_array));
 
     //  进程类
@@ -88,15 +162,6 @@ BOOL init_hook()
     g_hook_function_array[hook_query_system_information].phookfunc   = (void *)SzHookQuerySystemInformation;
 
 
-    //ZwTerminateProcess;
-    if ( g_knl_current_offset.dwTerminateProcessSysId != -1 )
-    {
-        HOOK_SYSCALL_INDEX(g_knl_current_offset.dwTerminateProcessSysId, 
-            &SzHookNtTerminateProcess, 
-            &SysNtTerminateProcess);
-    }
-
-
     //// 防注入
     g_hook_function_array[hook_ke_user_mode_callback].bcanhook    = TRUE;
     g_hook_function_array[hook_ke_user_mode_callback].ptargetfunc = (void *)KeUserModeCallback;
@@ -106,6 +171,20 @@ BOOL init_hook()
     g_hook_function_array[hook_nt_create_section].ptargetfunc = GetServiceAddress( ZwCreateSection );
     g_hook_function_array[hook_nt_create_section].phookfunc   = (void *)SzHookCreateSection;
 
+    //g_hook_function_array[hook_nt_open_section].bcanhook    = TRUE;
+    //g_hook_function_array[hook_nt_open_section].ptargetfunc = GetServiceAddress( ZwOpenSection );
+    //g_hook_function_array[hook_nt_open_section].phookfunc   = (void *) SzHookOpenSection;
+
+
+    WPOFF();
+
+    //ZwTerminateProcess;
+    if ( g_knl_current_offset.dwTerminateProcessSysId != -1 )
+    {
+        HOOK_SYSCALL_INDEX(g_knl_current_offset.dwTerminateProcessSysId, 
+            &SzHookNtTerminateProcess, 
+            &SysNtTerminateProcess);
+    }
 
     //NtCreateThread
     if ( g_knl_current_offset.dwCreateThreadSysId != -1 )
@@ -130,38 +209,74 @@ BOOL init_hook()
     }
 
 
-    g_hook_function_array[hook_nt_open_section].bcanhook    = TRUE;
-    g_hook_function_array[hook_nt_open_section].ptargetfunc = GetServiceAddress( ZwOpenSection );
-    g_hook_function_array[hook_nt_open_section].phookfunc   = (void *) SzHookOpenSection;
+    SysNtUserQueryWindow = (NTUSERQUERYWINDOW)KeServiceTable[g_knl_current_offset.dwNtUserQueryWindowSysId];
 
-    return TRUE;
+    if ( g_knl_current_offset.dwUserMessageCallSysId != -1 )
+    {
+        HOOK_SYSCALL_SHADOW_INDEX(g_knl_current_offset.dwUserMessageCallSysId, 
+            &SzHookNtUserMessageCall, 
+            &SysNtUserMessageCall);
+    }
+
+    if ( g_knl_current_offset.dwUserSendInputSysId != -1 )
+    {
+        HOOK_SYSCALL_SHADOW_INDEX(g_knl_current_offset.dwUserSendInputSysId, 
+            &SzHookNtUserSendInput, 
+            &SysNtUserSendInput);
+    }
+
+    if ( g_knl_current_offset.dwUserPostMessageSysId != -1 )
+    {
+        HOOK_SYSCALL_SHADOW_INDEX(g_knl_current_offset.dwUserPostMessageSysId, 
+            &SzHookNtUserPostMessage, 
+            &SysNtUserPostMessage);
+    }
+
+    if ( g_knl_current_offset.dwUserPostThreadMessageSysId != -1 )
+    {
+        HOOK_SYSCALL_SHADOW_INDEX(g_knl_current_offset.dwUserPostThreadMessageSysId, 
+            &SzHookNtUserPostThreadMessage, 
+            &SysNtUserPostThreadMessage);
+    }
+
+
+    WPON();
+
+
+    bResult = TRUE;
+
+exit0:
+
+    KeDetachProcess();
+
+    return bResult;
 }
 
 BOOL uninit_hook()
 {
-    if ( g_knl_current_offset.dwTerminateProcessSysId != -1 )
-    {
-        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwTerminateProcessSysId, 
-            SysNtTerminateProcess);
-    }
+    //if ( g_knl_current_offset.dwTerminateProcessSysId != -1 )
+    //{
+    //    UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwTerminateProcessSysId, 
+    //        SysNtTerminateProcess);
+    //}
 
-    if ( g_knl_current_offset.dwCreateThreadSysId != -1 )
-    {
-        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwCreateThreadSysId, 
-            SysNtCreateThread);
-    }
+    //if ( g_knl_current_offset.dwCreateThreadSysId != -1 )
+    //{
+    //    UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwCreateThreadSysId, 
+    //        SysNtCreateThread);
+    //}
 
-    if ( g_knl_current_offset.dwNtReadVirtualMemorySysId != -1 )
-    {
-        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtReadVirtualMemorySysId, 
-            &SysNtReadVirtualMemory);
-    }
+    //if ( g_knl_current_offset.dwNtReadVirtualMemorySysId != -1 )
+    //{
+    //    UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtReadVirtualMemorySysId, 
+    //        &SysNtReadVirtualMemory);
+    //}
 
-    if ( g_knl_current_offset.dwNtWriteVirtualMemorySysId != -1 )
-    {
-        UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtWriteVirtualMemorySysId, 
-            &SysNtWriteVirtualMemory);
-    }
+    //if ( g_knl_current_offset.dwNtWriteVirtualMemorySysId != -1 )
+    //{
+    //    UNHOOK_SYSCALL_INDEX(g_knl_current_offset.dwNtWriteVirtualMemorySysId, 
+    //        &SysNtWriteVirtualMemory);
+    //}
 
 
     return TRUE;

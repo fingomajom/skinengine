@@ -172,6 +172,8 @@ PLIST_ENTRY MatchingRule(
     PLIST_ENTRY  NextEntry   = NULL;
     LP_RULE_INFO FRuleInfo   = NULL;
 
+    int          nTempLen    = 0;
+
     //DbgPrint (("MatchingRule"));
 
     if (  RuleList != NULL && 
@@ -188,7 +190,10 @@ PLIST_ENTRY MatchingRule(
         {
             FRuleInfo = CONTAINING_RECORD(NextEntry, RULE_INFO, ListEntry);
 
-//DbgPrint (("FRuleInfo  uContentType %ws , %d", FRuleInfo->wszFileName,uContentType  ));
+            //if ( FRuleInfo->uContentType == CT_ID )
+            //    DbgPrint (("FRuleInfo [%d], uContentType = %d", FRuleInfo->uProcessId, uContentType  ));
+            //else
+            //    DbgPrint (("FRuleInfo [%ws], uContentType = %d", FRuleInfo->wszFileName, uContentType  ));
 
             switch( uContentType )
             {
@@ -203,15 +208,37 @@ PLIST_ENTRY MatchingRule(
 
             case CT_PATHFILE:
 
-                if ( FRuleInfo->uContentType == CT_PATHFILE )
+                if ( FRuleInfo->uContentType == CT_ID )
+                {
+                    break;
+                }
+                else if ( FRuleInfo->uContentType == CT_PATH )
+                {
+                    nTempLen = wcslen(FRuleInfo->wszPath);
+
+                    if ( !_wcsnicmp( (WCHAR*)pContent , FRuleInfo->wszPath, nTempLen ) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+                }
+                else if ( FRuleInfo->uContentType == CT_NAME )
+                {
+                    nTempLen = wcslen(FRuleInfo->wszFileName);
+
+                    if ( !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
+                    {
+                        EntryResult = NextEntry;
+                    }
+                }
+                else if ( FRuleInfo->uContentType == CT_PATHFILE )
                 {
                     if ( !_wcsnicmp( FRuleInfo->wszPathFile, pContent, MAX_PATH ) )
                     {
                         EntryResult = NextEntry;
                     }
-
-                    break;
                 }
+
+                break;
 
             case CT_PATH:
 
@@ -222,23 +249,21 @@ PLIST_ENTRY MatchingRule(
                     break;
                 }
 
+                break;
+
             case CT_NAME:
 
-                if ( uContentType == CT_PATH )
-                    break;
-
-//DbgPrint (("MatchingRule  %ws , %ws , %ws", pContent, FRuleInfo->wszFileName, (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ) ));
-
+                //DbgPrint (("MatchingRule  %ws , %ws , %ws", pContent, FRuleInfo->wszFileName, (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ) ));
+                
+                nTempLen = wcslen(FRuleInfo->wszFileName);
 
                 if ( FRuleInfo->uContentType == CT_NAME &&
-                    !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ), FRuleInfo->wszFileName, wcslen(FRuleInfo->wszFileName)) )
+                    !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
                 {
                     EntryResult = NextEntry;
                 }
 
-
                 break;
-
             }
 
             if ( EntryResult != NULL )
@@ -366,8 +391,8 @@ BOOL InitDefaultRuleList( UINT uRuleType )
 
     if ( uRuleType & RT_PROTECTRULE )
     {
-        AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\lserv.exe" );
-        AppendRule_I( &g_ProtectRuleList, CT_PATHFILE, TRUE, L"c:\\program files\\kingsoft antispy\\kasmain.exe" );
+        //AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\lserv.exe" );
+        //AppendRule_I( &g_ProtectRuleList, CT_PATHFILE, TRUE, L"c:\\program files\\kingsoft antispy\\kasmain.exe" );
 
         
         //AppendRule_I( &g_ProtectRuleList, CT_NAME, TRUE, L"\\mfckpstest.exe" );

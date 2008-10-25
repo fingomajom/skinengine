@@ -12,18 +12,6 @@
 #pragma once
 
 
-ULONG ServiceIdFromFn(PVOID pfnHandler);
-PVOID HookSystemService(ULONG ulService, PVOID pfnNewHandler);
-PVOID HookSystemServiceByFn(PVOID pfnHandler, PVOID pfnNewHandler);
-
-PVOID GetServiceAddress( PVOID pFunc );
-
-/////////////////////////////////////////////////////////////////////////////
-
-extern NTSYSAPI KPROCESSOR_MODE NTAPI KeGetPreviousMode();
-
-//////////////////////////////////////////////////////////////////////////
-
 #pragma pack(push, 1)
 
 
@@ -38,6 +26,27 @@ typedef struct _SYSTEM_SERVICE_TABLE
 #pragma pack(pop)
 
 __declspec(dllimport) SYSTEM_SERVICE_TABLE KeServiceDescriptorTable[4];
+
+ULONG ServiceIdFromFn(PVOID pfnHandler);
+PVOID HookSystemService(ULONG ulService, PVOID pfnNewHandler);
+PVOID HookSystemServiceByFn(PVOID pfnHandler, PVOID pfnNewHandler);
+
+PVOID GetServiceAddress( PVOID pFunc );
+
+PSYSTEM_SERVICE_TABLE SzFindShadowTable(void);
+
+/////////////////////////////////////////////////////////////////////////////
+
+extern NTSYSAPI KPROCESSOR_MODE NTAPI KeGetPreviousMode();
+
+//////////////////////////////////////////////////////////////////////////
+
+
+
+extern PMDL                     KeServiceDescriptorTableShadowMDL;
+extern PULONG                   KeServiceTable;
+extern PSYSTEM_SERVICE_TABLE    KeServiceDescriptorTableShadow;
+
 
 #define HOOK_SYSCALL(_Function, _Hook, _Orig )  \
 { \
@@ -67,3 +76,10 @@ __declspec(dllimport) SYSTEM_SERVICE_TABLE KeServiceDescriptorTable[4];
     InterlockedExchange( (PLONG) &KeServiceTable[ _Index ], (LONG) _Orig ); }
 
 
+#define HOOK_SYSCALL_SHADOW_INDEX(_Index, _Hook, _Orig )  \
+{ \
+    (*_Orig) = (PVOID) InterlockedExchange( (PLONG) &KeServiceTable[ _Index ], (LONG) _Hook );}
+
+#define UNHOOK_SYSCALL_SHADOW_INDEX(_Index, _Orig )  \
+{ \
+    InterlockedExchange( (PLONG) &KeServiceTable[ _Index ], (LONG) _Orig ); }

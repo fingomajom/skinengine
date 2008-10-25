@@ -45,6 +45,12 @@ BOOL AppendEvent( LP_EVENT_LIST EventList, LP_EVENT_INFO EventInfo )
 
     LP_EVENT_INFO NewRuleItem = NULL;
 
+    if ( !g_drv_config.usEnableReportLog )
+        return TRUE;
+
+    if ( g_lFileHandleCount <= 0 )
+        return TRUE;
+
     KeAcquireSpinLock(&EventList->EventLock, &OldIrql);
 
     if ( EventList->uEventCount >= MAX_EVENT_COUNT )
@@ -89,6 +95,9 @@ BOOL AppendEvent_I(
     PWCHAR wszTagFileName)
 {
     EVENT_INFO EventInfo = { 0 };
+
+    if ( !g_drv_config.usEnableReportLog )
+        return TRUE;
 
     EventInfo.EventInfo.uEventType = uEventType;
     EventInfo.EventInfo.uSrcPID    = uSrcPID;

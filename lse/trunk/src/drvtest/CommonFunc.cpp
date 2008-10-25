@@ -29,7 +29,7 @@ BOOL InstallDriver( LPCTSTR pszDriverName )
         pszDriverName, 
         SERVICE_ALL_ACCESS,
         SERVICE_KERNEL_DRIVER, 
-        SERVICE_SYSTEM_START, 
+        SERVICE_AUTO_START, 
         SERVICE_ERROR_NORMAL, 
         szExeFile, 
         NULL,
@@ -100,6 +100,7 @@ BOOL OpenDevice(LPCTSTR DriverName, HANDLE *lphDevice)
         OPEN_EXISTING, 
         FILE_ATTRIBUTE_NORMAL, 
         NULL);
+
 
     if ( hDevice == INVALID_HANDLE_VALUE )
         return FALSE;

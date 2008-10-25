@@ -5,6 +5,19 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
+NTKERNELAPI NTSTATUS KeAddSystemServiceTable( 
+    PVOID    lpAddressTable, 
+    BOOLEAN  bUnknown,
+    ULONG    dwNumEntries, 
+    PVOID    lpParameterTable,
+    ULONG    dwTableID 
+    );
+
+
+PMDL                     KeServiceDescriptorTableShadowMDL	= NULL;
+PULONG                   KeServiceTable						= NULL;
+PSYSTEM_SERVICE_TABLE    KeServiceDescriptorTableShadow		= NULL;
+
 /////////////////////////////////////////////////////////////////////////////
 
 #define SSTForId(x)     ( (( ULONG) x) >> 12       )
@@ -130,5 +143,43 @@ PVOID GetServiceAddress(PVOID pFunc)
 
     return pfnOldHandler;
 }
+
+PSYSTEM_SERVICE_TABLE SzFindShadowTable(void)
+{
+    UCHAR* pCheckArea = (UCHAR*) KeAddSystemServiceTable;
+    PSYSTEM_SERVICE_TABLE  pSrvTable = NULL;
+
+    int i;
+
+    for (i = 0; i < 100; i++)
+    {
+        __try
+        {
+            pSrvTable = (PSYSTEM_SERVICE_TABLE)(*(ULONG*)pCheckArea);
+            if (
+                !MmIsAddressValid(pSrvTable)            ||
+                (pSrvTable == KeServiceDescriptorTable) ||
+                (RtlCompareMemory(
+                pSrvTable,
+                KeServiceDescriptorTable, 
+                sizeof (PSYSTEM_SERVICE_TABLE)) != sizeof (PSYSTEM_SERVICE_TABLE))
+                )
+            {
+                pCheckArea++;
+                pSrvTable = NULL;
+            }
+        }
+        __except(EXCEPTION_EXECUTE_HANDLER)
+        {
+            pSrvTable = NULL;
+        }
+        if (pSrvTable)
+            break;
+    }
+
+
+    return pSrvTable;
+}
+
 
 //////////////////////////////////////////////////////////////////////////

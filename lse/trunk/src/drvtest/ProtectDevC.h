@@ -36,6 +36,9 @@ public:
     virtual int  __stdcall GetStatus();
     virtual BOOL __stdcall SetStatus(int nStatus);
 
+    virtual BOOL __stdcall GetConfig(LP_DRIVER_CONFIG pconfig);
+    virtual BOOL __stdcall SetConfig(LP_DRIVER_CONFIG pconfig);
+
     virtual BOOL __stdcall AppendRule( LP_DRIVER_RULE_INFO RuleInfo );
     virtual BOOL __stdcall ClearRule( UINT uRuleType );
 

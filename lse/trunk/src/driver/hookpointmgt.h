@@ -27,7 +27,7 @@ typedef enum{
 
     hook_nt_create_section = 3,
 
-    hook_nt_open_section = 3,
+    hook_nt_open_section = 4,
 
     hook_function_count
 
@@ -105,7 +105,7 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
 PNTTERMINATEPROCESS SysNtTerminateProcess;
 
 
-typedef NTSTATUS ( *PNTCREATETHREAD )(
+typedef NTSTATUS (NTAPI *PNTCREATETHREAD )(
     OUT PHANDLE             ThreadHandle,
     IN ACCESS_MASK          DesiredAccess,
     IN POBJECT_ATTRIBUTES   ObjectAttributes OPTIONAL,
@@ -115,7 +115,7 @@ typedef NTSTATUS ( *PNTCREATETHREAD )(
     IN PINITIAL_TEB         InitialTeb,
     IN BOOLEAN              CreateSuspended );
 
-NTSTATUS SzHookNtCreateThread(
+NTSTATUS NTAPI SzHookNtCreateThread(
     OUT PHANDLE             ThreadHandle,
     IN ACCESS_MASK          DesiredAccess,
     IN POBJECT_ATTRIBUTES   ObjectAttributes OPTIONAL,
@@ -127,14 +127,14 @@ NTSTATUS SzHookNtCreateThread(
 
 PNTCREATETHREAD SysNtCreateThread;
 
-typedef NTSTATUS ( *NTREADVIRTUALMEMORY ) (
+typedef NTSTATUS (NTAPI *NTREADVIRTUALMEMORY ) (
     IN  HANDLE      ProcessHandle,
     IN  PVOID       BaseAddress,
     OUT PVOID       Buffer,
     IN  ULONG       BufferLength,
     OUT PULONG      ReturnLength OPTIONAL);
 
-NTSTATUS SzHookNtReadVirtualMemory (
+NTSTATUS NTAPI SzHookNtReadVirtualMemory (
     IN  HANDLE      ProcessHandle,
     IN  PVOID       BaseAddress,
     OUT PVOID       Buffer,
@@ -144,14 +144,14 @@ NTSTATUS SzHookNtReadVirtualMemory (
 NTREADVIRTUALMEMORY SysNtReadVirtualMemory;
 
 
-typedef NTSTATUS ( *NTWRITEVIRTUALMEMORY )(
+typedef NTSTATUS (NTAPI *NTWRITEVIRTUALMEMORY )(
     IN  HANDLE      ProcessHandle,
     IN  PVOID       BaseAddress,
     IN  PVOID       Buffer,
     IN  ULONG       BufferLength,
     OUT PULONG      ReturnLength OPTIONAL);
 
-NTSTATUS SzHookNtWriteVirtualMemory(
+NTSTATUS NTAPI SzHookNtWriteVirtualMemory(
     IN HANDLE       ProcessHandle,
     IN PVOID        BaseAddress,
     IN PVOID        Buffer,
@@ -159,3 +159,73 @@ NTSTATUS SzHookNtWriteVirtualMemory(
     OUT PULONG      ReturnLength OPTIONAL);
 
 NTWRITEVIRTUALMEMORY SysNtWriteVirtualMemory;
+
+
+// 窗口消息发送相关函数
+typedef  LRESULT (NTAPI *NTUSERMESSAGECALL )(
+    IN HWND         hwnd,
+    IN UINT         msg,
+    IN WPARAM       wParam,
+    IN LPARAM       lParam,
+    IN ULONG_PTR    xParam,
+    IN DWORD        xpfnProc,
+    IN BOOL         bAnsi);
+
+LRESULT NTAPI SzHookNtUserMessageCall(
+    IN HWND        hwnd,
+    IN UINT        msg,
+    IN WPARAM      wParam,
+    IN LPARAM      lParam,
+    IN ULONG_PTR   xParam,
+    IN DWORD       xpfnProc,
+    IN BOOL        bAnsi);
+
+NTUSERMESSAGECALL SysNtUserMessageCall;
+
+typedef BOOL (NTAPI *NTUSERPOSTMESSAGE ) (
+    IN HWND    hwnd,
+    IN UINT    msg,
+    IN WPARAM  wParam,
+    IN LPARAM  lParam);
+
+BOOL NTAPI SzHookNtUserPostMessage(
+    IN HWND     hwnd,
+    IN UINT     msg,
+    IN WPARAM   wParam,
+    IN LPARAM   lParam
+ );
+
+NTUSERPOSTMESSAGE SysNtUserPostMessage;
+
+typedef BOOL (NTAPI * NTUSERPOSTTHREADMESSAGE )(
+    IN DWORD    id,
+    IN UINT     msg,
+    IN WPARAM   wParam,
+    IN LPARAM   lParam);
+
+BOOL NTAPI SzHookNtUserPostThreadMessage(
+    IN DWORD    id,
+    IN UINT     msg,
+    IN WPARAM   wParam,
+    IN LPARAM   lParam);
+
+NTUSERPOSTTHREADMESSAGE SysNtUserPostThreadMessage;
+
+
+typedef UINT (NTAPI *NTUSERSENDINPUT )(
+    IN UINT         cInputs,
+    IN CONST INPUT *pInputs,
+    IN int          cbSize);
+
+UINT NTAPI SzHookNtUserSendInput (
+    IN UINT				cInputs,
+    IN CONST INPUT		*pInputs,
+    IN int				cbSize);
+
+NTUSERSENDINPUT SysNtUserSendInput;
+
+
+typedef HANDLE (*NTUSERQUERYWINDOW)(
+    IN HWND hwnd,
+    IN ULONG ulType);
+NTUSERQUERYWINDOW SysNtUserQueryWindow;
