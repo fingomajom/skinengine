@@ -7,7 +7,7 @@ LONG g_lFileHandleCount = 0;
 //LONG g_lDriverStatus    = DRIVER_STATUS_STOP;
 LONG g_lDriverStatus    = DRIVER_STATUS_RUNNING;
 
-DRIVER_CONFIG g_drv_config = { 1, 1, 1 };
+DRIVER_CONFIG g_drv_config = { 0xFFFFFFFF, 1, 1, 1, 0 };
 
 
 BOOL AddRule( LP_DRIVER_RULE_INFO RuleInfo );

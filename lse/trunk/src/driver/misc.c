@@ -647,3 +647,130 @@ Exit0:
 
     return ( c > L'Z' ) ? 0 : c;
 }
+
+
+int KavRtlGetFullPathNameByFileObject(PFILE_OBJECT pFileObject, WCHAR *pwszFullPathName, ULONG Length)
+{
+    int nResult  = FALSE;
+    int nRetCode = FALSE;
+    PUNICODE_STRING pVolumeDeviceFileName = NULL;
+    ULONG actualLen = 0;
+    WCHAR c = 0;
+
+
+    if (!pFileObject || !pFileObject->FileName.Buffer || !pFileObject->FileName.Length)
+    {
+        goto Exit0;
+    }
+
+    nRetCode = AllocUnicodeStringFromPool( &pVolumeDeviceFileName, NonPagedPool, Length );
+    if(!NT_SUCCESS(nRetCode))
+        goto Exit0;
+
+    nRetCode = ObQueryNameString( 
+        (PVOID)pFileObject,
+        (POBJECT_NAME_INFORMATION)pVolumeDeviceFileName,
+        Length,
+        (PULONG)&actualLen 
+        );
+    if(!NT_SUCCESS(nRetCode))
+    {
+        nResult = nRetCode;
+        goto Exit0;
+    }
+    if (pVolumeDeviceFileName->Length >  Length)
+    {
+        nResult = FALSE;
+        goto Exit0;
+    }
+
+    if (Length < 6 + pFileObject->FileName.Length)
+    {
+        nResult = FALSE;
+
+        goto Exit0;
+    }
+
+    __try
+    {
+        c = GetDriverLetterFromVolumeDeviceFileName(pVolumeDeviceFileName);
+        if (0 != c)
+        {
+
+            pwszFullPathName[0] = c;
+            pwszFullPathName[1] = L':';
+            RtlCopyMemory(pwszFullPathName + sizeof(WCHAR), pFileObject->FileName.Buffer, pFileObject->FileName.Length);
+            pwszFullPathName[pFileObject->FileName.Length / sizeof(WCHAR) + sizeof(WCHAR)] = 0;
+
+
+        }
+        else
+        {
+            if (pFileObject->FileName.Length < Length)
+            {
+                RtlCopyMemory(pwszFullPathName, pFileObject->FileName.Buffer, pFileObject->FileName.Length);
+                pwszFullPathName[pFileObject->FileName.Length / 2] = 0;
+            }
+        }
+
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        goto Exit0;
+    }
+
+
+    nResult = TRUE;
+Exit0:
+    if ( pVolumeDeviceFileName != NULL )       
+        ExFreePool(pVolumeDeviceFileName);
+
+    return nResult;
+}
+
+//-----------------------------------------------------------------------------//
+/**
+*@brief 根据文件句柄得到文件全路径
+* 
+*@param[in]		FileHandle 文件句柄
+*@param[out]	pwszFullPathName 文件名缓冲区
+*@param[in]		Length 文件名缓冲区大小
+*@return 返回STATUS_SUCCESS时成功,其它值失败，
+*/
+int KavRtlGetFullPathNameByHandle(HANDLE FileHandle, WCHAR *pwszFullPathName, ULONG Length)
+{
+    int nResult = FALSE;
+    int nRetCode = FALSE;
+    FILE_OBJECT *pFileObject = NULL;
+    PUNICODE_STRING pVolumeDeviceFileName = NULL;
+    //ULONG actualLen = 0;
+    //WCHAR c = 0;
+
+    nRetCode = ObReferenceObjectByHandle(
+        FileHandle,
+        0,
+        *IoFileObjectType,
+        ExGetPreviousMode(), 
+        (PVOID*)&pFileObject,
+        0);
+    if(!NT_SUCCESS(nRetCode))
+        goto Exit0;
+
+    nRetCode = KavRtlGetFullPathNameByFileObject(pFileObject, pwszFullPathName, Length);
+    if( !nRetCode )
+        goto Exit0;
+
+
+    nResult = TRUE;
+Exit0:
+    if (pFileObject)
+    {
+        ObDereferenceObject(pFileObject);
+
+    }
+
+    if ( pVolumeDeviceFileName != NULL )       
+        ExFreePool(pVolumeDeviceFileName);
+
+    return nResult;
+}

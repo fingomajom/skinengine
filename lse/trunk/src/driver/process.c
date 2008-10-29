@@ -16,96 +16,6 @@
 #define PROCESS_SUSPEND_RESUME    (0x0800)  
 
 
-void CreateProcessNotify(
-    HANDLE ParentId,
-    HANDLE ProcessId,
-    BOOLEAN bCreate)
-{
-    KIRQL       OldIrql;
-    PLIST_ENTRY MatchEntry = NULL;
-
-    UNICODE_STRING sPathSrcProcess =    { 0, 0, 0 };
-    UNICODE_STRING sPathParentProcess = { 0, 0, 0 };
-    UNICODE_STRING sPathTagProcess =    { 0, 0, 0 };
-
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
-        return;
-
-    if ( !GetProcessFullPath( PsGetCurrentProcess(), &sPathSrcProcess ))
-        ;
-
-    if ( !GetProcessFullPathByID( (UINT)ParentId, &sPathParentProcess ) )
-        ;//return;
-
-    if ( !GetProcessFullPathByID( (UINT)ProcessId, &sPathTagProcess ) )
-        ;//return;
-
-    DbgPrint( ("%s SID = %d PPID=%d  PID = %d SID = %ws PPID=%ws PID=%ws", 
-        bCreate ? "CreateP" : "DestoryP", 
-        PsGetCurrentProcessId(), ParentId, ProcessId, 
-        sPathSrcProcess.Buffer, 
-        sPathParentProcess.Buffer, 
-        sPathTagProcess.Buffer) );
-
-
-    if ( bCreate )
-    {
-        AppendEvent_I( &g_event_list,
-            LOG_TYPE_CREATE_PROCESS, 
-            (UINT)ParentId , sPathSrcProcess.Buffer,
-            (UINT)ProcessId, sPathTagProcess.Buffer);       
-
-        KeAcquireSpinLock(&g_RunPIDList.RuleLock, &OldIrql);
-        
-        MatchEntry = MatchingRule( &g_RunPIDList, CT_ID, &ParentId );
-
-        KeReleaseSpinLock(&g_RunPIDList.RuleLock, OldIrql);
-
-        if ( MatchEntry != NULL )
-            AppendRule_I( &g_RunPIDList, CT_ID, TRUE, &ProcessId );
-        else
-        {
-
-        }
-    }
-    else
-    {
-        KeAcquireSpinLock(&g_RunPIDList.RuleLock, &OldIrql);
-
-        MatchEntry = MatchingRule( &g_RunPIDList, CT_ID, &ProcessId );
-        if ( MatchEntry != NULL )
-        {
-            RemoveEntryList(MatchEntry);
-            ExFreePool( MatchEntry );
-        }
-
-        KeReleaseSpinLock(&g_RunPIDList.RuleLock, OldIrql);
-    }
-}
-
-
-NTSTATUS InitProcessNotify()
-{
-    NTSTATUS ntStatus = PsSetCreateProcessNotifyRoutine(CreateProcessNotify, FALSE);
-    
-    DbgPrint( ("InitProcessNotify") );
-
-    return ntStatus;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-NTSTATUS UninitProcessNotify()
-{
-    NTSTATUS ntStatus = PsSetCreateProcessNotifyRoutine(CreateProcessNotify, TRUE);
-
-    DbgPrint( ("UninitProcessNotify") );
-
-    return ntStatus;
-}
-
-
-
 NTSTATUS NTAPI SzHookKeUserModeCallback(
     ULONG  ApiNumber, 
     PVOID  InputBuffer, 
@@ -127,7 +37,7 @@ NTSTATUS NTAPI SzHookKeUserModeCallback(
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_ke_user_mode_callback);
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_USERMODECALLBACK ) )
         goto call_default;
 
     if ( ApiNumber != ulApiWatch )
@@ -216,7 +126,7 @@ NTSTATUS NTAPI SzHookNtOpenProcess(
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_open_process);
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_OPENPROCESS ))
         goto call_default;
 
     do 
@@ -310,7 +220,7 @@ NTSTATUS NTAPI SzHookQuerySystemInformation(
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_query_system_information);
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_QUERYSYSTEMINFORMATION ))
     {
         return (NTSTATUS)pfnStubFunc(SystemInformationClass, 
             SystemInformation, 
@@ -433,23 +343,19 @@ NTSTATUS NTAPI SzHookCreateSection(
 
     UNICODE_STRING sPathSrcProcess = { 0, 0, 0 };
 
-    WCHAR wszFullName[MAX_PATH * 2 ] = { 0 };
-
-    //UNICODE_STRING sFileObject = { 0, MAX_PATH * 2 * sizeof(WCHAR), wszFullName + 2 };
-    //UNICODE_STRING DriverName  = { 0, 0, 0 };
-
-    //PFILE_OBJECT   pFileObject = NULL;
+    WCHAR wszFullName[ MAX_PATH * 2 ] = { 0 };
 
 
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_create_section);
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_CREATESECTION ))
         goto call_default;
+
 
     do 
     {
-        if ( !(DesiredAccess & CheckDesireAccess)      &&
+        if ( !(DesiredAccess & CheckDesireAccess) &&
              !(SectionPageProtection & CheckSectionPageProtection) && 0 )
         {
             break;
@@ -460,36 +366,6 @@ NTSTATUS NTAPI SzHookCreateSection(
 
         if ( !GetFullPathNameByHandle(FileHandle, wszFullName, sizeof(wszFullName) - 2 ) )
             break;
-
-        //ntRetCode = ObReferenceObjectByHandle(FileHandle, 
-        //    0, *IoFileObjectType, ExGetPreviousMode(), &pFileObject, NULL);
-        //if ( !NT_SUCCESS(ntRetCode) || pFileObject == NULL )
-        //    break;
-
-        //ntRetCode = ObQueryNameString( 
-        //    (PVOID)pFileObject,
-        //    (POBJECT_NAME_INFORMATION)&sFileObject,
-        //    sFileObject.MaximumLength,
-        //    (PULONG)&actualLen );
-        //if ( !NT_SUCCESS(ntRetCode) )
-        //    break;
-
-        //ntRetCode = RtlVolumeDeviceToDosName(pFileObject->DeviceObject, &DriverName);
-        //if ( !NT_SUCCESS(ntRetCode) ||
-        //    DriverName.Length == 0 || 
-        //    DriverName.Buffer == NULL)
-        //    break;
-
-        //if ( (DriverName.Buffer[0] >= 'a' && DriverName.Buffer[0] <= 'z') ||
-        //     (DriverName.Buffer[0] >= 'A' && DriverName.Buffer[0] <= 'Z') )
-        //{
-        //    wszFullName[0] = DriverName.Buffer[0];
-        //    wszFullName[1] = L':';
-        //}
-        //else
-        //    break;
-        //    wszFullName[0] = L'C';
-        //    wszFullName[1] = L':';
 
         //////////////////////////////////////////////////////////////////////////
         //
@@ -502,6 +378,7 @@ NTSTATUS NTAPI SzHookCreateSection(
 
         DbgPrint (("SzHookCreateSection sPathSrcProcess = %ws %ws", 
             sPathSrcProcess.Buffer, wszFullName ));
+
 
         // 是否是要保护对象
         if ( MatchingRule( &g_ProtectRuleList, CT_PATHFILE, sPathSrcProcess.Buffer ) == NULL )
@@ -561,7 +438,7 @@ NTSTATUS NTAPI SzHookOpenSection(
     uCurProcessId = (UINT)PsGetCurrentProcessId();
     pfnStubFunc   = get_stub_func_address(hook_nt_open_section);
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_OPENSECTION ))
         goto call_default;
 
 
@@ -593,7 +470,7 @@ NTSTATUS NTAPI SzHookNtTerminateProcess(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
     
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_TERMINATEPROCESS ))
         goto call_default;
 
     do 
@@ -690,7 +567,7 @@ NTSTATUS SzHookNtCreateThread(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_CREATETHREAD ))
         goto call_default;
 
     do 
@@ -775,7 +652,7 @@ NTSTATUS SzHookNtReadVirtualMemory (
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_READVIRTUALMEMORY ))
         goto call_default;
 
     do 
@@ -857,7 +734,7 @@ NTSTATUS SzHookNtWriteVirtualMemory(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_WRITEVIRTUALMEMORY ))
         goto call_default;
 
     do 
@@ -948,7 +825,7 @@ LRESULT NTAPI SzHookNtUserMessageCall(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_USERMESSAGECALL ))
         goto call_default;
 
     uTagPID = (ULONG) SysNtUserQueryWindow(hwnd, 0);
@@ -1036,7 +913,7 @@ BOOL NTAPI SzHookNtUserPostMessage(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_USERPOSTMESSAGE ))
         goto call_default;
     
     uTagPID = (ULONG) SysNtUserQueryWindow(hwnd, 0);
@@ -1117,7 +994,7 @@ BOOL NTAPI SzHookNtUserPostThreadMessage(
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_USERPOSTTHREADMESSAGE ))
         goto call_default;
 
     if ( msg != WM_QUIT )
@@ -1162,7 +1039,7 @@ UINT NTAPI SzHookNtUserSendInput (
 
     KPROCESSOR_MODE mode = ExGetPreviousMode();
 
-    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING )
+    if ( g_lDriverStatus != DRIVER_STATUS_RUNNING || !( g_drv_config.uiMonSwitch & MON_SWITCH_USERSENDINPUT ) )
         goto call_default;
 
 call_default:

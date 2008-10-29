@@ -75,6 +75,8 @@ BOOL GetFullPathNameByFileObject(
     WCHAR *pwszFullPathName, 
     ULONG uLength);
 
+int KavRtlGetFullPathNameByHandle(HANDLE FileHandle, WCHAR *pwszFullPathName, ULONG Length);
+
 WCHAR GetDriverLetterFromVolumeDeviceFileName( 
     PUNICODE_STRING pVolumeDeviceFileName );
 

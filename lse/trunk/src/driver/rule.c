@@ -173,6 +173,7 @@ PLIST_ENTRY MatchingRule(
     LP_RULE_INFO FRuleInfo   = NULL;
 
     int          nTempLen    = 0;
+    int          nTempLen1   = 0;
 
     //DbgPrint (("MatchingRule"));
 
@@ -223,9 +224,11 @@ PLIST_ENTRY MatchingRule(
                 }
                 else if ( FRuleInfo->uContentType == CT_NAME )
                 {
-                    nTempLen = wcslen(FRuleInfo->wszFileName);
+                    nTempLen  = wcslen(FRuleInfo->wszFileName);
+                    nTempLen1 = wcslen(pContent);
 
-                    if ( !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
+                    if (  nTempLen1 >= nTempLen &&
+                         !_wcsnicmp( (WCHAR*)pContent +  ( nTempLen1 - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
                     {
                         EntryResult = NextEntry;
                     }
@@ -256,9 +259,11 @@ PLIST_ENTRY MatchingRule(
                 //DbgPrint (("MatchingRule  %ws , %ws , %ws", pContent, FRuleInfo->wszFileName, (WCHAR*)pContent +  ( wcslen(pContent) - wcslen(FRuleInfo->wszFileName) ) ));
                 
                 nTempLen = wcslen(FRuleInfo->wszFileName);
+                nTempLen1 = wcslen(pContent);
 
-                if ( FRuleInfo->uContentType == CT_NAME &&
-                    !_wcsnicmp( (WCHAR*)pContent +  ( wcslen(pContent) - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
+                if ( nTempLen1 >= nTempLen &&
+                     FRuleInfo->uContentType == CT_NAME &&
+                     !_wcsnicmp( (WCHAR*)pContent +  ( nTempLen1 - nTempLen ), FRuleInfo->wszFileName, nTempLen ) )
                 {
                     EntryResult = NextEntry;
                 }

@@ -120,6 +120,8 @@ NTSTATUS StartWorking()
         if ( ntStatus != STATUS_SUCCESS )
             break;
 
+        InitLoadImageNotify();
+
 
         ntStatus = STATUS_UNSUCCESSFUL;
 
@@ -141,7 +143,8 @@ NTSTATUS StopWorking()
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
 
-    //UninitProcessNotify();
+    UninitProcessNotify();
+    UninitLoadImageNotify();
 
     //uninstall_all_hook();
 

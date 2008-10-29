@@ -75,7 +75,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/subsystem:native /ignore:4010,4037,4039,4065,4070,4078,4087,4089,4221,4210 /driver /SAFESEH:NO"
-				AdditionalDependencies="ntoskrnl.lib hal.lib wmilib.lib"
+				AdditionalDependencies="ntoskrnl.lib hal.lib wmilib.lib sehupd.lib wdmsec.lib"
 				OutputFile="..\product\win32d\$(ProjectName).sys"
 				Version="5.0"
 				LinkIncremental="1"
@@ -182,7 +182,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/subsystem:native /ignore:4010,4037,4039,4065,4070,4078,4087,4089,4221,4210 /driver&#x0D;&#x0A;/SAFESEH:NO"
-				AdditionalDependencies="ntoskrnl.lib hal.lib wmilib.lib sehupd.lib"
+				AdditionalDependencies="ntoskrnl.lib hal.lib wmilib.lib sehupd.lib wdmsec.lib"
 				OutputFile="..\product\win32\$(ProjectName).sys"
 				Version="5.0"
 				LinkIncremental="1"
@@ -244,6 +244,10 @@
 			</File>
 			<File
 				RelativePath=".\hookpointmgt.c"
+				>
+			</File>
+			<File
+				RelativePath=".\notify.c"
 				>
 			</File>
 			<File

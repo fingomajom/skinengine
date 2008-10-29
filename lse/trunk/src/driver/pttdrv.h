@@ -52,6 +52,9 @@ DeviceIoControl(
 NTSTATUS InitProcessNotify();
 NTSTATUS UninitProcessNotify();
 
+NTSTATUS InitLoadImageNotify();
+NTSTATUS UninitLoadImageNotify();
+
 
 BOOL dasm_get_instruction_size(
     BYTE* pInst, 
