@@ -1,0 +1,276 @@
+#include "StdAfx.h"
+#include "CDWMainFrame.h"
+#include "DWGDI.h"
+#include "DWImage.h"
+
+
+COLORREF g_clrNcBorder = RGB(90, 90, 90);
+COLORREF g_clrWindow   = RGB( 196, 80, 220 );
+
+
+
+CDWMainFrame::CDWMainFrame(void)
+{
+}
+
+CDWMainFrame::~CDWMainFrame(void)
+{
+}
+
+
+HWND CDWMainFrame::CreateEx()
+{
+    RECT rcClient = { 0 };
+    SystemParametersInfo( SPI_GETWORKAREA, 0, &rcClient, 0 );
+
+    rcClient.left   = ( rcClient.right - rcClient.left ) / 8;
+    rcClient.right  = rcClient.left * 7;
+    rcClient.top    = ( rcClient.bottom - rcClient.top ) / 8;
+    rcClient.bottom = rcClient.top * 7;
+
+    return Create( NULL, &rcClient, _T("DW_Explorer"), 
+         WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN );
+}
+
+BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
+{
+    return FALSE;
+}
+
+LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    CMessageLoop* pLoop = _Module.GetMessageLoop();
+    ATLASSERT(pLoop != NULL);
+    pLoop->AddMessageFilter(this);
+
+    ::SetWindowPos(m_hWnd, NULL, 0, 0,
+        0, 0,
+        SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+
+    ReRgnWindow();
+
+    RECT rcClient;
+    GetClientRect(&rcClient);
+
+    rcClient.top += 60;
+    m_wndAx.Create( m_hWnd, &rcClient, L"http://www.baidu.com", WS_CHILD );
+    m_wndAx.ShowWindow( SW_SHOWDEFAULT );
+
+    return 0;
+}
+
+void CDWMainFrame::ReRgnWindow()
+{
+    CRgnHandle rgn;
+
+    RECT rcWindow;
+    GetWindowRect(&rcWindow);
+
+    rcWindow.right  = rcWindow.right  - rcWindow.left;
+    rcWindow.bottom = rcWindow.bottom - rcWindow.top;
+
+    rcWindow.top = rcWindow.left = 0;
+
+    rgn.CreateRoundRectRgn( rcWindow.left, rcWindow.top, 
+        rcWindow.right + 1, rcWindow.bottom + 12, 9, 9);
+
+    SetWindowRgn(rgn, TRUE);
+
+    if (m_rgnWindow.m_hRgn != NULL)
+        m_rgnWindow.DeleteObject();
+
+    m_rgnWindow.Attach( rgn );
+
+}
+
+LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    bHandled = FALSE;
+
+    ReRgnWindow();
+
+    return 0L;
+}
+
+
+
+LRESULT CDWMainFrame::OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    PostMessage(WM_CLOSE);
+    return 0;
+}
+
+LRESULT CDWMainFrame::OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    return 0;
+}
+
+
+LRESULT CDWMainFrame::OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    return 0;
+}
+
+LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
+{
+    if((GetStyle() & (WS_CHILD)) == 0)
+        ::PostQuitMessage(1);
+
+    bHandled = FALSE;
+    return 1;
+}
+
+LRESULT CDWMainFrame::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    BOOL bMinimized = GetStyle() & WS_MINIMIZE;
+
+    LPNCCALCSIZE_PARAMS pNCParams = (LPNCCALCSIZE_PARAMS)lParam;
+
+    RECT rcWindow = pNCParams->rgrc[0];
+
+    LRESULT lResult = ::DefWindowProc(m_hWnd, uMsg, wParam, lParam);
+    if (wParam && !bMinimized)
+    {
+        pNCParams->rgrc[0] = rcWindow;
+        ::InflateRect(&pNCParams->rgrc[0], -5, -1);
+        pNCParams->rgrc[0].bottom -= 4;
+    }
+
+    return lResult;
+}
+
+
+LRESULT CDWMainFrame::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    CPaintDC dc(m_hWnd);
+
+    CSkinDCHandle sdc = dc;
+
+    RECT rcClient;
+    GetClientRect(&rcClient);
+
+    dc.FillSolidRect( &rcClient, g_clrWindow );
+    
+    COLORREF clrTemp = HLS_TRANSFORM( g_clrWindow, 60, 0 );
+    sdc.SkinLine( rcClient.left, rcClient.top, rcClient.right, rcClient.top, clrTemp);
+
+
+    CDWImage image;
+    image.LoadFromResource( IDR_PNG_BTN_SYS_MIN );
+
+    CImage imageA;
+    imageA.Create( image.GetWidth(), image.GetHeight(), image.GetBPP() );
+
+    for ( int y = 0; y < image.GetHeight(); y++ )
+    {
+        for ( int x = 0; x < image.GetWidth(); x++)
+        {
+            BYTE* pbuf  = (BYTE*)image.GetPixelAddress( x, y );
+            BYTE* pbuf1 = (BYTE*)imageA.GetPixelAddress( x, y );
+
+            BYTE ab = pbuf[0];
+            BYTE ag = pbuf[1];
+            BYTE ar = pbuf[2];
+            BYTE aa = pbuf[3];
+
+            COLORREF clr1 = g_clrWindow;
+
+            float ff = ((float)aa / 255);
+
+            BYTE cr = BYTE((1-ff)*GetRValue(clr1)+(ff)*ar);
+            BYTE cg = BYTE((1-ff)*GetGValue(clr1)+(ff)*ag);
+            BYTE cb = BYTE((1-ff)*GetBValue(clr1)+(ff)*ab);
+
+            pbuf1[0] = cb;
+            pbuf1[1] = cg;
+            pbuf1[2] = cr;
+            pbuf1[3] = 0;
+        }
+    }
+
+    imageA.Draw( dc, 10, 1 );
+
+    return 0L;
+}
+
+LRESULT CDWMainFrame::OnEraseBkGnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    return 1L;
+}
+
+LRESULT CDWMainFrame::OnRefMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    LRESULT lResult = DefWindowProc();
+
+    RedrawWindow(NULL, NULL, RDW_FRAME | RDW_INVALIDATE );
+
+    return lResult;
+}
+
+
+
+LRESULT CDWMainFrame::OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    CWindowDC dc(m_hWnd);
+
+    RECT rcWindow;
+    RECT rcBorder;
+    GetWindowRect(&rcWindow);
+
+    rcWindow.right  = rcWindow.right  - rcWindow.left;
+    rcWindow.bottom = rcWindow.bottom - rcWindow.top;
+    rcWindow.top    = rcWindow.left = 0;
+
+    rcBorder = rcWindow;
+
+    dc.Draw3dRect( &rcBorder, g_clrNcBorder, g_clrNcBorder );
+
+    COLORREF clrTemp = HLS_TRANSFORM( g_clrWindow, 60, 0 );
+
+    CPen pen;  pen .CreatePen( PS_SOLID, 1, g_clrNcBorder );
+    CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( g_clrWindow, -40, -40 ) );
+    CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( g_clrWindow,  60, 0 ) );
+    CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( g_clrWindow,  40, 0 ) );
+    CPen pen4; pen4.CreatePen( PS_SOLID, 1, g_clrWindow );
+    CPen pen5; pen5.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( g_clrWindow,  60, 0 ) );
+
+    HPEN   hOldPen   = dc.SelectPen( pen );
+    HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
+
+    ::InflateRect( &rcBorder, -1, -1);
+    dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 3, 3);
+    dc.SelectPen( pen1 );
+    dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
+    dc.SelectPen( pen2 );
+    dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 9, 9);
+
+    ::InflateRect( &rcBorder, -1, -1);
+    dc.SelectPen( pen3 );
+    dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 5, 5);
+    dc.SelectPen( pen4 );
+    dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
+
+    ::InflateRect( &rcBorder, -1, -1);
+    dc.Draw3dRect( &rcBorder, g_clrWindow, g_clrWindow );
+    ::InflateRect( &rcBorder, -1, -1);
+    dc.Draw3dRect( &rcBorder, g_clrWindow, g_clrWindow );
+
+    rcBorder = rcWindow;
+    rcBorder.top = rcBorder.bottom - 6;
+    ::InflateRect( &rcBorder, -1, -1);
+    dc.SelectPen( pen2 );
+    dc.Rectangle( &rcBorder );
+    ::InflateRect( &rcBorder, -1, -1); rcBorder.top--;
+    dc.SelectPen( pen4 );
+    dc.Rectangle( &rcBorder );
+
+    dc.SelectPen(hOldPen);
+    dc.SelectBrush(hOldBrush);
+
+    return 0L;
+}
+
+LRESULT CDWMainFrame::OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    return DefWindowProc();
+}
