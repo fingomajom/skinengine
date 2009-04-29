@@ -12,6 +12,7 @@
 #pragma once
 
 #include "resource.h"
+#include "DWToolbar.h"
 
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>, 
@@ -35,10 +36,10 @@ public:
         MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint   )
 
 
-        MESSAGE_HANDLER(WM_SETFOCUS   , OnRefMsg    )
-        MESSAGE_HANDLER(WM_KILLFOCUS  , OnRefMsg    )
-        MESSAGE_HANDLER(WM_NCACTIVATE , OnRefMsg    )
-        MESSAGE_HANDLER(WM_ACTIVATE   , OnRefMsg    )
+        MESSAGE_HANDLER(WM_SETFOCUS   , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
 
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize)
         MESSAGE_HANDLER(WM_SIZE      , OnSize      )
@@ -55,6 +56,7 @@ protected:
     virtual BOOL PreTranslateMessage(MSG* pMsg);
 
     void ReRgnWindow();
+    void RePositionCtrls();
 
 protected:
 
@@ -63,7 +65,7 @@ protected:
     LRESULT OnPaint     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnNcPaint   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-    LRESULT OnRefMsg    (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnSkipMsg   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnNcHitTest (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnNcCalcSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -82,4 +84,6 @@ private:
 
     CAxWindow m_wndAx;
 
+
+    CDWToolbar m_sys_bar;
 };
