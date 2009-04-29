@@ -11,6 +11,8 @@ extern COLORREF g_clrWindow;
 
 class CDWToolbar : public CWindowImpl<CDWToolbar>
 {
+protected:
+
     struct ToolBtnInfo 
     {
         RECT      rcBtn;
@@ -18,6 +20,7 @@ class CDWToolbar : public CWindowImpl<CDWToolbar>
         CDWImage* image;
         ATL::CString strCaption;
     };
+
 public:
     
     CDWToolbar() :
@@ -108,6 +111,17 @@ public:
             m_nToolbarHeigth = rcBtn.bottom;
         }
     }
+
+    virtual void OnFinalMessage(HWND /*hWnd*/)
+    {
+        for ( int idx = 0; idx < m_vtToolBtn.GetSize(); idx++ )
+        {
+            ToolBtnInfo& info = m_vtToolBtn[idx];
+            
+            delete info.image;
+        }
+    }
+
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
@@ -205,6 +219,9 @@ public:
             DrawToolBtn( dc, m_vtToolBtn[m_nHotIndex], 0 );
 
             m_nClickIndex = -1;
+
+            ::PostMessage( GetParent(), WM_COMMAND, 
+                MAKEWPARAM(m_vtToolBtn[m_nHotIndex].uID, BN_CLICKED), 0 );
         }
 
         return 1L;
@@ -261,7 +278,7 @@ public:
 
     DECLARE_WND_CLASS(_T("DWExplorer_Toolbar"));
 
-private:
+protected:
 
     ATL::CSimpleArray<ToolBtnInfo> m_vtToolBtn;
     

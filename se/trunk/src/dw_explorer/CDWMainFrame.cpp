@@ -56,17 +56,8 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndAx.Create( m_hWnd, &rcClient, L"http://www.baidu.com", WS_CHILD );
     m_wndAx.ShowWindow( SW_SHOWDEFAULT );
 
-    GetClientRect(&rcClient);
-    rcClient.left += 40;
-    rcClient.right = 300;
-    rcClient.bottom = 40;
     
-
-    m_sys_bar.AddToolBtn( L"", 1, IDR_PNG_BTN_SYS_MIN);
-    m_sys_bar.AddToolBtn( L"", 1, IDR_PNG_BTN_SYS_MAX);
-    m_sys_bar.AddToolBtn( L"", 1, IDR_PNG_BTN_SYS_MAX2);
-    m_sys_bar.AddToolBtn( L"", 1, IDR_PNG_BTN_SYS_CLOSE);
-    m_sys_bar.Create( m_hWnd, &rcClient );
+    m_sys_bar.Create( m_hWnd, &m_sys_bar.rcDefault);
 
 
     return 0;
@@ -103,8 +94,17 @@ void CDWMainFrame::RePositionCtrls()
     rcClient.left = rcClient.right - m_sys_bar.GetToolbarWidth();
     rcClient.bottom = rcClient.top + m_sys_bar.GetToolbarHeigth();
 
+    if ( IsZoomed() )
+    {
+        rcClient.top    += GetSystemMetrics(SM_CYSIZEFRAME);
+        rcClient.bottom += GetSystemMetrics(SM_CYSIZEFRAME);
+    }
+
     if ( ::IsWindow( m_sys_bar ) )
+    {
+        m_sys_bar.OnSwitchBtn();
         m_sys_bar.MoveWindow(&rcClient);
+    }
 }
 
 LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -136,12 +136,21 @@ LRESULT CDWMainFrame::OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
     return 0;
 }
 
+LRESULT CDWMainFrame::OnSysBarCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    PostMessage(WM_SYSCOMMAND, wID, 0);
+
+    return 1L;
+}
+
+
 LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
     if((GetStyle() & (WS_CHILD)) == 0)
         ::PostQuitMessage(1);
 
     bHandled = FALSE;
+
     return 1;
 }
 
@@ -164,6 +173,17 @@ LRESULT CDWMainFrame::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
     return lResult;
 }
 
+LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+{
+    if ( !IsZoomed() && GET_Y_LPARAM(lParam) < 20 )
+    {
+        PostMessage( WM_NCLBUTTONDOWN, HTCAPTION, lParam );
+    }
+
+    bHandled = FALSE;
+
+    return 1L;
+}
 
 LRESULT CDWMainFrame::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {

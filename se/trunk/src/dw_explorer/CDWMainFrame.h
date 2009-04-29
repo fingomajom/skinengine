@@ -12,7 +12,7 @@
 #pragma once
 
 #include "resource.h"
-#include "DWToolbar.h"
+#include "DWSysBtnToolbar.h"
 
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>, 
@@ -45,9 +45,16 @@ public:
         MESSAGE_HANDLER(WM_SIZE      , OnSize      )
         //MESSAGE_HANDLER(WM_NCHITTEST , OnNcHitTest )
 
+        MESSAGE_HANDLER(WM_LBUTTONDOWN , OnLButtonDown)
+
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
         COMMAND_ID_HANDLER( ID_APP_ABOUT         , OnAppAbout      )
+
+        COMMAND_ID_HANDLER( SC_MINIMIZE         , OnSysBarCmd      )
+        COMMAND_ID_HANDLER( SC_MAXIMIZE         , OnSysBarCmd      )
+        COMMAND_ID_HANDLER( SC_RESTORE          , OnSysBarCmd      )
+        COMMAND_ID_HANDLER( SC_CLOSE            , OnSysBarCmd      )
 
     END_MSG_MAP()
 
@@ -70,9 +77,12 @@ protected:
     LRESULT OnNcHitTest (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnNcCalcSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
+    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
     LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnFileNew (WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnSysBarCmd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 public:
 
@@ -84,6 +94,5 @@ private:
 
     CAxWindow m_wndAx;
 
-
-    CDWToolbar m_sys_bar;
+    CDWSysBtnToolBar m_sys_bar;
 };

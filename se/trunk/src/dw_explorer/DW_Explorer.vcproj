@@ -280,6 +280,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DWSysBtnToolbar.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DWToolbar.h"
 				>
 			</File>
