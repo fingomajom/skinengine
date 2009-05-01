@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "DWToolbar.h"
 
 
@@ -22,6 +24,8 @@ public:
     virtual void OnFinalMessage(HWND hWnd)
     {
         CDWToolbar::OnFinalMessage(hWnd);
+        if ( m_image != NULL )
+            delete m_image;
     }
 
     void OnSwitchBtn()
@@ -53,10 +57,10 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        AddToolBtn( L"", SC_MINIMIZE, IDR_PNG_BTN_SYS_MIN);
-        AddToolBtn( L"", SC_MAXIMIZE, IDR_PNG_BTN_SYS_MAX);
-        //AddToolBtn( L"", SC_RESTORE , IDR_PNG_BTN_SYS_MAX2);
-        AddToolBtn( L"", SC_CLOSE   , IDR_PNG_BTN_SYS_CLOSE);
+        AddToolBtn( _T(""), SC_MINIMIZE, IDR_PNG_BTN_SYS_MIN);
+        AddToolBtn( _T(""), SC_MAXIMIZE, IDR_PNG_BTN_SYS_MAX);
+        //AddToolBtn( _T(""), SC_RESTORE , IDR_PNG_BTN_SYS_MAX2);
+        AddToolBtn( _T(""), SC_CLOSE   , IDR_PNG_BTN_SYS_CLOSE);
         
         m_image = new CDWImage;
         if ( m_image )

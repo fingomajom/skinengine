@@ -3,11 +3,7 @@
 #pragma once
 
 #include "DWImage.h"
-
-
-
-extern COLORREF g_clrWindow;
-
+#include "DWSkinUIMgt.h"
 
 class CDWToolbar : public CWindowImpl<CDWToolbar>
 {
@@ -25,8 +21,7 @@ public:
     
     CDWToolbar() :
         m_nLeftSpace(0),
-        m_nTopSpace(0),
-        m_clrBkGnd(g_clrWindow)
+        m_nTopSpace(0)
     {
         m_nHotIndex = -1;
     }
@@ -70,7 +65,7 @@ public:
 
     
 
-    BEGIN_MSG_MAP(CDWMainFrame)
+    BEGIN_MSG_MAP(CDWToolbar)
 
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
@@ -88,7 +83,7 @@ public:
 
     END_MSG_MAP()
 
-    void RePositionBtns()
+    virtual void RePositionBtns()
     {   
         RECT rcBtn = { m_nLeftSpace, m_nTopSpace, m_nLeftSpace, m_nTopSpace};
 
@@ -234,6 +229,8 @@ public:
 
     void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
     {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
         RECT rcSrcImage = { 0 };
         
         rcSrcImage.left   = info.image->GetWidth() / 4;
@@ -242,7 +239,7 @@ public:
         rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
         rcSrcImage.left  = rcSrcImage.left * nIdex;
 
-        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage, m_clrBkGnd);
+        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage, skin.clrFrameWindow);
     }
 
     LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -265,12 +262,14 @@ public:
 
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
         CDCHandle dc = (HDC)wParam;
 
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
         
-        dc.FillSolidRect( &rcClient, m_clrBkGnd );
+        dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
 
         return 0L;
     }
@@ -289,7 +288,5 @@ protected:
 
     int m_nHotIndex;
     int m_nClickIndex;
-
-    COLORREF m_clrBkGnd;
 };
 

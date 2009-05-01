@@ -8,7 +8,7 @@
 #define IDR_PNG_BTN_SYS_MAX             210
 #define IDR_PNG_BTN_SYS_MAX2            211
 #define IDR_PNG_BTN_SYS_CLOSE           212
-#define IDR_PNG1                        213
+#define IDR_PNG_BTN_TITLE_CUS           213
 
 // Next default values for new objects
 // 

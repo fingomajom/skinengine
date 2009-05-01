@@ -1,0 +1,16 @@
+import "oaidl.idl";
+import "ocidl.idl";
+[
+   // A unique identifier that distinguishes this interface from other interfaces.
+   uuid(BF96E8AC-0903-44ad-A848-5DC1B8887F1A),
+
+   // This is version 1.0 of this interface.
+   version(1.0)
+]
+interface msg_rpc_np // The interface is named msg_rpc_np
+{
+    int SendRpcMsg(
+        [in]  int nMsg,
+        [in]  VARIANT  pBuffer,
+        [out] VARIANT* szString);
+}

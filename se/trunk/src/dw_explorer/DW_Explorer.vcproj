@@ -106,8 +106,9 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
+			UseOfATL="1"
 			ATLMinimizesCRunTimeLibraryUsage="true"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -135,12 +136,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="0"
+				FavorSizeOrSpeed="0"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -156,8 +159,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Rpcrt4.lib"
 				LinkIncremental="1"
+				GenerateDebugInformation="true"
 				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -248,6 +256,26 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
 			>
 			<File
+				RelativePath=".\res\btn_close_max.png"
+				>
+			</File>
+			<File
+				RelativePath=".\res\btn_sys_max.png"
+				>
+			</File>
+			<File
+				RelativePath=".\res\btn_sys_max2.png"
+				>
+			</File>
+			<File
+				RelativePath=".\res\btn_sys_min.png"
+				>
+			</File>
+			<File
+				RelativePath=".\res\btn_title_cus.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\DW_Explorer.ico"
 				>
 			</File>
@@ -272,21 +300,116 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DWGDI.h"
+				RelativePath=".\DWFrameUI.h"
+				>
+			</File>
+			<Filter
+				Name="Toolbar"
+				>
+				<File
+					RelativePath=".\DWFavoriteBar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWSuperToolbar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWSysBtnToolbar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWTableBar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWTitleBar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWToolbar.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Common"
+				>
+				<File
+					RelativePath=".\DWGDI.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWImage.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DWSkinUIMgt.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="RPC"
+			>
+			<File
+				RelativePath=".\RpcMsg.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DWImage.h"
+				RelativePath=".\RpcMsg.h"
 				>
 			</File>
-			<File
-				RelativePath=".\DWSysBtnToolbar.h"
+			<Filter
+				Name="IDL"
 				>
-			</File>
-			<File
-				RelativePath=".\DWToolbar.h"
-				>
-			</File>
+				<File
+					RelativePath=".\msg_rpc_np.h"
+					>
+				</File>
+				<File
+					RelativePath=".\msg_rpc_np.idl"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCMIDLTool"
+							GenerateTypeLibrary="false"
+							TypeLibraryName="$(IntDir)/$(ProjectName).tlb"
+							HeaderFileName="$(InputName).h"
+							DLLDataFileName="dlldata.c"
+							InterfaceIdentifierFileName=""
+							ProxyFileName=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\msg_rpc_np_c.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions="_WIN32_WINNT=0x0501;WINVER=0x0501;_WIN32_IE=0x0501"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\msg_rpc_np_s.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions="_WIN32_WINNT=0x0501;WINVER=0x0501;_WIN32_IE=0x0501"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
