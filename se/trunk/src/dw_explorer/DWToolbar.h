@@ -227,7 +227,7 @@ public:
         return 1L;
     }
 
-    void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
+    virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
@@ -273,7 +273,7 @@ public:
         
         dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
 
-        return 0L;
+        return 1L;
     }
     
 

@@ -58,6 +58,23 @@ public:
         m_nToolbarHeigth = rcClient.bottom - rcClient.top;
     }
 
+    virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
+    {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+        RECT rcSrcImage = { 0 };
+
+        rcSrcImage.left   = info.image->GetWidth() / 4;
+        rcSrcImage.bottom = info.image->GetHeight();
+
+        rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
+        rcSrcImage.left  = rcSrcImage.left * nIdex;
+
+        CDCHandle(hDC).FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
+
+        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage, 1, 1.5 );
+    }
+
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {

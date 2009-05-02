@@ -12,6 +12,7 @@
 #define IDR_PNG_TABLE_CLOSE             214
 #define IDR_PNG_TABLE_ITEM              215
 #define IDR_PNG_TABLE_ADD               216
+#define IDR_PNG_TABLE_NEW               216
 #define IDR_PNG2                        217
 #define IDR_PNG_TABLE_PROGRESS          217
 

@@ -66,7 +66,7 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     rcToolBar = rcClient;
     int nspace = 20;
 
-    rcToolBar.top    += (22 );
+    rcToolBar.top    += ( 22 );
     rcToolBar.bottom  = rcToolBar.top + nspace;
     
     if ( IsZoomed() )
@@ -80,7 +80,7 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     rcToolBar.top += nspace; rcToolBar.bottom += nspace;
     if ( ::IsWindow(m_wndFavoriteBar) )
         m_wndFavoriteBar.MoveWindow( &rcToolBar );
-    rcToolBar.top += nspace; rcToolBar.bottom += nspace;
+    rcToolBar.top += nspace; rcToolBar.bottom += 28;
     if ( ::IsWindow(m_wndTableBar) )
         m_wndTableBar.MoveWindow( &rcToolBar );
 

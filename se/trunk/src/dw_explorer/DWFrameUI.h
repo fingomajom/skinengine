@@ -182,7 +182,8 @@ public:
 
     LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        CWindowDC dc(*(T*)this);
+        CWindowDC wndDC(*(T*)this);
+
             
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
@@ -198,64 +199,67 @@ public:
         rcWindow.bottom = rcWindow.bottom - rcWindow.top;
         rcWindow.top    = rcWindow.left = 0;
 
-        rgn.CreateRectRgnIndirect(&rcWindow);
-        rcBorder = rcWindow;
-        ::InflateRect( &rcBorder, -5, -5);
-        rcBorder.top = 1;
-        rgnNULL.CreateRectRgnIndirect( &rcBorder );
+        {
+            CMemoryDC dc(wndDC, rcWindow);
 
-        rgn.CombineRgn(rgnNULL, RGN_DIFF);
+            rgn.CreateRectRgnIndirect(&rcWindow);
+            rcBorder = rcWindow;
+            ::InflateRect( &rcBorder, -5, -5);
+            rcBorder.top = 1;
+            rgnNULL.CreateRectRgnIndirect( &rcBorder );
 
-        dc.SelectRgn( rgn );
+            rgn.CombineRgn(rgnNULL, RGN_DIFF);
 
-        rcBorder = rcWindow;
+            wndDC.SelectRgn( rgn );
 
-        dc.Draw3dRect( &rcBorder, 
-            skin.clrFrameNcBorder,
-            skin.clrFrameWindow);
+            rcBorder = rcWindow;
 
-        COLORREF clrTemp = HLS_TRANSFORM( skin.clrFrameWindow, 60, 0 );
+            dc.Draw3dRect( &rcBorder, 
+                skin.clrFrameNcBorder,
+                skin.clrFrameWindow);
 
-        CPen pen;  pen .CreatePen( PS_SOLID, 1, skin.clrFrameNcBorder );
-        CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, -40, -40 ) );
-        CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
-        CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  40, 0 ) );
-        CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow );
-        CPen pen5; pen5.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
+            COLORREF clrTemp = HLS_TRANSFORM( skin.clrFrameWindow, 60, 0 );
 
-        HPEN   hOldPen   = dc.SelectPen( pen );
-        HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
+            CPen pen;  pen .CreatePen( PS_SOLID, 1, skin.clrFrameNcBorder );
+            CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, -40, -40 ) );
+            CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
+            CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  40, 0 ) );
+            CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow );
+            CPen pen5; pen5.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
 
-        ::InflateRect( &rcBorder, -1, -1);
-        dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 3, 3);
-        dc.SelectPen( pen1 );
-        dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
-        dc.SelectPen( pen2 );
-        dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 9, 9);
+            HPEN   hOldPen   = dc.SelectPen( pen );
+            HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
 
-        ::InflateRect( &rcBorder, -1, -1);
-        dc.SelectPen( pen3 );
-        dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 5, 5);
-        dc.SelectPen( pen4 );
-        dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
+            ::InflateRect( &rcBorder, -1, -1);
+            dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 3, 3);
+            dc.SelectPen( pen1 );
+            dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
+            dc.SelectPen( pen2 );
+            dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 9, 9);
 
-        ::InflateRect( &rcBorder, -1, -1);
-        dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
-        ::InflateRect( &rcBorder, -1, -1);
-        dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
+            ::InflateRect( &rcBorder, -1, -1);
+            dc.SelectPen( pen3 );
+            dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 5, 5);
+            dc.SelectPen( pen4 );
+            dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
 
-        rcBorder = rcWindow;
-        rcBorder.top = rcBorder.bottom - 6;
-        ::InflateRect( &rcBorder, -1, -1);
-        dc.SelectPen( pen2 );
-        dc.Rectangle( &rcBorder );
-        ::InflateRect( &rcBorder, -1, -1); rcBorder.top--;
-        dc.SelectPen( pen4 );
-        dc.Rectangle( &rcBorder );
+            ::InflateRect( &rcBorder, -1, -1);
+            dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
+            ::InflateRect( &rcBorder, -1, -1);
+            dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
 
-        dc.SelectPen(hOldPen);
-        dc.SelectBrush(hOldBrush);
+            rcBorder = rcWindow;
+            rcBorder.top = rcBorder.bottom - 6;
+            ::InflateRect( &rcBorder, -1, -1);
+            dc.SelectPen( pen2 );
+            dc.Rectangle( &rcBorder );
+            ::InflateRect( &rcBorder, -1, -1); rcBorder.top--;
+            dc.SelectPen( pen4 );
+            dc.Rectangle( &rcBorder );
 
+            dc.SelectPen(hOldPen);
+            dc.SelectBrush(hOldBrush);
+        }
 
         return 0L;
     }
