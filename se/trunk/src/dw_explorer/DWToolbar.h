@@ -239,7 +239,9 @@ public:
         rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
         rcSrcImage.left  = rcSrcImage.left * nIdex;
 
-        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage, skin.clrFrameWindow);
+        CDCHandle(hDC).FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
+
+        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
     }
 
     LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

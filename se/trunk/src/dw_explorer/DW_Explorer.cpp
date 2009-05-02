@@ -21,8 +21,7 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
     int nRet = 0;
 
-
-    if ( _wcsnicmp(lpstrCmdLine, L"[csp]:", 6 ) )
+    if ( StrCmpNI(lpstrCmdLine, L"[csp]:", 6 ) )
     {
         CDWFrameMgt::RunMainMsgLoop(lpstrCmdLine);
     }

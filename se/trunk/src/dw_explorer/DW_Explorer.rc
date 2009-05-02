@@ -31,6 +31,10 @@ IDR_PNG_BTN_SYS_MAX2    PNG                     "res\\btn_sys_max2.png"
 IDR_PNG_BTN_SYS_CLOSE   PNG                     "res\\btn_close_max.png"
 IDR_PNG_BTN_SYS_MIN     PNG                     "res\\btn_sys_min.png"
 IDR_PNG_BTN_TITLE_CUS   PNG                     "res\\btn_title_cus.png"
+IDR_PNG_TABLE_CLOSE     PNG                     "res\\tab_close.png"
+IDR_PNG_TABLE_ITEM      PNG                     "res\\tab_item.png"
+IDR_PNG_TABLE_ADD       PNG                     "res\\tab_new.png"
+IDR_PNG_TABLE_PROGRESS  PNG                     "res\\tab_progress.png"
 #endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
 

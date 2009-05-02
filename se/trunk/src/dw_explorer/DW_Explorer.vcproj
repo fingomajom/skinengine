@@ -466,6 +466,22 @@
 					RelativePath=".\res\png1.bin"
 					>
 				</File>
+				<File
+					RelativePath=".\res\tab_close.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\tab_item.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\tab_new.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\tab_progress.png"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Header Files"

@@ -13,7 +13,7 @@ public:
     {
     }
 
-    BEGIN_MSG_MAP(CDWMainFrame)
+    BEGIN_MSG_MAP(CDWSysBtnToolBar)
 
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
 

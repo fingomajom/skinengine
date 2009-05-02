@@ -15,6 +15,13 @@
 #include "RpcMsgDef.h"
 #include "RpcMsg.h"
 
+struct ProcessInfo
+{
+   CRpcMsgClient       rpcClt;
+   ATL::CAtlList<HWND> m_listWnd;
+   DWORD               dwWndCreated;
+};
+
 class CDWProcessMgt
 {
     CDWProcessMgt(void);
@@ -25,19 +32,25 @@ public:
 
 
     BOOL CreateWebWnd( HWND hParent, HWND* );
+    BOOL DestryWebWnd( HWND hWnd );
 
 protected:
 
     HWND _CreateWebWnd(HWND hParent);
+    ProcessInfo* _FindProcessInfo(HWND hWnd);
 
 protected:
 
     static DWORD WINAPI AsynMsgLoopThread( LPVOID p );
 
-    DWORD CreateSEProcess( );
+    ProcessInfo* CreateSEProcess( );
     DWORD CreateSEProcess( LPCTSTR pszCmdLine );
 
 private:
 
+    ATL::CComAutoCriticalSection m_cs;
+    ATL::CAtlList<ProcessInfo*>  m_listProcess;
+
     DWORD m_dwThreadId;
+    DWORD m_dwMaxWndCreate;
 };

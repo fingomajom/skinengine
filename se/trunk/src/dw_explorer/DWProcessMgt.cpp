@@ -4,6 +4,8 @@
 
 CDWProcessMgt::CDWProcessMgt(void)
 {
+    m_dwMaxWndCreate = 1;
+
     CloseHandle(
         CreateThread( NULL, 0, AsynMsgLoopThread, this, 0, &m_dwThreadId) );
 }
@@ -27,22 +29,92 @@ BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, HWND* pCeatedWnd )
         0, (WPARAM)pCeatedWnd, (LPARAM)hParent );
 }
 
+BOOL CDWProcessMgt::DestryWebWnd( HWND hWnd )
+{
+    ProcessInfo* pPInfo = _FindProcessInfo(hWnd);
+    ATLASSERT(pPInfo != NULL);
+    if ( pPInfo == NULL )
+        return FALSE;
+
+    static LSEDataBufferImpl<ULONG> destroyParamBuf;
+    destroyParamBuf = (ULONG)hWnd;
+    
+    int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_create_webwnd, 
+        destroyParamBuf.GetDataBuffer(), NULL );
+
+    pPInfo->m_listWnd.RemoveAt( pPInfo->m_listWnd.Find(hWnd) );
+    
+    if ( pPInfo->m_listWnd.GetCount() <= 0 && 
+         pPInfo->dwWndCreated >= m_dwMaxWndCreate )
+    {
+        m_cs.Lock();        
+        m_listProcess.RemoveAt( m_listProcess.Find( pPInfo ) );
+        m_cs.Unlock();
+        pPInfo->rpcClt.SendRpcMsg( s2c_quit, 0, 0 );
+        delete pPInfo;
+    }
+
+    return TRUE;
+}
+
+ProcessInfo* CDWProcessMgt::_FindProcessInfo(HWND hWnd)
+{
+    ProcessInfo* pPInfo = NULL;
+
+    m_cs.Lock();
+    for ( POSITION pos = m_listProcess.GetHeadPosition(); pos != NULL; )
+    {
+        pPInfo = m_listProcess.GetNext(pos);
+        if ( pPInfo != NULL && pPInfo->m_listWnd.Find(hWnd) != NULL )
+            break;
+        pPInfo = NULL;
+    }
+    m_cs.Unlock();
+    
+    return pPInfo;
+}
+
 HWND CDWProcessMgt::_CreateWebWnd(HWND hParent)
 {
-    CreateSEProcess();
+    ProcessInfo* pPInfo = NULL;
 
-    static LSEDataBufferImpl<ULONG> BufParent;
-    BufParent = (ULONG)hParent;
+    m_cs.Lock();
+    for ( POSITION pos = m_listProcess.GetHeadPosition(); pos != NULL; )
+    {
+        pPInfo = m_listProcess.GetNext(pos);
+        if ( pPInfo != NULL && pPInfo->dwWndCreated < m_dwMaxWndCreate )
+            break;
+        pPInfo = NULL;
+    }
+    m_cs.Unlock();
+
+    if ( pPInfo == NULL )
+        pPInfo = CreateSEProcess();
+    if ( pPInfo == NULL )
+        return NULL;
+
+
+    static LSEDataBufferImpl<ULONG> createParamBuf;
+    createParamBuf = (ULONG)hParent;
 
     CComPtr<IDataBuffer> spResult;
-    int nRet = gg_clt.SendRpcMsg( s2c_create_webwnd, BufParent.GetDataBuffer(), &spResult );
+    int nRet = gg_clt.SendRpcMsg( s2c_create_webwnd, 
+        createParamBuf.GetDataBuffer(), &spResult );
     if (spResult.p != NULL)
         spResult.p->AddRef();
 
     if ( nRet == 0 )
     {
         if ( spResult.p != NULL && spResult->GetBufferSize() == 4 )
-            return (HWND)(*((ULONG*)spResult->GetDataBuffer()));
+        {
+            HWND hWnd = (HWND)(*((ULONG*)spResult->GetDataBuffer()));
+            if ( hWnd != NULL )
+            {
+                pPInfo->m_listWnd.AddTail( hWnd );
+                pPInfo->dwWndCreated++;
+            }
+            return hWnd;
+        }
     }
 
 
@@ -64,8 +136,10 @@ DWORD WINAPI CDWProcessMgt::AsynMsgLoopThread( LPVOID p )
 }
 
 
-DWORD CDWProcessMgt::CreateSEProcess()
+ProcessInfo* CDWProcessMgt::CreateSEProcess()
 {
+    ProcessInfo* pRet = NULL;
+
     ATL::CString strCmdLine;
     ATL::CString strRpcEPoint;
 
@@ -76,10 +150,17 @@ DWORD CDWProcessMgt::CreateSEProcess()
     
     if ( dwRet != 0 )
     {
-        gg_clt.InitRpcClient( strRpcEPoint );
+        pRet = new ProcessInfo;
+
+        pRet->dwWndCreated = 0;
+        if ( !pRet->rpcClt.InitRpcClient( strRpcEPoint ) )
+        {
+            delete pRet;
+            pRet = NULL;
+        }
     }
     
-    return dwRet;
+    return pRet;
 }
 
 DWORD CDWProcessMgt::CreateSEProcess( LPCTSTR pszCmdLine )
