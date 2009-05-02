@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "CDWMainFrame.h"
-
+#include "DWProcessMgt.h"
 
 CDWMainFrame::CDWMainFrame(void)
 {
@@ -36,33 +36,11 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     ATLASSERT(pLoop != NULL);
     pLoop->AddMessageFilter(this);
 
-    m_wndAx.Create( m_hWnd, &rcDefault, L"http://www.baidu.com", WS_CHILD | WS_VISIBLE );
-
     m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    STARTUPINFO			stInfo		= { 0 };
-    PROCESS_INFORMATION psInfo		= { 0 };
-    stInfo.cb = sizeof(STARTUPINFO);
-    
-    TCHAR szModuleFile[MAX_PATH] = { 0 };
-    GetModuleFileName(NULL, szModuleFile, MAX_PATH);
-
-    ATL::CString strCmdLine;
-    strCmdLine.Format(L"%ld", (UINT)m_hWnd);
-
-    _tcscat_s( szModuleFile, L" " );
-    _tcscat_s( szModuleFile, strCmdLine );
-
-    BOOL bCreate = CreateProcess(
-        NULL, szModuleFile, 
-        NULL, NULL, TRUE, 
-        BELOW_NORMAL_PRIORITY_CLASS, 
-        NULL, NULL, &stInfo, &psInfo);
-
-    ::CloseHandle(psInfo.hProcess);
-    ::CloseHandle(psInfo.hThread);
+    CDWProcessMgt::Instance().CreateWebWnd(m_hWnd, &m_wndAx.m_hWnd);
 
     return 0;
 }
@@ -70,8 +48,7 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-    if((GetStyle() & (WS_CHILD)) == 0)
-        ::PostQuitMessage(1);
+    ::PostQuitMessage(1);
 
     bHandled = FALSE;
 
@@ -92,15 +69,23 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     rcToolBar.top    += 30;
     rcToolBar.bottom  = rcToolBar.top + nspace;
     
-    m_wndSuperbar.MoveWindow( &rcToolBar );
+    if ( ::IsWindow(m_wndTableBar) )
+        m_wndSuperbar.MoveWindow( &rcToolBar );
     rcToolBar.top += nspace; rcToolBar.bottom += nspace;
-    m_wndFavoriteBar.MoveWindow( &rcToolBar );
+    if ( ::IsWindow(m_wndFavoriteBar) )
+        m_wndFavoriteBar.MoveWindow( &rcToolBar );
     rcToolBar.top += nspace; rcToolBar.bottom += nspace;
-    m_wndTableBar.MoveWindow( &rcToolBar );
+    if ( ::IsWindow(m_wndTableBar) )
+        m_wndTableBar.MoveWindow( &rcToolBar );
 
     rcToolBar.top    = rcToolBar.bottom + 1;
     rcToolBar.bottom = rcClient.bottom;
-    //m_wndAx.MoveWindow( &rcToolBar );
+
+    if ( ::IsWindow(m_wndAx) )
+    {
+        m_wndAx.ShowWindow( SW_SHOWDEFAULT );
+        m_wndAx.MoveWindow( &rcToolBar );
+    }
 
 
     return 0L;

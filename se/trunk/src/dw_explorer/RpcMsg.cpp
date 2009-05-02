@@ -3,14 +3,45 @@
 #include "msg_rpc_np.h"
 
 
-//int SendRpcMsg( 
-//    /* [in] */ int nMsg,
-//    /* [in] */ VARIANT pBuffer,
-//    /* [out] */ VARIANT *szString)
-//{
-//    return 0;
-//}
-//
+int (*g_ReceiveRpcMsg)( 
+    /* [in]  */ int nMsgId,
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult) = NULL;
+
+int ReceiveRpcMsg( 
+    /* [in]  */ int nMsgId,
+    /* [in]  */ VARIANT pInBuf,
+    /* [out] */ VARIANT *ppOutBuf)
+{
+    int nRet = -1;
+
+    CComPtr<IDataBuffer> spParameter;
+    CComPtr<IDataBuffer> spResult;
+
+    if ( pInBuf.vt & VT_ARRAY )
+        spParameter = SafeArray2DataBuffer( pInBuf.parray );
+
+
+    if ( g_ReceiveRpcMsg != NULL )
+    {
+        nRet = g_ReceiveRpcMsg(
+            nMsgId,
+            spParameter,
+            &spResult);
+    }
+
+    if (spResult.p != NULL)
+        spResult.p->AddRef();
+
+    if ( nRet >= 0 && spResult.p != NULL && ppOutBuf != NULL)
+    {
+        ppOutBuf[0].parray = DataBuffer2SafeArray( spResult );
+        ppOutBuf[0].vt = ppOutBuf[0].parray ? VT_UI1 | VT_ARRAY : VT_EMPTY;
+    }
+
+    return nRet;
+}
+
 
 CRpcMsgServer::CRpcMsgServer()
 {
@@ -23,17 +54,21 @@ BOOL CRpcMsgServer::InitRpcServer( LPCWSTR pszSvrName )
     if ( m_hListenThread != NULL )
         return TRUE;
 
-    RPC_STATUS rpcStatus = RpcServerUseProtseqEpW(
-        reinterpret_cast< RPC_WSTR >(L"ncacn_np"),
+    RPC_STATUS rpcStatus = RpcServerUseProtseqEp(
+        reinterpret_cast< RPC_WSTR >(L"ncalrpc"),
         RPC_C_PROTSEQ_MAX_REQS_DEFAULT,
         reinterpret_cast< RPC_WSTR >( const_cast<LPWSTR>(pszSvrName)),
         NULL);
     if ( rpcStatus != RPC_S_OK )
         return FALSE;
 
-    rpcStatus = RpcServerRegisterIf(
+    rpcStatus = RpcServerRegisterIfEx(
         msg_rpc_np_v1_0_s_ifspec, 
-        NULL, NULL);
+        NULL, 
+        NULL,
+        RPC_IF_ALLOW_CALLBACKS_WITH_NO_AUTH,
+        0,
+        NULL);
     if ( rpcStatus != RPC_S_OK )
         return FALSE;
 
@@ -63,6 +98,15 @@ BOOL CRpcMsgServer::UninitRpcServer()
     return TRUE;
 }
 
+LPVOID CRpcMsgServer::SetReceiveFunc( LPVOID p )
+{
+    LPVOID pRet = g_ReceiveRpcMsg;
+
+    *(LPVOID*)&g_ReceiveRpcMsg = p;
+
+    return pRet;
+}
+
 DWORD WINAPI CRpcMsgServer::RpcSvrListenThreadProc( LPVOID )
 {
     RpcServerListen(
@@ -74,7 +118,8 @@ DWORD WINAPI CRpcMsgServer::RpcSvrListenThreadProc( LPVOID )
 }
 
 
-CRpcMsgClient::CRpcMsgClient()
+CRpcMsgClient::CRpcMsgClient() :
+    m_rpcHandle(hMsgRpcNpBinding)
 {
     m_rpcHandle = NULL;
 }
@@ -92,8 +137,8 @@ BOOL CRpcMsgClient::InitRpcClient( LPCWSTR pszSvrName )
     {
         rpcStatus = RpcStringBindingCompose(
             NULL, 
-            reinterpret_cast< RPC_WSTR >(L"ncacn_np"),
-            reinterpret_cast< RPC_WSTR >("localhost"), 
+            reinterpret_cast< RPC_WSTR >(L"ncalrpc"),
+            NULL,//reinterpret_cast< RPC_WSTR >("localhost"), 
             reinterpret_cast< RPC_WSTR >( const_cast<LPWSTR>(pszSvrName)),
             NULL, 
             &szStringBinding); 
@@ -139,6 +184,45 @@ BOOL CRpcMsgClient::UninitRpcClient()
     return TRUE;
 }
 
+int CRpcMsgClient::SendRpcMsg( 
+    /* [in]  */ int nMsgId,
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult)
+{
+    int nRet = -1;
+
+    VARIANT varIn;
+    VARIANT varRet;
+
+    VariantInit(&varIn);
+    VariantInit(&varRet);
+
+    varIn.parray = DataBuffer2SafeArray( pParameter );
+    varIn.vt = varIn.parray ? VT_UI1 | VT_ARRAY : VT_EMPTY;
+
+    RpcTryExcept
+    {
+        nRet = ::SendRpcMsg( nMsgId, varIn, &varRet );
+
+        if ( (varRet.vt & VT_ARRAY) && ppResult != NULL )
+            *ppResult = SafeArray2DataBuffer( varRet.parray );
+
+    }
+    RpcExcept(1)
+    {
+        nRet = GetExceptionCode();
+        nRet = -1;
+    }
+    RpcEndExcept;
+
+    VariantClear(&varIn);
+    VariantClear(&varRet);
+    
+    return nRet;
+}
+
+
+
 void* __RPC_USER midl_user_allocate(size_t size)
 {
     return malloc(size);
@@ -148,3 +232,5 @@ void __RPC_USER midl_user_free(void* p)
 {
     free(p);
 }
+
+

@@ -8,61 +8,29 @@
 
 #include "DW_ExplorerView.h"
 #include "aboutdlg.h"
-#include "CDWMainFrame.h"
+#include "DWFrameMgt.h"
+#include "DWClientMgt.h"
+
+#include "RpcMsg.h"
 
 CAppModule _Module;
 
 
-HANDLE  g_hMutex = NULL;
-LPCTSTR g_pszMutexName =  L"Global\\{96D77347-C566-4749-A1B9-C5B6CCE35106}";
 
 int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
     int nRet = 0;
 
-	CMessageLoop theLoop;
-	_Module.AddMessageLoop(&theLoop);
 
-    if ( wcslen(lpstrCmdLine) == 0 )
+    if ( _wcsnicmp(lpstrCmdLine, L"[csp]:", 6 ) )
     {
-        g_hMutex = OpenMutex( MUTEX_MODIFY_STATE, TRUE, g_pszMutexName );
-        if ( g_hMutex != NULL )
-        {
-            ReleaseMutex (g_hMutex);
-            return 0;
-        }
-
-        g_hMutex = CreateMutex(NULL, TRUE, g_pszMutexName );
-
-        CDWMainFrame wndMain;
-        if(wndMain.CreateEx() == NULL)
-        {
-            ATLTRACE(_T("Main window creation failed!\n"));
-            return 0;
-        }
-        wndMain.ShowWindow(nCmdShow);
-
-        nRet = theLoop.Run();
-
-        ReleaseMutex ( g_hMutex );
+        CDWFrameMgt::RunMainMsgLoop(lpstrCmdLine);
     }
     else
     {
-        HWND hParent = (HWND)StrToInt(lpstrCmdLine);
-        CAxWindow wndAx;
-
-        RECT rcDefault = {0, 100, 500, 600};
-        if(wndAx.Create(hParent, &rcDefault, L"http://sogou.com", WS_CHILD) == NULL)
-        {
-            ATLTRACE(_T("Main window creation failed!\n"));
-            return 0;
-        }
-        wndAx.ShowWindow(nCmdShow);
-
-        nRet = theLoop.Run();
+        CDWClientMgt::RunMainMsgLoop(lpstrCmdLine);
     }
 
-    _Module.RemoveMessageLoop();
     return nRet;
 }
 

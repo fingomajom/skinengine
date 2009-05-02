@@ -10,7 +10,7 @@ import "ocidl.idl";
 interface msg_rpc_np // The interface is named msg_rpc_np
 {
     int SendRpcMsg(
-        [in]  int nMsg,
-        [in]  VARIANT  pBuffer,
-        [out] VARIANT* szString);
+        [in]  int nMsgId,
+        [in]  VARIANT  pInBuf,
+        [out] VARIANT* ppOutBuf);
 }

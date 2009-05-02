@@ -40,11 +40,11 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/DW_Explorer.tlb"
-				HeaderFileName="DW_Explorer.h"
+				TypeLibraryName="$(IntDir)/$(InputName).tlb"
+				HeaderFileName="$(InputName).h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="DW_Explorer_i.c"
-				ProxyFileName="DW_Explorer_p.c"
+				InterfaceIdentifierFileName=""
+				ProxyFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -71,6 +71,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Rpcrt4.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -128,11 +129,11 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/DW_Explorer.tlb"
-				HeaderFileName="DW_Explorer.h"
+				TypeLibraryName="$(IntDir)/$(InputName).tlb"
+				HeaderFileName="$(InputName).h"
 				DLLDataFileName=""
-				InterfaceIdentifierFileName="DW_Explorer_i.c"
-				ProxyFileName="DW_Explorer_p.c"
+				InterfaceIdentifierFileName=""
+				ProxyFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -198,152 +199,101 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
+			Name="DWServer"
 			>
 			<File
-				RelativePath=".\DW_Explorer.cpp"
+				RelativePath=".\DWFrameMgt.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc"
-			>
-			<File
-				RelativePath=".\AboutDlg.h"
+				RelativePath=".\DWFrameMgt.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DW_ExplorerView.h"
+				RelativePath=".\DWProcessMgt.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MainFrm.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
-			>
-			<File
-				RelativePath=".\res\btn_close_max.png"
-				>
-			</File>
-			<File
-				RelativePath=".\res\btn_sys_max.png"
-				>
-			</File>
-			<File
-				RelativePath=".\res\btn_sys_max2.png"
-				>
-			</File>
-			<File
-				RelativePath=".\res\btn_sys_min.png"
-				>
-			</File>
-			<File
-				RelativePath=".\res\btn_title_cus.png"
-				>
-			</File>
-			<File
-				RelativePath=".\res\DW_Explorer.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\DW_Explorer.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\res\png1.bin"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="UI"
-			>
-			<File
-				RelativePath=".\CDWMainFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CDWMainFrame.h"
-				>
-			</File>
-			<File
-				RelativePath=".\DWFrameUI.h"
+				RelativePath=".\DWProcessMgt.h"
 				>
 			</File>
 			<Filter
-				Name="Toolbar"
+				Name="UI"
 				>
 				<File
-					RelativePath=".\DWFavoriteBar.h"
+					RelativePath=".\CDWMainFrame.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\DWSuperToolbar.h"
+					RelativePath=".\CDWMainFrame.h"
 					>
 				</File>
 				<File
-					RelativePath=".\DWSysBtnToolbar.h"
+					RelativePath=".\DWFrameUI.h"
 					>
 				</File>
-				<File
-					RelativePath=".\DWTableBar.h"
+				<Filter
+					Name="Toolbar"
 					>
-				</File>
-				<File
-					RelativePath=".\DWTitleBar.h"
+					<File
+						RelativePath=".\DWFavoriteBar.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWSuperToolbar.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWSysBtnToolbar.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWTableBar.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWTitleBar.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWToolbar.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Common"
 					>
-				</File>
-				<File
-					RelativePath=".\DWToolbar.h"
-					>
-				</File>
+					<File
+						RelativePath=".\DWGDI.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWImage.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWSkinUIMgt.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="DWClient"
+			>
+			<File
+				RelativePath=".\DWClientMgt.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DWClientMgt.h"
+				>
+			</File>
 			<Filter
-				Name="Common"
+				Name="UI"
 				>
 				<File
-					RelativePath=".\DWGDI.h"
-					>
-				</File>
-				<File
-					RelativePath=".\DWImage.h"
-					>
-				</File>
-				<File
-					RelativePath=".\DWSkinUIMgt.h"
+					RelativePath=".\DWWebWnd.h"
 					>
 				</File>
 			</Filter>
@@ -359,9 +309,17 @@
 				RelativePath=".\RpcMsg.h"
 				>
 			</File>
+			<File
+				RelativePath=".\RpcMsgDef.h"
+				>
+			</File>
 			<Filter
 				Name="IDL"
 				>
+				<File
+					RelativePath=".\msg_rpc_np.acf"
+					>
+				</File>
 				<File
 					RelativePath=".\msg_rpc_np.h"
 					>
@@ -369,6 +327,17 @@
 				<File
 					RelativePath=".\msg_rpc_np.idl"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCMIDLTool"
+							HeaderFileName="$(InputName).h"
+							InterfaceIdentifierFileName=""
+							ProxyFileName=""
+						/>
+					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
 						>
@@ -387,6 +356,15 @@
 					RelativePath=".\msg_rpc_np_c.c"
 					>
 					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions="_WIN32_WINNT=0x0501;WINVER=0x0501;_WIN32_IE=0x0501"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|Win32"
 						>
 						<Tool
@@ -400,6 +378,15 @@
 					RelativePath=".\msg_rpc_np_s.c"
 					>
 					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions="_WIN32_WINNT=0x0501;WINVER=0x0501;_WIN32_IE=0x0501"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|Win32"
 						>
 						<Tool
@@ -408,6 +395,101 @@
 							UsePrecompiledHeader="0"
 						/>
 					</FileConfiguration>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Prj"
+			>
+			<Filter
+				Name="Source Files"
+				Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
+				>
+				<File
+					RelativePath=".\DW_Explorer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\stdafx.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="1"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Resource Files"
+				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest"
+				>
+				<File
+					RelativePath=".\res\btn_close_max.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\btn_sys_max.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\btn_sys_max2.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\btn_sys_min.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\btn_title_cus.png"
+					>
+				</File>
+				<File
+					RelativePath=".\res\DW_Explorer.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\DW_Explorer.rc"
+					>
+				</File>
+				<File
+					RelativePath=".\res\png1.bin"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Header Files"
+				Filter="h;hpp;hxx;hm;inl;inc"
+				>
+				<File
+					RelativePath=".\AboutDlg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\DW_ExplorerView.h"
+					>
+				</File>
+				<File
+					RelativePath=".\MainFrm.h"
+					>
+				</File>
+				<File
+					RelativePath=".\resource.h"
+					>
+				</File>
+				<File
+					RelativePath=".\stdafx.h"
+					>
 				</File>
 			</Filter>
 		</Filter>

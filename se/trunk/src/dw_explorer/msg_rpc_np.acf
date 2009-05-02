@@ -1,0 +1,6 @@
+[
+   implicit_handle(handle_t hMsgRpcNpBinding)
+]
+interface msg_rpc_np // The interface is named msg_rpc_np
+{
+}

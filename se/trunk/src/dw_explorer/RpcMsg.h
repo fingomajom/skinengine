@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "IDataBuffer.h"
+
 class CRpcMsgServer
 {
 public:
@@ -19,6 +21,8 @@ public:
     
     BOOL InitRpcServer( LPCWSTR pszSvrName );
     BOOL UninitRpcServer();
+
+    LPVOID SetReceiveFunc( LPVOID p );
     
 protected:
 
@@ -37,7 +41,13 @@ public:
     BOOL InitRpcClient( LPCWSTR pszSvrName );
     BOOL UninitRpcClient();
 
+    int SendRpcMsg( 
+        /* [in]  */ int nMsgId,
+        /* [in]  */ IDataBuffer*  pParameter,
+        /* [out] */ IDataBuffer** ppResult);
+
+
 protected:
 
-    RPC_BINDING_HANDLE m_rpcHandle;
+    RPC_BINDING_HANDLE& m_rpcHandle;
 };

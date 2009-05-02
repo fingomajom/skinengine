@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 6.00.0366 */
-/* at Fri May 01 19:01:45 2009
+/* at Sat May 02 00:03:12 2009
  */
 /* Compiler settings for .\msg_rpc_np.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)
@@ -32,8 +32,8 @@
 #endif // __RPCNDR_H_VERSION__
 
 
-#ifndef __DW_Explorer_h__
-#define __DW_Explorer_h__
+#ifndef __msg_rpc_np_h__
+#define __msg_rpc_np_h__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -56,13 +56,19 @@ void __RPC_USER MIDL_user_free( void * );
 #define __msg_rpc_np_INTERFACE_DEFINED__
 
 /* interface msg_rpc_np */
-/* [auto_handle][version][uuid] */ 
+/* [implicit_handle][version][uuid] */ 
+
+int ReceiveRpcMsg( 
+    /* [in] */ int nMsgId,
+    /* [in] */ VARIANT pInBuf,
+    /* [out] */ VARIANT *ppOutBuf);
 
 int SendRpcMsg( 
     /* [in] */ int nMsgId,
     /* [in] */ VARIANT pInBuf,
     /* [out] */ VARIANT *ppOutBuf);
 
+extern handle_t hMsgRpcNpBinding;
 
 
 extern RPC_IF_HANDLE msg_rpc_np_v1_0_c_ifspec;

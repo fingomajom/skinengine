@@ -68,9 +68,9 @@ public:
 
 private:
 
-    CAxWindow       m_wndAx;
-
     CDWSuperToolbar m_wndSuperbar;
     CDWFavoriteBar  m_wndFavoriteBar;
     CDWTableBar     m_wndTableBar;
+
+    CWindow m_wndAx;
 };
