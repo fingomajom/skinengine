@@ -272,6 +272,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWEventSvr.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWGDI.h"
 						>
 					</File>

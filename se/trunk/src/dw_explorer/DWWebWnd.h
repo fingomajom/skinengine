@@ -13,6 +13,7 @@
 #pragma once
 
 #include "DWAxHost.h"
+#include "DWComDef.h"
 #include <mshtmdid.h>
 #include <exdispid.h>
 
@@ -70,13 +71,19 @@ public:
         if ( m_spWebBrowser == NULL )
             return FALSE;
 
+        m_strTitle.Empty();
+        m_strURL = pszURL;
+
         return SUCCEEDED(m_spWebBrowser->Navigate( (BSTR)pszURL, 0, 0, 0, 0 ));
     }
 
     BEGIN_MSG_MAP(CDWWebWnd)
 
-        MESSAGE_HANDLER(WM_CREATE , OnCreate )
+        MESSAGE_HANDLER(WM_CREATE     , OnCreate  )
+        MESSAGE_HANDLER(WM_DESTROY    , OnDestroy )
         MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
+
+        MESSAGE_HANDLER(WM_SHOWWINDOW , OnShowWindow )
 
     END_MSG_MAP()
 
@@ -92,14 +99,41 @@ public:
         
         m_spWebBrowser->put_RegisterAsBrowser(VARIANT_TRUE);
         m_spWebBrowser->put_RegisterAsDropTarget(VARIANT_TRUE);
+        m_spWebBrowser->put_Silent(VARIANT_TRUE);
+
+        DispEventAdvise( m_spWebBrowser );
         
         return 0;
     }
+
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( m_spWebBrowser )
+            DispEventUnadvise(m_spWebBrowser);
+
+        return DefWindowProc();
+    }
+
+
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         return 1 ;
     }
+
+    LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( wParam == 10 && lParam == 100 )
+        {
+            ShowWindow(SW_SHOWDEFAULT);
+            return SetForegroundWindow(m_hWnd);
+        }
+        else if ( wParam == 10 && lParam == 101)
+            return ShowWindow(SW_HIDE);
+
+        return DefWindowProc();
+    }
+
 
 
     BEGIN_SINK_MAP(CDWWebWnd)
@@ -113,13 +147,19 @@ public:
 
     void __stdcall OnBeforeNavigate(
         IDispatch	 *pDisp, 
-        VARIANT		 *url, 
+        VARIANT		 *URL, 
         VARIANT		 *Flags, 
         VARIANT		 *TargetFrameName, 
         VARIANT		 *PostData, 
         VARIANT		 *Headers, 
         VARIANT_BOOL *Cancel)
     {
+        if ( URL == NULL || 
+             URL->bstrVal == NULL ||
+            !_wcsicmp(URL->bstrVal, L"about:blank") )
+            return;
+
+        //::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
     }
 
     void __stdcall OnNavigateComplete(IDispatch *pDisp, VARIANT *url)
@@ -128,6 +168,11 @@ public:
 
     void _stdcall OnDocumentComplete(LPDISPATCH pDisp, VARIANT* URL)
     {
+        if ( URL == NULL || 
+             URL->bstrVal == NULL ||
+             !_wcsicmp(URL->bstrVal, L"about:blank") )
+             return;
+
         CComPtr<IUnknown> spIUnBrowser;
         CComPtr<IUnknown> spIUnDisp;
         m_spWebBrowser->QueryInterface( IID_IUnknown,  (void**)&spIUnBrowser );
@@ -139,8 +184,23 @@ public:
         if ( URL != NULL && URL->bstrVal )
             strMsg = URL->bstrVal;
 
-        ::MessageBox( NULL, strMsg, strMsg, MB_OK);
-        
+        CComBSTR bstrtitle;
+
+        CComPtr<IDispatch> spDispatch;
+        CComPtr<IHTMLDocument2> spDocument;
+
+        m_spWebBrowser->get_Document(&spDispatch);
+        if (spDispatch)
+            spDispatch->QueryInterface(&spDocument);
+
+        spDocument->get_title( &bstrtitle );
+
+        m_strTitle = bstrtitle;
+        if ( bTopFrame )
+            m_strURL = URL->bstrVal;
+
+        ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
+
     }
 
     void __stdcall OnNewWindowOpen2(LPDISPATCH pDisp, VARIANT_BOOL *bCancel)
@@ -164,6 +224,11 @@ public:
 
 
     CComPtr<IWebBrowser2> m_spWebBrowser;
+
+    HWND m_hNotifyWnd;
+
+    ATL::CString m_strURL;
+    ATL::CString m_strTitle;
 };
 
 class CAxBgWnd : public CWindowImpl<CAxBgWnd>

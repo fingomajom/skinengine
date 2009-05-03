@@ -141,6 +141,17 @@ public:
         return lRet;
     }
 
+    void SetItemCaption( int nIndex, LPCTSTR pszCaption, BOOL bRePaint = TRUE )
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+        {
+            m_vtTableBtn[nIndex].strCaption = pszCaption;
+            if ( bRePaint )
+                CWindow::Invalidate();
+        }
+    }
 
     LPARAM GetItemId(int nIndex) const
     {
@@ -165,6 +176,16 @@ public:
 
         return -1;
     }
+
+    int FindParam( LPARAM lParam ) const
+    {
+        for ( size_t i = sys_tbi_count; i < (int)m_vtTableBtn.GetCount(); i++ )
+            if ( m_vtTableBtn[i].lParam == lParam )
+                return int(i - sys_tbi_count);
+
+        return -1;
+    }
+
 
     BEGIN_MSG_MAP(CDWTableBar)
 
@@ -533,7 +554,7 @@ public:
             {
                 SendMsgToParent(WM_TABLE_BAR_MSG, 
                     TGM_SELECT_CHANGE, 
-                    m_nSelectIndex - sys_tbi_count);
+                    m_nHotIndex - sys_tbi_count);
             }
 
             m_nSelectIndex = m_nHotIndex;

@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "CDWMainFrame.h"
-#include "DWProcessMgt.h"
 
 
 #ifdef __TEST_WEB_WND__
@@ -33,10 +32,12 @@ HWND CDWMainFrame::CreateEx()
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-    if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB)
-    {
-        return m_wndClient.PreTranslateMessage(pMsg);
-    }
+    //if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB)
+    //{
+    //    return m_wndClient.PreTranslateMessage(pMsg);
+    //}
+    
+    m_wndSuperbar.PreTranslateMessage(pMsg);
 
     return m_wndClient.PreTranslateMessage(pMsg);
 }
@@ -55,7 +56,9 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
     m_wndClient.SetFocus();
 
+    CDWEventSvr::Instance().AddCallback(this);
     OnNewURL(NULL);
+
 
     return 0;
 }
@@ -134,12 +137,39 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     nIdx = m_wndTableBar.GetSelectIndex();
     nIdx++;
 
+    ATL::CString strCaption;
+    if ( (pszURL == NULL || wcslen(pszURL) <= 0 ) || !_wcsicmp(pszURL, L"about:blank") )
+        strCaption = L"¿Õ°×Ò³";
+    else
+        strCaption = pszURL;
+
     m_wndTableBar.InsertTableItem( nIdx, 
-        L"ÕýÔÚ¼ÓÔØ", uId, uId );
-    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), L"about:blank" );
+        strCaption, uId, uId );
+
+    pszURL =  (pszURL == NULL || wcslen(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+
+    CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
+
+    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), pszURL);
 
     m_wndTableBar.SelectIndex(nIdx);
 }
+
+
+void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
+{
+    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+
+    int nIdx = m_wndTableBar.GetSelectIndex();
+
+    pszURL =  (pszURL == NULL || wcslen(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+
+    CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
+
+    psmgt.WebWndOpenURL( (HWND)m_wndTableBar.GetItemParam(nIdx), pszURL );
+
+}
+
 
 void CDWMainFrame::OnCloseURL( int nIndex )
 {
@@ -163,13 +193,29 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 
 void CDWMainFrame::OnSelectURL( int nIndex )
 {
+    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+
     HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
     //ATLASSERT(::IsWindow(hSelWnd));
 #ifndef __TEST_WEB_WND__
+    psmgt.GetWebWndInfo( m_wndClient, hSelWnd);
     m_wndClient.ShowClient( hSelWnd );
 #endif
 }
 
+
+LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+    if ( uMsg == edi_open_url )
+    {
+        if ( lParam )
+            OnNewURL( (LPCTSTR) wParam );
+        else
+            OnOpenURL( (LPCTSTR) wParam );
+    }
+
+    return 0;
+}
 
 LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
@@ -179,7 +225,24 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
         switch ( lParam )
         {
         case CDWTableBar::sys_tbi_new:
-            OnNewURL(NULL);
+            {
+                //LPCTSTR pszURLS[] = 
+                //{
+                //    L"http://urlspirit.spiritsoft.cn/urlcore/admin.php",
+                //    L"http://www.sogou.com",
+                //    L"http://www.baidu.com",
+                //    L"http://www.google.com",
+                //    L"http://www.sina.com",
+                //    L"http://www.kingsoft.com",
+                //    L"http://www.sohu.com"
+                //};
+
+                //static int url_index = 0;
+                //OnNewURL( pszURLS[url_index%6] );
+                //url_index++;
+
+                OnNewURL( NULL );
+            }
             break;
         case CDWTableBar::sys_tbi_sleft:
             break;

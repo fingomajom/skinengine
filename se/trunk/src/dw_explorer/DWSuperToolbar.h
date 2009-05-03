@@ -2,12 +2,39 @@
 #pragma once
 
 #include "DWToolbar.h"
+#include "DWEventSvr.h"
 
-class CDWSuperToolbar : public CDWToolbar
+
+class CDWSuperToolbar : 
+    public CDWToolbar, 
+    public CDWEventCallback
 {
 public:
 
-    CFont m_font;
+
+    BOOL PreTranslateMessage(MSG* pMsg)
+    {
+        if ( pMsg->hwnd == m_address_edit && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN )
+        {
+            int nTextLen = m_address_edit.GetWindowTextLength();
+            if ( nTextLen <= 0)
+                return FALSE;
+
+            WCHAR* pAddr = new WCHAR[ nTextLen + 1];
+            m_address_edit.GetWindowText( pAddr, nTextLen + 1);
+
+            CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)pAddr, FALSE);
+
+            delete []pAddr;
+        }
+        else if ( pMsg->hwnd == m_address_edit && pMsg->message == WM_SETFOCUS )
+        {
+            m_address_edit.SetSel( 0, -1 );
+        }
+
+
+        return FALSE;
+    }
 
     BEGIN_MSG_MAP(CDWMainFrame)
 
@@ -22,13 +49,15 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        m_font.CreatePointFont( 96, L"Courier New" );
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
-        m_address_edit.Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
-        m_serach_edit .Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE , WS_EX_CLIENTEDGE );
+        m_address_edit.Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_WANTRETURN | WS_TABSTOP );
+        m_serach_edit .Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_WANTRETURN | WS_TABSTOP , WS_EX_CLIENTEDGE );
 
-        m_address_edit.SetFont( m_font );
-        m_serach_edit.SetFont( m_font );
+        m_address_edit.SetFont( skin.fontDefault );
+        m_serach_edit.SetFont( skin.fontDefault );
+
+        CDWEventSvr::Instance().AddCallback( this );
 
         bHandled = FALSE;
         return 1L;
@@ -61,6 +90,13 @@ public:
         return 1L;
     }
 
+    LRESULT OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
+    {
+        if ( uMsg == eid_addr_changed )
+            m_address_edit.SetWindowText((LPCTSTR)wParam);
+
+        return 0;
+    }
 
 public:
 

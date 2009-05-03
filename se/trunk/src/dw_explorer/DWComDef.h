@@ -22,3 +22,7 @@
 
 
 #define WM_CREATE_WEB_WND       (WM_USER + 1100)
+
+
+
+#define WM_WEBWND_INFO_CHANGED  (WM_USER + 1200)

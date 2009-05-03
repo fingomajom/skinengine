@@ -24,7 +24,8 @@
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>,
     public CDWFrameUIImpl<CDWMainFrame>,
-    public CMessageFilter
+    public CMessageFilter,
+    public CDWEventCallback
 {
 public:
     CDWMainFrame(void);
@@ -56,10 +57,13 @@ protected:
     void RePositionCtrls();
 
 
-    void OnNewURL( LPCTSTR pszURL );
+    void OnNewURL ( LPCTSTR pszURL );
+    void OnOpenURL( LPCTSTR pszURL );
 
     void OnCloseURL ( int nIndex );
     void OnSelectURL( int nIndex );
+
+    virtual LRESULT OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 protected:
 

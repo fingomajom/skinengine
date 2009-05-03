@@ -30,7 +30,7 @@ protected:
 
 public:
     static DWORD m_dwMainThreadId;
-protected:
+public:
 
     CComAutoCriticalSection   m_cs;
     ATL::CAtlList<CDWWebWnd*> m_listWebWnd;

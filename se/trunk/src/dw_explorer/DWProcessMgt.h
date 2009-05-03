@@ -31,13 +31,18 @@ public:
     static CDWProcessMgt& Instance();
 
 
-    BOOL CreateWebWnd( HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL );
-    BOOL DestryWebWnd( HWND hWnd );
+    BOOL CreateWebWnd ( HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL );
+    BOOL DestryWebWnd ( HWND hWnd );
+    BOOL WebWndOpenURL( HWND hWnd, LPCTSTR pszOpenURL );
+
+    BOOL GetWebWndInfo( HWND hParent, HWND hWnd );
 
 protected:
 
-    HWND _CreateWebWnd( HWND hParent, LPARAM lParam );
-    BOOL _DestryWebWnd( HWND hWnd );
+    HWND _CreateWebWnd ( HWND hParent, LPARAM lParam );
+    BOOL _DestryWebWnd ( HWND hWnd );
+    BOOL _WebWndOpenURL( LPARAM lParam );
+    BOOL _GetWebWndInfo( HWND hParent, HWND hWnd );
 
     ProcessInfo* _FindProcessInfo(HWND hWnd);
 

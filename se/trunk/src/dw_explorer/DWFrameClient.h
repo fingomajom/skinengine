@@ -14,6 +14,8 @@
 
 #include "DWComDef.h"
 #include "DWTableBar.h"
+#include "DWProcessMgt.h"
+#include "DWEventSvr.h"
 
 
 class CDWFrameClient : public CWindowImpl<CDWFrameClient>
@@ -29,14 +31,11 @@ public:
 
     BOOL PreTranslateMessage(MSG* pMsg)
     {
-        if((pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
-            (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST))
-            return FALSE;
-
-        // give HTML page a chance to translate this message
-        //if ( ::IsWindow(m_wndClient) )
-        //    return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
-
+        if ( pMsg->message == WM_WINDOWPOSCHANGED ||
+             pMsg->message == WM_WINDOWPOSCHANGING )
+        {
+             ResizeClient();
+        }
         return FALSE;
     }
 
@@ -45,8 +44,12 @@ public:
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
         MESSAGE_HANDLER(WM_SIZE   , OnSize   )
 
+        MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd )
         MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd )
 
+
+        MESSAGE_HANDLER(WM_WEBWND_INFO_CHANGED , OnWebWndInfoChanged )
+        
     END_MSG_MAP()
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -55,6 +58,12 @@ public:
 
         return 0;
     }
+
+    LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1 ;
+    }
+
 
     LRESULT OnCreateWebWnd(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -76,15 +85,57 @@ public:
         {
             ATLASSERT( m_wndTableBar.SetItemParam( nTabIndex, wParam ) == uID );
 
+            //m_wndTableBar.SetItemCaption( nTabIndex, L"¿Õ°×Ò³" );
+
             if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
                 ShowClient( hCreateWnd );
         }
 
-        if ( ::IsWindow(m_wndClient) )
-            m_wndClient.ShowWindow( SW_SHOWDEFAULT );
+        //if ( ::IsWindow(m_wndClient) )
+        //    m_wndClient.ShowWindow( SW_SHOWDEFAULT );
 
-        ResizeClient();
+        //ResizeClient();
         return 0;
+    }
+
+    LRESULT OnWebWndInfoChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( lParam == NULL )
+        {
+            CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+            
+            psmgt.GetWebWndInfo( m_hWnd, (HWND)wParam);
+        }
+        else
+        {
+            IDataBuffer* piBuffer = (IDataBuffer*)lParam;
+            piBuffer->AddRef();
+            WCHAR* pszBuf = (WCHAR*)piBuffer->GetDataBuffer();
+
+            ATL::CString strTitle = pszBuf+1;
+            if ( strTitle.IsEmpty() )
+                strTitle = pszBuf + pszBuf[0];
+
+            if ( strTitle.GetLength() )
+            {
+                int nTabIndex = m_wndTableBar.FindParam(wParam);
+                ATLASSERT(nTabIndex >= 0);
+                if ( nTabIndex >= 0 && strTitle.CollateNoCase(L"about:blank"))
+                {
+                    m_wndTableBar.SetItemCaption( nTabIndex, strTitle );
+                }
+
+                strTitle = pszBuf + pszBuf[0];
+                if ( strTitle.GetLength() > 0 && nTabIndex == m_wndTableBar.GetSelectIndex() )
+                {
+                    CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM)(LPCTSTR)strTitle, 0 );
+                }
+            }
+
+            piBuffer->Release();
+        }
+
+        return 0L;
     }
 
 
@@ -102,7 +153,7 @@ public:
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
 
-        ClientToScreen(&rcClient);
+        //ClientToScreen(&rcClient);
         
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.MoveWindow(&rcClient);
@@ -110,6 +161,15 @@ public:
 
     void ShowClient( HWND hWndClient )
     {
+        //if ( ::IsWindow(m_wndClient) )
+        //    m_wndClient.PostMessage(WM_SHOWWINDOW, 10, 101);
+
+        //m_wndClient = hWndClient;
+
+        //ResizeClient();
+        //if ( ::IsWindow(m_wndClient) )
+        //    m_wndClient.PostMessage(WM_SHOWWINDOW, 10, 100);
+
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.ShowWindow( SW_HIDE );
 
@@ -118,6 +178,7 @@ public:
         ResizeClient();
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
+
     }
 
     CWindow m_wndClient;

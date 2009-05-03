@@ -2,6 +2,7 @@
 #include "DWFrameMgt.h"
 #include "CDWMainFrame.h"
 #include "DWProcessMgt.h"
+#include "DWEventSvr.h"
 
 DWORD CDWFrameMgt::m_dwMainThreadId = NULL;
 
@@ -69,6 +70,7 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     delete &frmmgt;
     delete &psmgt;
+    delete &CDWEventSvr::Instance();
 
     return nRet;
 }

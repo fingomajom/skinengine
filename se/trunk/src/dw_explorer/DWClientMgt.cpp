@@ -12,6 +12,15 @@ int OnDestroyWebWnd(
     /* [in]  */ IDataBuffer*  pParameter,
     /* [out] */ IDataBuffer** ppResult );
 
+int OnWebWndInfo(    
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult );
+
+int OnWebWndOpenURL(    
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult );
+
+
 int DWCltReceiveRpcMsg( 
     /* [in]  */ int nMsgId,
     /* [in]  */ IDataBuffer*  pParameter,
@@ -28,6 +37,14 @@ int DWCltReceiveRpcMsg(
     else if ( nMsgId == s2c_quit )
     {
         ::PostThreadMessage(CDWClientMgt::m_dwMainThreadId, WM_QUIT, 0, 0);
+    }
+    else if ( nMsgId == s2c_webwnd_info )
+    {
+        return OnWebWndInfo(pParameter, ppResult);
+    }
+    else if ( nMsgId == s2c_webwnd_openurl )
+    {
+        return OnWebWndOpenURL(pParameter, ppResult);
     }
 
     return 0;
@@ -78,6 +95,90 @@ int OnDestroyWebWnd(
     HWND hWnd = (HWND)(*((ULONG*)pParameter->GetDataBuffer()));
     
     cltmgt.DestroyWebWnd(hWnd);
+
+    return 0;
+}
+
+int OnWebWndInfo(    
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult )
+{
+    CDWClientMgt& cltmgt = CDWClientMgt::Instance();
+
+    ATLASSERT(pParameter != NULL);
+    ATLASSERT(ppResult != NULL);
+
+    if ( pParameter == NULL || ppResult == NULL )
+        return -1;
+
+    if ( pParameter->GetBufferSize() != 4 )
+        return -2;
+
+    HWND hWnd = (HWND)(*((ULONG*)pParameter->GetDataBuffer()));
+    
+
+    ATL::CString strTitle;
+    ATL::CString strURL;
+
+    cltmgt.m_cs.Lock();
+
+    for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
+    {
+        CDWWebWnd* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
+        if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
+        {
+            strTitle = pWebWnd->m_strTitle;
+            strURL   = pWebWnd->m_strURL;
+            break;
+        }
+    }
+
+    cltmgt.m_cs.Unlock();
+    
+    int nStrLen = strTitle.GetLength() + strURL.GetLength();
+
+    *ppResult = LSECreateDataBuffer( (nStrLen + 3) * sizeof(WCHAR) );
+    if ( *ppResult == NULL )
+        return -1;
+
+    WCHAR* pszBufer = (WCHAR*)(*ppResult)->GetDataBuffer();
+    pszBufer[0] = strTitle.GetLength() + 2;
+    wcscpy_s( pszBufer + 1, strTitle.GetLength() + 1, strTitle);
+    wcscpy_s( pszBufer + pszBufer[0], strURL.GetLength() + 1, strURL);
+
+    return 0;
+}
+
+int OnWebWndOpenURL(    
+    /* [in]  */ IDataBuffer*  pParameter,
+    /* [out] */ IDataBuffer** ppResult )
+{
+    CDWClientMgt& cltmgt = CDWClientMgt::Instance();
+
+    ATLASSERT(pParameter != NULL);
+
+    if ( pParameter == NULL )
+        return -1;
+
+    if ( pParameter->GetBufferSize() < 4 )
+        return -2;
+
+    HWND hWnd = (HWND)(*((ULONG*)pParameter->GetDataBuffer()));
+
+    cltmgt.m_cs.Lock();
+
+    for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
+    {
+        CDWWebWnd* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
+        if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
+        {
+            pWebWnd->OpenURL( (WCHAR*)pParameter->GetDataBuffer()+2 );
+
+            break;
+        }
+    }
+
+    cltmgt.m_cs.Unlock();
 
     return 0;
 }
@@ -207,14 +308,12 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     
     ATL::CString strURL = clt.m_strOpenURL;
 
-    CAxBgWnd  wndBg;
     CDWWebWnd wndWeb;
 
-    wndBg.Create(NULL, &wndBg.rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW);
+    //*pWndRet
 
-    if ( wndWeb.Create(wndBg.m_hWnd, &wndBg.rcDefault, 0, WS_POPUP, WS_EX_TOOLWINDOW) == NULL )
-
-    //if( wndWeb.Create(*pWndRet, wndWeb.rcDefault, NULL, WS_CHILD) == NULL)
+    wndWeb.m_hNotifyWnd = *pWndRet;
+    if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault) == NULL )
     {
         ::SetEvent(clt.m_hCreateWebWndEvent);
         return 0;
@@ -223,7 +322,7 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     ::SetEvent(clt.m_hCreateWebWndEvent);
 
     wndWeb.OpenURL(strURL);
-    wndWeb.OpenURL(L"http://sina.com");
+    //wndWeb.OpenURL(L"http://www.sina.com");
 
     clt._AddWebWnd(&wndWeb);
 
@@ -231,6 +330,9 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     dwRet = theLoop.Run();
 
     clt._RemoveWebWnd(&wndWeb);
+
+    if ( ::IsWindow(wndWeb) )
+        wndWeb.DestroyWindow();
 
     _Module.RemoveMessageLoop();
     ::CoUninitialize();

@@ -22,8 +22,12 @@
 
 #define s2c_create_webwnd           (100)
 #define s2c_destroy_webwnd          (101)
+#define s2c_webwnd_openurl          (102)
 
 #define s2c_quit                    (200)
+
+
+#define s2c_webwnd_info             (300)
 
 //////////////////////////////////////////////////////////////////////////
 //  client -> server

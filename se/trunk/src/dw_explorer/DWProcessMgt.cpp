@@ -6,6 +6,9 @@
 
 #define PMAM_CREATE_WEBWND   (WM_USER + 1000)
 #define PMAM_DESTROY_WEBWND  (WM_USER + 1001)
+#define PMAM_WEBWND_OPENURL  (WM_USER + 1002)
+
+#define PMAM_GETWEBWNDINFO   (WM_USER + 1003)
 
 CDWProcessMgt::CDWProcessMgt(void)
 {
@@ -41,8 +44,12 @@ BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL
     *((LPARAM*)(pParam+1)) = lParam;
     wcscpy_s(pParam+3, nLen - 3, pszOpenURL);
 
-    return ::PostThreadMessage( m_dwThreadId,
+    BOOL bRet = ::PostThreadMessage( m_dwThreadId,
         PMAM_CREATE_WEBWND, (WPARAM)hParent, (LPARAM)pParam );
+    
+    ATLASSERT(bRet);
+
+    return bRet;
 }
 
 BOOL CDWProcessMgt::DestryWebWnd(HWND hWnd)
@@ -50,6 +57,36 @@ BOOL CDWProcessMgt::DestryWebWnd(HWND hWnd)
     return ::PostThreadMessage( m_dwThreadId,
         PMAM_DESTROY_WEBWND, (WPARAM)hWnd, 0 );
 }
+
+BOOL CDWProcessMgt::WebWndOpenURL( HWND hWnd, LPCTSTR pszOpenURL )
+{
+    if ( pszOpenURL == NULL || hWnd == NULL )
+        return FALSE;
+
+    int nLen = wcslen(pszOpenURL) + 4;
+    WCHAR* pParam = new WCHAR[ nLen ];
+
+    if ( pParam == NULL )
+        return FALSE;
+
+    pParam[0] = nLen;
+    *((HWND*)(pParam+1)) = hWnd;
+    wcscpy_s(pParam+3, nLen - 3, pszOpenURL);
+
+    BOOL bRet = ::PostThreadMessage( m_dwThreadId,
+        PMAM_WEBWND_OPENURL, 00, (LPARAM)pParam );
+
+    ATLASSERT(bRet);
+
+    return bRet;
+}
+
+BOOL CDWProcessMgt::GetWebWndInfo( HWND hParent, HWND hWnd )
+{
+    return ::PostThreadMessage( m_dwThreadId,
+        PMAM_GETWEBWNDINFO, (WPARAM)hParent, (LPARAM)hWnd );
+}
+
 
 ProcessInfo* CDWProcessMgt::_FindProcessInfo(HWND hWnd)
 {
@@ -70,6 +107,8 @@ ProcessInfo* CDWProcessMgt::_FindProcessInfo(HWND hWnd)
 
 HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
 {
+    ATLASSERT( ::IsWindow(hParent) );
+
     WCHAR* pParam = (WCHAR*)lParam;
     ProcessInfo* pPInfo = NULL;
 
@@ -88,6 +127,7 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
     if ( pPInfo == NULL )
     {
         delete []pParam;
+        ATLASSERT( FALSE );
         return NULL;
     }
 
@@ -151,6 +191,58 @@ BOOL CDWProcessMgt::_DestryWebWnd( HWND hWnd )
     return TRUE;
 }
 
+BOOL CDWProcessMgt::_WebWndOpenURL( LPARAM lParam )
+{
+    ATLASSERT( lParam );
+
+    WCHAR* pParam = (WCHAR*)lParam;
+
+    ProcessInfo* pPInfo = _FindProcessInfo( *(HWND*)(pParam+1));
+    ATLASSERT(pPInfo != NULL);
+    if ( pPInfo == NULL )
+        return FALSE;
+
+    LSEDataBuffer createParamBuf((pParam[0]-1) * sizeof(WCHAR));
+    WCHAR* pBuffer  = (WCHAR*)createParamBuf.GetDataBuffer();
+    memcpy( pBuffer, pParam+1, (pParam[0]-1)*2 );
+
+    HWND hWnd = NULL;
+    int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_webwnd_openurl, 
+        &createParamBuf, 0 );
+
+    delete []pParam;
+
+    return nRet == 0;
+}
+
+BOOL CDWProcessMgt::_GetWebWndInfo( HWND hParent, HWND hWnd )
+{
+    ProcessInfo* pPInfo = _FindProcessInfo(hWnd);
+    ATLASSERT(pPInfo != NULL);
+    if ( pPInfo == NULL )
+        return FALSE;
+
+
+    CComPtr<IDataBuffer> spResult;
+
+    static LSEDataBufferImpl<ULONG> wndBuf;
+    wndBuf = (ULONG)hWnd;
+
+    int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_webwnd_info, 
+        wndBuf.GetDataBuffer(), &spResult );
+
+    if ( nRet == 0 && spResult.p )
+    {
+        nRet = ::PostMessage(hParent, WM_WEBWND_INFO_CHANGED, (WPARAM)hWnd, (LPARAM)spResult.p);
+        if ( nRet )
+            spResult.p = NULL;
+        else
+            spResult.p->AddRef();
+    }
+
+
+    return TRUE;
+}
 
 DWORD WINAPI CDWProcessMgt::AsynMsgLoopThread( LPVOID p )
 {
@@ -167,6 +259,12 @@ DWORD WINAPI CDWProcessMgt::AsynMsgLoopThread( LPVOID p )
             break;
         case PMAM_DESTROY_WEBWND:
             prtmgt._DestryWebWnd((HWND)msg.wParam);
+            break;
+        case PMAM_WEBWND_OPENURL:
+            prtmgt._WebWndOpenURL(msg.lParam);
+            break;
+        case PMAM_GETWEBWNDINFO:
+            prtmgt._GetWebWndInfo((HWND)msg.wParam, (HWND)msg.lParam);
             break;
         }
     }
@@ -192,8 +290,18 @@ ProcessInfo* CDWProcessMgt::CreateSEProcess()
         pRet = new ProcessInfo;
 
         pRet->dwWndCreated = 0;
-        if ( !pRet->rpcClt.InitRpcClient( strRpcEPoint ) )
+
+        BOOL bRet = pRet->rpcClt.InitRpcClient( strRpcEPoint );
+        int  nLoop = 0;
+        while ( !bRet && ++nLoop < 100 )
         {
+            bRet = pRet->rpcClt.InitRpcClient( strRpcEPoint );
+            Sleep( 20 );
+        }
+
+        if ( !bRet )
+        {
+            ATLASSERT(FALSE);
             delete pRet;
             pRet = NULL;
         }
@@ -233,6 +341,8 @@ DWORD CDWProcessMgt::CreateSEProcess( LPCTSTR pszCmdLine )
         NULL, 
         &stInfo, 
         &psInfo);
+
+    ATLASSERT( bCreate );
 
     WaitForInputIdle(
         psInfo.hProcess,
