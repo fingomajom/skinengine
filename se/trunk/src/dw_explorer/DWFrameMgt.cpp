@@ -120,6 +120,9 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
     CMessageLoop theLoop;
     CDWFrameMgt& mgt = CDWFrameMgt::Instance();
 
+    HRESULT hRes = ::CoInitialize(NULL);
+    ATLASSERT(SUCCEEDED(hRes));
+
     _Module.AddMessageLoop(&theLoop);
     
     CDWMainFrame wndMain;
@@ -137,5 +140,7 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
     mgt._RemoveFrame(&wndMain);
 
     _Module.RemoveMessageLoop();
+    ::CoUninitialize();
+
     return dwRet;
 }

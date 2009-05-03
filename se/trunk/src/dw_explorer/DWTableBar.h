@@ -11,7 +11,7 @@
 
 #pragma once
 
-
+#include "DWComDef.h"
 
 class CDWTableBar : public CWindowImpl<CDWTableBar>
 {
@@ -28,10 +28,22 @@ class CDWTableBar : public CWindowImpl<CDWTableBar>
 
 public:
 
+    enum
+    {
+        sys_tbi_new   = 0,
+        sys_tbi_sleft = 1,
+        sys_tbi_rleft = 2,
+        sys_tbi_menu  = 3,
+        sys_tbi_prev  = 4,
+        sys_tbi_count = 5
+    };
+
+public:
+
     CDWTableBar()
     {
         m_nHotIndex        = -1;
-        m_nSelectIndex     = 0;
+        m_nSelectIndex     =  sys_tbi_count;
         m_nHotCloseIndex   = -1;
         m_nCloseClickIndex = -1;
     }
@@ -51,7 +63,108 @@ public:
         return TRUE;
     }
 
+    BOOL InsertTableItem( int nIndex, LPCTSTR pszCaption, UINT uID, LPARAM lParam )
+    {
+        nIndex += sys_tbi_count;
 
+        TableBtnInfo ItemInfo;
+        ItemInfo.bVisual = TRUE;
+        ItemInfo.uID = uID;
+        ItemInfo.lParam = lParam;
+        ItemInfo.strCaption = pszCaption;
+
+        m_vtTableBtn.InsertAt(nIndex, ItemInfo);
+
+        RePositionBtns();
+
+        return TRUE;
+    }
+
+
+    BOOL RemoveTableItem( int nIndex, BOOL bReflash = TRUE )
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+        {
+            m_vtTableBtn.RemoveAt( nIndex );
+            RePositionBtns();
+            if ( bReflash && ::IsWindow(m_hWnd) )
+                CWindow::Invalidate();
+        }
+
+        return TRUE;
+    }
+
+    BOOL SelectIndex( int nIndex, BOOL bReflash = TRUE  )
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+        {
+            m_nSelectIndex = nIndex;
+            if ( bReflash && ::IsWindow(m_hWnd) )
+                CWindow::Invalidate();
+        }
+        return TRUE;
+    }
+
+    int GetSelectIndex() const
+    {
+        if ( m_nSelectIndex >= sys_tbi_count && m_nSelectIndex < (int)m_vtTableBtn.GetCount() )
+            return m_nSelectIndex - sys_tbi_count;
+        return -1;
+    }
+
+    UINT GetItemParam(int nIndex) const
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+            return m_vtTableBtn[nIndex].lParam;
+        
+        return 0;
+    }
+
+    LPARAM SetItemParam( int nIndex, LPARAM lParam )
+    {
+        LPARAM lRet = 0;
+
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+        {
+            lRet = m_vtTableBtn[nIndex].lParam;
+            m_vtTableBtn[nIndex].lParam = lParam;
+        }
+
+        return lRet;
+    }
+
+
+    LPARAM GetItemId(int nIndex) const
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+            return m_vtTableBtn[nIndex].uID;
+
+        return 0;
+    }
+
+    int GetItemCount() const
+    {
+        return m_vtTableBtn.GetCount() - sys_tbi_count;
+    }
+
+    int FindID( UINT id ) const
+    {
+        for ( size_t i = sys_tbi_count; i < (int)m_vtTableBtn.GetCount(); i++ )
+            if ( m_vtTableBtn[i].uID == id )
+                return int(i - sys_tbi_count);
+
+        return -1;
+    }
 
     BEGIN_MSG_MAP(CDWTableBar)
 
@@ -62,6 +175,8 @@ public:
 
         MESSAGE_HANDLER(WM_MOUSEMOVE , OnMouseMove)
         MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)
+        MESSAGE_HANDLER(WM_MOUSEHOVER, OnMouseHover)
+        MESSAGE_HANDLER(WM_LBUTTONDBLCLK , OnLButtonDBClk)
 
         MESSAGE_HANDLER(WM_LBUTTONDOWN , OnLButtonDown)
         MESSAGE_HANDLER(WM_LBUTTONUP   , OnLButtonUp)
@@ -71,7 +186,7 @@ public:
 
     END_MSG_MAP()
 
-    void DrawBtnIndex( HDC hDC, CDWImage& pImage, int xPos, int yPos,  int nIdex )
+    void DrawBtnIndex( HDC hDC, CDWImage& pImage, int xPos, int yPos, int nImageIdx, COLORREF clrDest = -1, int nFlags = 1, float fAlpha=1.0f)
     {
         RECT rcSrcImage = { 0 };
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
@@ -79,32 +194,40 @@ public:
         rcSrcImage.left   = pImage.GetWidth() / 4;
         rcSrcImage.bottom = pImage.GetHeight();
 
-        rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
-        rcSrcImage.left  = rcSrcImage.left * nIdex;
-
-        pImage.AlphaDraw( hDC, xPos, yPos, &rcSrcImage, skin.clrFrameWindow, 1, 2.0f);
+        rcSrcImage.right = rcSrcImage.left * (nImageIdx + 1);
+        rcSrcImage.left  = rcSrcImage.left * nImageIdx;
+        
+        if ( clrDest == -1 )
+            pImage.AlphaDraw( hDC, xPos, yPos, &rcSrcImage, nFlags, fAlpha);
+        else
+            pImage.AlphaDraw( hDC, xPos, yPos, &rcSrcImage, clrDest, nFlags, fAlpha);
     }
 
-    void DrawTableItemIndex( HDC hDC, const RECT& rcDest , int nIdex )
+    void DrawTableItemIndex( HDC hDC, int nItemIndex , int nImageIdx )
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
         RECT rcSrcImage = { 0 };
         RECT rcSrcImage1 = { 0 };
 
+        TableBtnInfo& tabInfo = m_vtTableBtn[nItemIndex];
+        if ( !tabInfo.bVisual )
+            return;
+
         rcSrcImage.left   = m_image_item.GetWidth() / 4;
         rcSrcImage.bottom = m_image_item.GetHeight();
-        rcSrcImage.right  = rcSrcImage.left * (nIdex + 1);
-        rcSrcImage.left   = rcSrcImage.left * nIdex;
+        rcSrcImage.right  = rcSrcImage.left * (nImageIdx + 1);
+        rcSrcImage.left   = rcSrcImage.left * nImageIdx;
 
-        int nDifWidth = (rcDest.right - rcDest.left) - (rcSrcImage.right - rcSrcImage.left);
+        int nDifWidth = (tabInfo.rcBtn.right - tabInfo.rcBtn.left) - (rcSrcImage.right - rcSrcImage.left);
         int nHufWidth = (rcSrcImage.right - rcSrcImage.left) / 2;
         
         rcSrcImage1 = rcSrcImage;
         rcSrcImage1.right = rcSrcImage1.left + nHufWidth;
-
+        
+        // µ×Í¼
         m_image_item.AlphaDraw( hDC, 
-            rcDest.left, rcDest.top, 
-            &rcSrcImage1 , 1, nIdex == 2 ? 1.0f : 1.5f );
+            tabInfo.rcBtn.left, tabInfo.rcBtn.top, 
+            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
 
         rcSrcImage1 = rcSrcImage;
         rcSrcImage1.left  = rcSrcImage1.left + nHufWidth;
@@ -113,80 +236,150 @@ public:
         for ( int i = 0; i < nDifWidth; i+= 1 )
         {
             m_image_item.AlphaDraw( hDC, 
-                rcDest.left + nHufWidth + i, rcDest.top, 
-                &rcSrcImage1 , 1, nIdex == 2 ? 1.0f : 1.5f );
+                tabInfo.rcBtn.left + nHufWidth + i, tabInfo.rcBtn.top, 
+                &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
         }
 
         rcSrcImage1 = rcSrcImage;
         rcSrcImage1.left = rcSrcImage1.left + nHufWidth;
         m_image_item.AlphaDraw( hDC, 
-            rcDest.left + nDifWidth + nHufWidth, rcDest.top, 
-            &rcSrcImage1 , 1, nIdex == 2 ? 1.0f : 1.5f );        
+            tabInfo.rcBtn.left + nDifWidth + nHufWidth, tabInfo.rcBtn.top, 
+            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
+
+        // Í¼±ê
+        CIconHandle icon = tabInfo.icon;
+        if ( icon.IsNull() )
+        {
+            icon = m_iconNull;
+        }
+        icon.DrawIconEx( hDC, tabInfo.rcBtn.left + 15, tabInfo.rcBtn.top + 7, 16, 16 );
+        
+        rcSrcImage1 = tabInfo.rcBtn;
+        rcSrcImage1.top   += 2;
+        rcSrcImage1.left  += 33;
+        rcSrcImage1.right -= 12;
+
+        if ( nItemIndex == m_nSelectIndex )
+        {
+            rcSrcImage1.right -= 13;
+
+            int nidx = 0;
+            if (m_nCloseClickIndex == m_nSelectIndex && m_nCloseClickIndex == m_nHotIndex ) 
+                nidx = 2;
+            else if (m_nHotCloseIndex == m_nSelectIndex && m_nHotCloseIndex == m_nHotIndex ) 
+                nidx = 1;
+
+            DrawBtnIndex( hDC, 
+                m_image_close, 
+                m_vtTableBtn[m_nSelectIndex].rcBtn.right-30, 
+                m_vtTableBtn[m_nSelectIndex].rcBtn.top, 
+                nidx , skin.clrFrameWindow, 1, 2.0f);
+        }
+        
+        int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
+        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
+
+        DrawText( hDC, tabInfo.strCaption, -1, &rcSrcImage1, 
+            DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+
+        ::SelectObject( hDC, hOldObj );
+        ::SetBkMode( hDC, nBkMode );
     }
     
-    void DrawTableItemIndex( HDC hDC, TableBtnInfo& tabInfo, int nIdex )
+    void DrawTableBtnIndex( HDC hDC, int nItemIndex , int nImageIdx )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        if ( nItemIndex >= sys_tbi_count )
+            DrawTableItemIndex( hDC, nItemIndex, nImageIdx );
+        else
+        {
+            TableBtnInfo& tabInfo = m_vtTableBtn[nItemIndex];
+            if ( !tabInfo.bVisual )
+                return;
 
-        RECT rcSrcImage = { 0 };
+            CDWImage* pimage[] = { 
+                &m_image_new, 
+                &m_image_new, 
+                &m_image_new, 
+                &m_image_new, 
+                &m_image_new };
 
-        //rcSrcImage.left   = info.image->GetWidth() / 4;
-        //rcSrcImage.bottom = info.image->GetHeight();
+            DrawBtnIndex( hDC, *pimage[nItemIndex], 
+                tabInfo.rcBtn.left, tabInfo.rcBtn.top, m_nCloseClickIndex == nItemIndex ? 2 : nImageIdx, -1, 1, 1.2f);
+        }
 
-        //rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
-        //rcSrcImage.left  = rcSrcImage.left * nIdex;
-
-        //CDCHandle(hDC).FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
-
-        //info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
-
-        DrawTableItemIndex( hDC, tabInfo.rcBtn, nIdex );
     }
 
     virtual void RePositionBtns()
     {   
         RECT rcBtn = { 0, 0, 0, 0 };
 
-        for ( int idx = 0; idx < m_vtTableBtn.GetSize(); idx++ )
+        const int nMaxWidth = 200;
+        const int nMinWidth = 70 ;
+        const int nDifWidth = 13 ;
+
+        RECT rcClient = { 0 };
+        GetClientRect( &rcClient );
+
+        m_vtTableBtn[sys_tbi_new].bVisual   = TRUE;
+        m_vtTableBtn[sys_tbi_sleft].bVisual = FALSE;
+        m_vtTableBtn[sys_tbi_rleft].bVisual = FALSE;
+        m_vtTableBtn[sys_tbi_menu].bVisual  = FALSE;
+        m_vtTableBtn[sys_tbi_prev].bVisual  = FALSE;
+
+        if (m_vtTableBtn.GetCount() > sys_tbi_count )
         {
-            TableBtnInfo& info = m_vtTableBtn[idx];
+            int nWidth = ( rcClient.right - rcClient.left - nDifWidth - m_image_new.GetWidth()/4 + 10 ) / (m_vtTableBtn.GetCount() - sys_tbi_count);
+            if ( nWidth < nMinWidth )
+                nWidth = nMinWidth;
+            else if (nWidth > nMaxWidth)
+                nWidth = nMaxWidth;
 
-            rcBtn.right += (idx == 0 ? 100 : 80);
-            rcBtn.bottom = m_image_item.GetHeight();
+            rcBtn = rcClient;
+            rcBtn.right = 0;
 
-            if ( idx > 0 )
-                rcBtn.left -= 13;
+            for ( int idx = sys_tbi_count; idx < (int)m_vtTableBtn.GetCount(); idx++ )
+            {
+                TableBtnInfo& info = m_vtTableBtn[idx];
 
-            info.rcBtn = rcBtn;
+                rcBtn.right += (idx == sys_tbi_count ? nWidth + nDifWidth : nWidth);
+                rcBtn.bottom = m_image_item.GetHeight();
 
-            rcBtn.left = rcBtn.right;
+                if ( idx > sys_tbi_count )
+                    rcBtn.left -= nDifWidth;
+
+                info.rcBtn = rcBtn;
+
+                rcBtn.left = rcBtn.right;
+            }
         }
+        
+        rcBtn.left -= nDifWidth/2;
+        rcBtn.right = rcBtn.left + m_image_new.GetWidth() / 4;
+        m_vtTableBtn[sys_tbi_new].rcBtn = rcBtn;
+
     }
 
 
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-    {
+    { 
+        m_iconNull.LoadIcon(IDI_ICON_FAV_NULL_URL, 0, 0, LR_DEFAULTSIZE);
+
         m_image_new.LoadFromResource(IDR_PNG_TABLE_NEW);
         m_image_item.LoadFromResource(IDR_PNG_TABLE_ITEM);
         m_image_close.LoadFromResource(IDR_PNG_TABLE_CLOSE);
 
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
-        AddTableItem( L"", 1, 0 );
+        TableBtnInfo ItemInfo;
+
+        ItemInfo.bVisual = FALSE;
+        ItemInfo.uID = 0;
+        ItemInfo.lParam = 0;
+        ItemInfo.strCaption ;
+        m_vtTableBtn.Add( ItemInfo );
+        m_vtTableBtn.Add( ItemInfo );
+        m_vtTableBtn.Add( ItemInfo );
+        m_vtTableBtn.Add( ItemInfo );
+        m_vtTableBtn.Add( ItemInfo );
 
         return 1L;
     }
@@ -211,12 +404,10 @@ public:
         BOOL bReflashWnd = FALSE;
 
         RECT rcSelBtn = { 0 };
-        if ( m_nSelectIndex >= 0 && m_nSelectIndex < m_vtTableBtn.GetSize() )
+        if ( m_nSelectIndex >= 0 && m_nSelectIndex < (int)m_vtTableBtn.GetCount() )
         {
             rcSelBtn = m_vtTableBtn[m_nSelectIndex].rcBtn;
-            rcSelBtn.right += 13;
         }
-
         if ( ::PtInRect(&rcSelBtn, pt) )
         {
             nHotPos = m_nSelectIndex;
@@ -225,14 +416,14 @@ public:
             rcSelBtn.left = rcSelBtn.right - 30;
             rcSelBtn.right = rcSelBtn.left + 23;
 
-            if ( ::PtInRect(&rcSelBtn, pt) )
+            if ( m_nSelectIndex >= sys_tbi_count && ::PtInRect(&rcSelBtn, pt) )
             {
                 nHotClosePos = m_nSelectIndex;
             }
         }
         else
         {
-            for ( int idx = m_vtTableBtn.GetSize() - 1; idx >= 0 ; idx-- )
+            for ( int idx = (int)m_vtTableBtn.GetCount() - 1; idx >= 0 ; idx-- )
             {
                 TableBtnInfo& info = m_vtTableBtn[idx];
 
@@ -249,15 +440,13 @@ public:
         {
             CClientDC dc(m_hWnd);
 
-            if ( m_nHotIndex < 0 )
-            {
-                TRACKMOUSEEVENT evt;
-                evt.cbSize = sizeof(evt);
-                evt.dwFlags = TME_LEAVE;
-                evt.hwndTrack = m_hWnd;
+            TRACKMOUSEEVENT evt;
+            evt.cbSize   = sizeof(evt);
+            evt.dwFlags  = TME_LEAVE | TME_HOVER;
+            evt.dwHoverTime = 300;
+            evt.hwndTrack = m_hWnd;
 
-                TrackMouseEvent( &evt );
-            }
+            TrackMouseEvent( &evt );
 
             m_nHotIndex = nHotPos;
 
@@ -298,15 +487,59 @@ public:
         return 1L;
     }
 
+    LRESULT OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        //BOOL bReflashWnd = FALSE;
+
+        //if ( m_nHotIndex >= 0 )
+        //{
+        //    m_nHotCloseIndex = m_nHotIndex;
+        //    bReflashWnd = TRUE;
+        //}
+
+        //if ( bReflashWnd )
+        //    CWindow::Invalidate();
+
+        return 1L;
+    }
+
+    LRESULT OnLButtonDBClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        BOOL bReflashWnd = FALSE;
+
+        if ( m_nHotIndex >= sys_tbi_count )
+        {
+            bReflashWnd = TRUE;
+            SendMsgToParent(WM_TABLE_BAR_MSG, TGM_ITEM_CLOSE_CLICK, m_nHotIndex);
+        }
+
+        if ( bReflashWnd )
+            CWindow::Invalidate();
+
+        return 1L;
+
+
+        return 1L;
+    }
+
+    
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
     {
         BOOL bReflashWnd = FALSE;
 
-        if ( m_nHotIndex >= 0 )
+        if ( m_nHotIndex >= sys_tbi_count )
         {
             m_nSelectIndex = m_nHotIndex;
             bReflashWnd = TRUE;
             PostMessage(WM_MOUSEMOVE, 0, lParam);
+            SendMsgToParent(WM_TABLE_BAR_MSG, 
+                TGM_SELECT_CHANGE, 
+                m_nSelectIndex - sys_tbi_count);
+        }
+        else if ( m_nHotIndex >= 0 )
+        {
+            m_nHotCloseIndex = m_nHotIndex;
+            bReflashWnd = TRUE;
         }
 
         if ( m_nHotCloseIndex >= 0 )
@@ -324,17 +557,25 @@ public:
 
     LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        BOOL bReflashWnd = FALSE;
+        BOOL bReflashWnd = TRUE;
 
         ReleaseCapture();
-        if ( m_nCloseClickIndex >=0 && m_nCloseClickIndex == m_nHotCloseIndex )
+        if ( m_nCloseClickIndex >=sys_tbi_count && m_nCloseClickIndex == m_nHotCloseIndex )
         {
-            m_vtTableBtn.RemoveAt( m_nCloseClickIndex );
-            RePositionBtns();
-            m_nCloseClickIndex = -1;
-            bReflashWnd = TRUE;
+            SendMsgToParent( WM_TABLE_BAR_MSG, 
+                TGM_ITEM_CLOSE_CLICK, 
+                m_nCloseClickIndex - sys_tbi_count );
 
+            //RemoveTableItem( m_nCloseClickIndex - sys_tbi_count, FALSE);
         }
+
+        if (  m_nHotCloseIndex >= 0 && m_nHotCloseIndex == m_nHotIndex )
+        {
+            OnSysBtnClick(m_nHotCloseIndex);
+        }
+
+        m_nCloseClickIndex = -1;
+        m_nHotCloseIndex = -1;
 
         if ( bReflashWnd )
             CWindow::Invalidate();
@@ -359,25 +600,20 @@ public:
         CMemoryDC memDC(dc, rcClient);
 
         memDC.FillSolidRect( &rcClient, skin.clrFrameWindow );
+        rcClient.top = rcClient.bottom - 2;
+        memDC.FillSolidRect( &rcClient, RGB(240,240,240) );
 
-        for ( int idx = 0; idx < m_vtTableBtn.GetSize(); idx++ )
+        for ( int idx = 0; idx < (int)m_vtTableBtn.GetCount(); idx++ )
         {
             if ( idx != m_nSelectIndex )
             {
-                TableBtnInfo& info = m_vtTableBtn[idx];
-                DrawTableItemIndex( memDC, info, m_nHotIndex == idx ? 1 : 0 );
+                DrawTableBtnIndex( memDC, idx, m_nHotIndex == idx ? 1 : 0 );
             }
         }
 
-        if ( m_nSelectIndex >= 0 && m_nSelectIndex < m_vtTableBtn.GetSize() )
+        if ( m_nSelectIndex >= 0 && m_nSelectIndex < (int)m_vtTableBtn.GetCount() )
         {
-            DrawTableItemIndex( memDC,  m_vtTableBtn[m_nSelectIndex], 2 );
-
-            DrawBtnIndex( memDC, 
-                m_image_close, 
-                m_vtTableBtn[m_nSelectIndex].rcBtn.right-30, 
-                m_vtTableBtn[m_nSelectIndex].rcBtn.top, 
-                m_nCloseClickIndex == m_nSelectIndex ? 2 : (m_nHotCloseIndex == m_nSelectIndex ? 1 : 0) );
+            DrawTableBtnIndex( memDC,  m_nSelectIndex, 2 );            
         }
 
         return 1L;
@@ -388,12 +624,31 @@ public:
         return 1L;
     }
 
+    void OnSysBtnClick( int nSysBtn )
+    {   
+        switch ( nSysBtn )
+        {
+        case sys_tbi_new:
+            SendMsgToParent( WM_TABLE_BAR_MSG, 
+                TGM_SYS_BTN_CLICK, 
+                sys_tbi_new);
+            break;
+        }
+    }
+
+    void SendMsgToParent( UINT uMsg, WPARAM wParam, LPARAM lParam )
+    {
+        ::SendMessage(GetParent(), uMsg, wParam, lParam);
+    }
+
     DECLARE_WND_CLASS(_T("DWExplorer_TableBar"));
 
 protected:
 
-    ATL::CSimpleArray<TableBtnInfo> m_vtTableBtn;
+    ATL::CAtlArray<TableBtnInfo> m_vtTableBtn;
     
+    CIcon m_iconNull;
+
     CDWImage m_image_item;
     CDWImage m_image_close;
     CDWImage m_image_new;
@@ -401,6 +656,7 @@ protected:
 
     int m_nHotIndex;
     int m_nSelectIndex;
+
     int m_nHotCloseIndex;
     int m_nCloseClickIndex;
 

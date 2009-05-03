@@ -35,6 +35,15 @@ IDR_PNG_TABLE_CLOSE     PNG                     "res\\tab_close.png"
 IDR_PNG_TABLE_ITEM      PNG                     "res\\tab_item.png"
 IDR_PNG_TABLE_NEW       PNG                     "res\\tab_new.png"
 IDR_PNG_TABLE_PROGRESS  PNG                     "res\\tab_progress.png"
+IDI_ICON_FAV_NULL_URL   PNG                     "res\\fav_null_url.ico"
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_FAV_NULL_URL   ICON                    "res\\fav_null_url.ico"
 #endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -121,6 +130,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\DW_Explorer.ico"
+IDI_ICON_FAV_NULL_URL   ICON                    "res\\fav_null_url.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -15,12 +15,19 @@
 #define IDR_PNG_TABLE_NEW               216
 #define IDR_PNG2                        217
 #define IDR_PNG_TABLE_PROGRESS          217
+#define IDI_ICON_FAV_NULL_URL           219
+#define IDI_ICON1                       220
+#define IDI_ICON2                       221
+#define IDI_ICON3                       222
+#define IDI_ICON4                       223
+#define IDR_PNG1                        225
+#define IDI_ICON5                       227
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        218
+#define _APS_NEXT_RESOURCE_VALUE        228
 #define _APS_NEXT_COMMAND_VALUE         32772
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

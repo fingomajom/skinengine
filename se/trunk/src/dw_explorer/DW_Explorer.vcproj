@@ -229,6 +229,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\DWFrameClient.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWFrameUI.h"
 					>
 				</File>
@@ -263,6 +267,10 @@
 				<Filter
 					Name="Common"
 					>
+					<File
+						RelativePath=".\DWComDef.h"
+						>
+					</File>
 					<File
 						RelativePath=".\DWGDI.h"
 						>
@@ -463,7 +471,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\res\png1.bin"
+					RelativePath=".\res\fav_null_url.ico"
 					>
 				</File>
 				<File

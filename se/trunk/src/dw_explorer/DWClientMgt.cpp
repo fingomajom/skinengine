@@ -15,7 +15,16 @@ int DWCltReceiveRpcMsg(
     /* [out] */ IDataBuffer** ppResult)
 {
     if ( nMsgId == s2c_create_webwnd )
+    {
         return OnCreateWebWnd(pParameter, ppResult);
+    }
+    else if ( nMsgId == s2c_destroy_webwnd )
+    {
+    }
+    else if ( nMsgId == s2c_quit )
+    {
+        ::PostThreadMessage(CDWClientMgt::m_dwMainThreadId, WM_QUIT, 0, 0);
+    }
 
     return 0;
 }
@@ -151,8 +160,11 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     CMessageLoop theLoop;
     CDWClientMgt& clt = CDWClientMgt::Instance();
 
-    _Module.AddMessageLoop(&theLoop);
+    HRESULT hRes = ::CoInitialize(NULL);
+    ATLASSERT(SUCCEEDED(hRes));
 
+    _Module.AddMessageLoop(&theLoop);
+    
     CDWWebWnd wndWeb;
     if( wndWeb.Create(*pWndRet, wndWeb.rcDefault, L"http://www.baidu.com", WS_CHILD) == NULL)
     {
@@ -164,11 +176,13 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
 
     clt._AddWebWnd(&wndWeb);
 
+    theLoop.AddMessageFilter(&wndWeb);
     dwRet = theLoop.Run();
 
     clt._RemoveWebWnd(&wndWeb);
 
     _Module.RemoveMessageLoop();
+    ::CoUninitialize();
     return dwRet;
 }
 

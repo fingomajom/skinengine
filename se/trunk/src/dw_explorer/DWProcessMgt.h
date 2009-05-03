@@ -31,12 +31,14 @@ public:
     static CDWProcessMgt& Instance();
 
 
-    BOOL CreateWebWnd( HWND hParent, HWND* );
+    BOOL CreateWebWnd( HWND hParent, LPARAM lParam );
     BOOL DestryWebWnd( HWND hWnd );
 
 protected:
 
-    HWND _CreateWebWnd(HWND hParent);
+    HWND _CreateWebWnd( HWND hParent, LPARAM lParam );
+    BOOL _DestryWebWnd( HWND hWnd );
+
     ProcessInfo* _FindProcessInfo(HWND hWnd);
 
 protected:

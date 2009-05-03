@@ -15,7 +15,9 @@
 #include "DWFrameUI.h"
 #include "DWSuperToolbar.h"
 #include "DWFavoriteBar.h"
-#include "DWTableBar.h"
+#include "DWFrameClient.h"
+
+#include "DWWebWnd.h"
 
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>,
@@ -34,8 +36,9 @@ public:
 
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+        MESSAGE_HANDLER(WM_SIZE   , OnSize   )
 
-        MESSAGE_HANDLER(WM_SIZE      , OnSize )
+        MESSAGE_HANDLER(WM_TABLE_BAR_MSG, OnTableBarMsg)
 
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
@@ -50,11 +53,19 @@ protected:
     void ReRgnWindow();
     void RePositionCtrls();
 
+
+    void OnNewURL( LPCTSTR pszURL );
+
+    void OnCloseURL ( int nIndex );
+    void OnSelectURL( int nIndex );
+
 protected:
 
     LRESULT OnCreate    (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnDestroy   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+    LRESULT OnTableBarMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
@@ -72,5 +83,5 @@ private:
     CDWFavoriteBar  m_wndFavoriteBar;
     CDWTableBar     m_wndTableBar;
 
-    CWindow m_wndAx;
+    CDWFrameClient  m_wndClient;
 };

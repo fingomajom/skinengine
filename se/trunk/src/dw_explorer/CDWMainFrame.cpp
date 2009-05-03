@@ -2,7 +2,8 @@
 #include "CDWMainFrame.h"
 #include "DWProcessMgt.h"
 
-CDWMainFrame::CDWMainFrame(void)
+CDWMainFrame::CDWMainFrame(void) :
+    m_wndClient(m_wndTableBar)
 {
 }
 
@@ -27,7 +28,7 @@ HWND CDWMainFrame::CreateEx()
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-    return FALSE;
+    return m_wndClient.PreTranslateMessage(pMsg);
 }
 
 LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -40,7 +41,11 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    CDWProcessMgt::Instance().CreateWebWnd(m_hWnd, &m_wndAx.m_hWnd);
+    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+
+    m_wndClient.SetFocus();
+
+    OnNewURL(NULL);
 
     return 0;
 }
@@ -84,15 +89,13 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     if ( ::IsWindow(m_wndTableBar) )
         m_wndTableBar.MoveWindow( &rcToolBar );
 
-    rcToolBar.top    = rcToolBar.bottom + 1;
+    rcToolBar.top    = rcToolBar.bottom;
     rcToolBar.bottom = rcClient.bottom+1;
 
-    if ( ::IsWindow(m_wndAx) )
+    if ( ::IsWindow(m_wndClient) )
     {
-        m_wndAx.ShowWindow( SW_SHOWDEFAULT );
-        m_wndAx.MoveWindow( &rcToolBar );
+        m_wndClient.MoveWindow( &rcToolBar );
     }
-
 
     return 0L;
 }
@@ -106,6 +109,83 @@ LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
     }
 
     bHandled = FALSE;
+
+    return 1L;
+}
+
+void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
+{
+    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+
+    static unsigned short uId = 0;
+    static int nIdx = 0;
+    uId++;
+
+    nIdx = m_wndTableBar.GetSelectIndex();
+    nIdx++;
+
+    m_wndTableBar.InsertTableItem( nIdx, 
+        L"ÕýÔÚ¼ÓÔØ", uId, uId );
+    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx) );
+
+    m_wndTableBar.SelectIndex(nIdx);
+}
+
+void CDWMainFrame::OnCloseURL( int nIndex )
+{
+    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+
+    if ( m_wndTableBar.GetItemCount() == 1)
+        return ;
+    int nSelIndex = m_wndTableBar.GetSelectIndex();
+
+    ATLASSERT( nSelIndex == nIndex );
+
+    HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
+    m_wndTableBar.RemoveTableItem(nSelIndex);
+    psmgt.DestryWebWnd( hSelWnd );
+    
+    if ( nSelIndex >= m_wndTableBar.GetItemCount() )
+        nSelIndex = m_wndTableBar.GetItemCount()-1;
+    m_wndTableBar.SelectIndex( nSelIndex );
+    OnSelectURL(nSelIndex);
+}
+
+void CDWMainFrame::OnSelectURL( int nIndex )
+{
+    HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
+    //ATLASSERT(::IsWindow(hSelWnd));
+    m_wndClient.ShowClient( hSelWnd );
+}
+
+
+LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+    switch (wParam)
+    {
+    case TGM_SYS_BTN_CLICK:
+        switch ( lParam )
+        {
+        case CDWTableBar::sys_tbi_new:
+            OnNewURL(NULL);
+            break;
+        case CDWTableBar::sys_tbi_sleft:
+            break;
+        case CDWTableBar::sys_tbi_rleft:
+            break;
+        case CDWTableBar::sys_tbi_menu:
+            break;
+        case CDWTableBar::sys_tbi_prev:
+            break;
+        }
+        break;
+    case TGM_ITEM_CLOSE_CLICK:
+        OnCloseURL(lParam);
+        break;
+    case TGM_SELECT_CHANGE:
+        OnSelectURL(lParam);
+        break;
+    }
 
     return 1L;
 }
