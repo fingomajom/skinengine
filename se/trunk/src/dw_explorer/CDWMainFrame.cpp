@@ -2,8 +2,13 @@
 #include "CDWMainFrame.h"
 #include "DWProcessMgt.h"
 
+
+#ifdef __TEST_WEB_WND__
+CDWMainFrame::CDWMainFrame(void)
+#else
 CDWMainFrame::CDWMainFrame(void) :
     m_wndClient(m_wndTableBar)
+#endif
 {
 }
 
@@ -28,6 +33,11 @@ HWND CDWMainFrame::CreateEx()
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
+    if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB)
+    {
+        return m_wndClient.PreTranslateMessage(pMsg);
+    }
+
     return m_wndClient.PreTranslateMessage(pMsg);
 }
 
@@ -41,7 +51,7 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );
 
     m_wndClient.SetFocus();
 
@@ -126,7 +136,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 
     m_wndTableBar.InsertTableItem( nIdx, 
         L"ÕýÔÚ¼ÓÔØ", uId, uId );
-    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx) );
+    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), L"about:blank" );
 
     m_wndTableBar.SelectIndex(nIdx);
 }
@@ -155,7 +165,9 @@ void CDWMainFrame::OnSelectURL( int nIndex )
 {
     HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
     //ATLASSERT(::IsWindow(hSelWnd));
+#ifndef __TEST_WEB_WND__
     m_wndClient.ShowClient( hSelWnd );
+#endif
 }
 
 

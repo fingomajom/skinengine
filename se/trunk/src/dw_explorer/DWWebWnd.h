@@ -10,57 +10,166 @@
 	purpose:	
 *********************************************************************/
 
+#pragma once
+
+#include "DWAxHost.h"
+#include <mshtmdid.h>
+#include <exdispid.h>
+
+
+#define SKIN_HTMLCTRL_SINK_MAP_ID  0x21
+
+
+static _ATL_FUNC_INFO BeforeNavigateFuncInfo   = { CC_STDCALL, VT_EMPTY, 7 , VT_DISPATCH,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF };
+
+static _ATL_FUNC_INFO NavigateCompleteFuncInfo = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH,
+    VT_VARIANT | VT_BYREF };
+
+static _ATL_FUNC_INFO DocumentCompleteFuncInfo = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH, 
+    VT_VARIANT | VT_BYREF };
+
+static _ATL_FUNC_INFO NewWindowOpenFuncInfo2   = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH, 
+    VT_VARIANT | VT_BYREF };
+
+static _ATL_FUNC_INFO FileDownloadFuncInfo     = { CC_STDCALL, VT_EMPTY, 2 , VT_VARIANT | VT_BYREF, 
+    VT_VARIANT | VT_BYREF };
+
+static _ATL_FUNC_INFO NavigateErrorFuncinfo    = { CC_STDCALL, VT_EMPTY, 5 , VT_DISPATCH,
+    VT_VARIANT | VT_BYREF, 
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF,
+    VT_VARIANT | VT_BYREF };
+
+
 class CDWWebWnd : 
-    public CAxWindow,
-    public CMessageFilter
+    public CWindowImpl<CDWWebWnd>,
+    public CMessageFilter,
+    public CComObjectRootEx<CComSingleThreadModel>,
+    public CComCoClass<CDWWebWnd>,
+    public IDispEventSimpleImpl<SKIN_HTMLCTRL_SINK_MAP_ID, CDWWebWnd, &DIID_DWebBrowserEvents2>
 {
 public:
-
+    
     BOOL PreTranslateMessage(MSG* pMsg)
     {
         if((pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
             (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST))
             return FALSE;
 
-        // give HTML page a chance to translate this message
         return (BOOL)SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
     }
 
-    //BEGIN_MSG_MAP(CDWWebWnd)
+    BOOL OpenURL( LPCTSTR pszURL )
+    {
+        if ( m_spWebBrowser == NULL )
+            return FALSE;
 
-    //    MESSAGE_HANDLER(WM_CREATE , OnCreate )
+        return SUCCEEDED(m_spWebBrowser->Navigate( (BSTR)pszURL, 0, 0, 0, 0 ));
+    }
 
-    //END_MSG_MAP()
+    BEGIN_MSG_MAP(CDWWebWnd)
 
-    CComPtr<IWebBrowser2>	m_spWebBrowser;
+        MESSAGE_HANDLER(WM_CREATE , OnCreate )
+        MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
 
+    END_MSG_MAP()
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        CMessageLoop* pLoop = _Module.GetMessageLoop();
-        ATLASSERT(pLoop != NULL);
-        pLoop->AddMessageFilter(this);
+        CComObject<CDWAxHost>* pAxHost = new CComObject<CDWAxHost>;
+        ATLASSERT(pAxHost != NULL);
 
-        HRESULT hr = S_OK;
-        if ( m_spWebBrowser == NULL )
-        {
-            WCHAR wszCLSID[50] = { 0 };
-
-            StringFromGUID2(CLSID_WebBrowser, wszCLSID, sizeof(wszCLSID) / sizeof(wszCLSID[0])); 
-
-            hr = CreateControlEx( wszCLSID );
-            if (FAILED(hr))
-                return FALSE;
-
-            hr = QueryControl( &m_spWebBrowser);
-            if (FAILED(hr))
-                return FALSE;
-
-            m_spWebBrowser->Navigate( L"http://www.baidu.com",0,0,0,0 );
-        }
-
-
+        HRESULT hr = pAxHost->CreateControl(m_hWnd);
+        ATLASSERT( SUCCEEDED(hr) );
+        
+        pAxHost->QueryControl( IID_IWebBrowser2, (void**)&m_spWebBrowser );
+        
+        m_spWebBrowser->put_RegisterAsBrowser(VARIANT_TRUE);
+        m_spWebBrowser->put_RegisterAsDropTarget(VARIANT_TRUE);
+        
         return 0;
     }
 
+    LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1 ;
+    }
+
+
+    BEGIN_SINK_MAP(CDWWebWnd)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate, &BeforeNavigateFuncInfo)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete, &NavigateCompleteFuncInfo)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete, &DocumentCompleteFuncInfo)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_NEWWINDOW2, OnNewWindowOpen2, &NewWindowOpenFuncInfo2)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_FILEDOWNLOAD, OnFileDownload, &FileDownloadFuncInfo)
+        SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_NAVIGATEERROR, OnNavigateError, &NavigateErrorFuncinfo)
+    END_SINK_MAP()
+
+    void __stdcall OnBeforeNavigate(
+        IDispatch	 *pDisp, 
+        VARIANT		 *url, 
+        VARIANT		 *Flags, 
+        VARIANT		 *TargetFrameName, 
+        VARIANT		 *PostData, 
+        VARIANT		 *Headers, 
+        VARIANT_BOOL *Cancel)
+    {
+    }
+
+    void __stdcall OnNavigateComplete(IDispatch *pDisp, VARIANT *url)
+    {
+    }
+
+    void _stdcall OnDocumentComplete(LPDISPATCH pDisp, VARIANT* URL)
+    {
+        CComPtr<IUnknown> spIUnBrowser;
+        CComPtr<IUnknown> spIUnDisp;
+        m_spWebBrowser->QueryInterface( IID_IUnknown,  (void**)&spIUnBrowser );
+        pDisp->QueryInterface( IID_IUnknown,  (void**)&spIUnDisp );
+
+        BOOL bTopFrame = (spIUnBrowser != NULL && spIUnBrowser == spIUnDisp);
+        
+        ATL::CString strMsg;
+        if ( URL != NULL && URL->bstrVal )
+            strMsg = URL->bstrVal;
+
+        ::MessageBox( NULL, strMsg, strMsg, MB_OK);
+        
+    }
+
+    void __stdcall OnNewWindowOpen2(LPDISPATCH pDisp, VARIANT_BOOL *bCancel)
+    {
+    }
+
+    void __stdcall OnFileDownload(VARIANT* bActiveDocument, VARIANT_BOOL *bCancel)
+    {
+    }
+
+    void __stdcall OnNavigateError(
+        IDispatch *pDisp,
+        VARIANT *URL,
+        VARIANT *TargetFrameName,
+        VARIANT *StatusCode,
+        VARIANT_BOOL *bCancel)
+    {
+        *bCancel = VARIANT_TRUE;
+        //通知父窗口网页打开错误
+    }
+
+
+    CComPtr<IWebBrowser2> m_spWebBrowser;
+};
+
+class CAxBgWnd : public CWindowImpl<CAxBgWnd>
+{
+public:
+
+    DECLARE_EMPTY_MSG_MAP()
+    DECLARE_WND_CLASS(_T("DW_AxBg"))
 };

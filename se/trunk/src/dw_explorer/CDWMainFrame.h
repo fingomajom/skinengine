@@ -17,7 +17,9 @@
 #include "DWFavoriteBar.h"
 #include "DWFrameClient.h"
 
+#ifdef __TEST_WEB_WND__
 #include "DWWebWnd.h"
+#endif
 
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>,
@@ -83,5 +85,10 @@ private:
     CDWFavoriteBar  m_wndFavoriteBar;
     CDWTableBar     m_wndTableBar;
 
+#ifdef __TEST_WEB_WND__
+    CDWWebWnd       m_wndClient;
+#else
     CDWFrameClient  m_wndClient;
+#endif
+
 };

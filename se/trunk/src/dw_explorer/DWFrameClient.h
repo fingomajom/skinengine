@@ -34,8 +34,8 @@ public:
             return FALSE;
 
         // give HTML page a chance to translate this message
-        if ( ::IsWindow(m_wndClient) )
-            return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
+        //if ( ::IsWindow(m_wndClient) )
+        //    return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
 
         return FALSE;
     }
@@ -74,8 +74,7 @@ public:
         }
         else
         {
-            ATLASSERT( m_wndTableBar.GetItemParam(nTabIndex) == uID );
-            m_wndTableBar.SetItemParam( nTabIndex, wParam );
+            ATLASSERT( m_wndTableBar.SetItemParam( nTabIndex, wParam ) == uID );
 
             if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
                 ShowClient( hCreateWnd );
@@ -102,6 +101,8 @@ public:
     {
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
+
+        ClientToScreen(&rcClient);
         
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.MoveWindow(&rcClient);
@@ -114,6 +115,7 @@ public:
 
         m_wndClient = hWndClient;
 
+        ResizeClient();
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
     }

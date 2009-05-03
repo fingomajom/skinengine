@@ -48,6 +48,6 @@ public:
 
 
 protected:
-
-    RPC_BINDING_HANDLE& m_rpcHandle;
+    static CComAutoCriticalSection m_cs;
+    RPC_BINDING_HANDLE m_rpcHandle;
 };

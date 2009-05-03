@@ -17,7 +17,8 @@ public:
 
 public:
 
-    HWND CreateWebWnd( HWND hParent );
+    HWND CreateWebWnd ( HWND hParent, LPCTSTR pszOpenURL );
+    BOOL DestroyWebWnd( HWND hWnd );
 
 protected:
 
@@ -36,7 +37,8 @@ protected:
 
     CComAutoCriticalSection   m_CreateWebWndCS;
     HANDLE m_hCreateWebWndEvent;
-
+    
+    ATL::CString m_strOpenURL;
 
     CRpcMsgServer m_rpcSvr;
     CRpcMsgClient m_rpcClt;

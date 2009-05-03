@@ -31,7 +31,7 @@ public:
     static CDWProcessMgt& Instance();
 
 
-    BOOL CreateWebWnd( HWND hParent, LPARAM lParam );
+    BOOL CreateWebWnd( HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL );
     BOOL DestryWebWnd( HWND hWnd );
 
 protected:

@@ -301,6 +301,10 @@
 				Name="UI"
 				>
 				<File
+					RelativePath=".\DWAxHost.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWWebWnd.h"
 					>
 				</File>

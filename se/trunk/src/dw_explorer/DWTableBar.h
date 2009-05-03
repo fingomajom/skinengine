@@ -453,7 +453,7 @@ public:
             bReflashWnd = TRUE;
         }
 
-        if ( m_nHotCloseIndex != nHotClosePos )
+        if ( m_nHotCloseIndex != nHotClosePos && m_nHotIndex >= sys_tbi_count)
         {
             m_nHotCloseIndex = nHotClosePos;
             bReflashWnd = TRUE;
@@ -510,7 +510,7 @@ public:
         if ( m_nHotIndex >= sys_tbi_count )
         {
             bReflashWnd = TRUE;
-            SendMsgToParent(WM_TABLE_BAR_MSG, TGM_ITEM_CLOSE_CLICK, m_nHotIndex);
+            SendMsgToParent(WM_TABLE_BAR_MSG, TGM_ITEM_CLOSE_CLICK, m_nHotIndex-sys_tbi_count);
         }
 
         if ( bReflashWnd )
@@ -529,12 +529,16 @@ public:
 
         if ( m_nHotIndex >= sys_tbi_count )
         {
+            if ( m_nSelectIndex != m_nHotIndex )
+            {
+                SendMsgToParent(WM_TABLE_BAR_MSG, 
+                    TGM_SELECT_CHANGE, 
+                    m_nSelectIndex - sys_tbi_count);
+            }
+
             m_nSelectIndex = m_nHotIndex;
-            bReflashWnd = TRUE;
             PostMessage(WM_MOUSEMOVE, 0, lParam);
-            SendMsgToParent(WM_TABLE_BAR_MSG, 
-                TGM_SELECT_CHANGE, 
-                m_nSelectIndex - sys_tbi_count);
+            bReflashWnd = TRUE;
         }
         else if ( m_nHotIndex >= 0 )
         {
@@ -542,7 +546,7 @@ public:
             bReflashWnd = TRUE;
         }
 
-        if ( m_nHotCloseIndex >= 0 )
+        if ( m_nHotCloseIndex>= sys_tbi_count )
         {
             m_nCloseClickIndex = m_nHotCloseIndex;
             bReflashWnd = TRUE;

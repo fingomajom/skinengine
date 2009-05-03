@@ -117,9 +117,9 @@ DWORD WINAPI CRpcMsgServer::RpcSvrListenThreadProc( LPVOID )
     return 0L;
 }
 
+CComAutoCriticalSection CRpcMsgClient::m_cs;
 
-CRpcMsgClient::CRpcMsgClient() :
-    m_rpcHandle(hMsgRpcNpBinding)
+CRpcMsgClient::CRpcMsgClient()
 {
     m_rpcHandle = NULL;
 }
@@ -202,7 +202,10 @@ int CRpcMsgClient::SendRpcMsg(
 
     RpcTryExcept
     {
+        m_cs.Lock();
+        hMsgRpcNpBinding = m_rpcHandle;
         nRet = ::SendRpcMsg( nMsgId, varIn, &varRet );
+        m_cs.Unlock();
 
         if ( (varRet.vt & VT_ARRAY) && ppResult != NULL )
             *ppResult = SafeArray2DataBuffer( varRet.parray );

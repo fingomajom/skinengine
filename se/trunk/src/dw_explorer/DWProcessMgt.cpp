@@ -26,10 +26,23 @@ CDWProcessMgt& CDWProcessMgt::Instance()
     return *__CDWProcessMgt_Instance__;
 }
 
-BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam)
+BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL )
 {
+    if ( pszOpenURL == NULL )
+        return FALSE;
+
+    int nLen = wcslen(pszOpenURL) + 4;
+    WCHAR* pParam = new WCHAR[ nLen ];
+
+    if ( pParam == NULL )
+        return FALSE;
+
+    pParam[0] = nLen;
+    *((LPARAM*)(pParam+1)) = lParam;
+    wcscpy_s(pParam+3, nLen - 3, pszOpenURL);
+
     return ::PostThreadMessage( m_dwThreadId,
-        PMAM_CREATE_WEBWND, (WPARAM)hParent, lParam );
+        PMAM_CREATE_WEBWND, (WPARAM)hParent, (LPARAM)pParam );
 }
 
 BOOL CDWProcessMgt::DestryWebWnd(HWND hWnd)
@@ -57,6 +70,7 @@ ProcessInfo* CDWProcessMgt::_FindProcessInfo(HWND hWnd)
 
 HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
 {
+    WCHAR* pParam = (WCHAR*)lParam;
     ProcessInfo* pPInfo = NULL;
 
     m_cs.Lock();
@@ -72,16 +86,20 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
     if ( pPInfo == NULL )
         pPInfo = CreateSEProcess();
     if ( pPInfo == NULL )
+    {
+        delete []pParam;
         return NULL;
+    }
 
-
-    static LSEDataBufferImpl<ULONG> createParamBuf;
-    createParamBuf = (ULONG)hParent;
+    LSEDataBuffer createParamBuf((pParam[0]-1) * sizeof(WCHAR));
+    WCHAR* pBuffer  = (WCHAR*)createParamBuf.GetDataBuffer();
+    *(HWND*)pBuffer = hParent;
+    wcscpy_s( pBuffer+2, pParam[0]-3, pParam+3 );
 
     HWND hWnd = NULL;
     CComPtr<IDataBuffer> spResult;
     int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_create_webwnd, 
-        createParamBuf.GetDataBuffer(), &spResult );
+        &createParamBuf, &spResult );
     if (spResult.p != NULL)
         spResult.p->AddRef();
 
@@ -98,7 +116,9 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
         }
     }
 
-    ::PostMessage( hParent, WM_CREATE_WEB_WND, (WPARAM)hWnd, lParam);
+    ::PostMessage( hParent, WM_CREATE_WEB_WND, (WPARAM)hWnd, *(LPARAM*)(pParam+1));
+
+    delete []pParam;
 
     return NULL;
 }
@@ -113,7 +133,7 @@ BOOL CDWProcessMgt::_DestryWebWnd( HWND hWnd )
     static LSEDataBufferImpl<ULONG> destroyParamBuf;
     destroyParamBuf = (ULONG)hWnd;
 
-    int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_create_webwnd, 
+    int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_destroy_webwnd, 
         destroyParamBuf.GetDataBuffer(), NULL );
 
     pPInfo->m_listWnd.RemoveAt( pPInfo->m_listWnd.Find(hWnd) );
@@ -124,7 +144,7 @@ BOOL CDWProcessMgt::_DestryWebWnd( HWND hWnd )
         m_cs.Lock();        
         m_listProcess.RemoveAt( m_listProcess.Find( pPInfo ) );
         m_cs.Unlock();
-        pPInfo->rpcClt.SendRpcMsg( s2c_quit, 0, 0 );
+        nRet = pPInfo->rpcClt.SendRpcMsg( s2c_quit, 0, 0 );
         delete pPInfo;
     }
 
