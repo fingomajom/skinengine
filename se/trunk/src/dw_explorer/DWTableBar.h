@@ -271,7 +271,7 @@ public:
         CIconHandle icon = tabInfo.icon;
         if ( icon.IsNull() )
         {
-            icon = m_iconNull;
+            icon = skin.iconNull;
         }
         icon.DrawIconEx( hDC, tabInfo.rcBtn.left + 15, tabInfo.rcBtn.top + 7, 16, 16 );
         
@@ -384,8 +384,6 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     { 
-        m_iconNull.LoadIcon(IDI_ICON_FAV_NULL_URL, 0, 0, LR_DEFAULTSIZE);
-
         m_image_new.LoadFromResource(IDR_PNG_TABLE_NEW);
         m_image_item.LoadFromResource(IDR_PNG_TABLE_ITEM);
         m_image_close.LoadFromResource(IDR_PNG_TABLE_CLOSE);
@@ -672,8 +670,6 @@ protected:
 
     ATL::CAtlArray<TableBtnInfo> m_vtTableBtn;
     
-    CIcon m_iconNull;
-
     CDWImage m_image_item;
     CDWImage m_image_close;
     CDWImage m_image_new;

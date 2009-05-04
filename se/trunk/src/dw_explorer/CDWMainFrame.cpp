@@ -226,21 +226,6 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
         {
         case CDWTableBar::sys_tbi_new:
             {
-                //LPCTSTR pszURLS[] = 
-                //{
-                //    L"http://urlspirit.spiritsoft.cn/urlcore/admin.php",
-                //    L"http://www.sogou.com",
-                //    L"http://www.baidu.com",
-                //    L"http://www.google.com",
-                //    L"http://www.sina.com",
-                //    L"http://www.kingsoft.com",
-                //    L"http://www.sohu.com"
-                //};
-
-                //static int url_index = 0;
-                //OnNewURL( pszURLS[url_index%6] );
-                //url_index++;
-
                 OnNewURL( NULL );
             }
             break;

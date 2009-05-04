@@ -12,7 +12,7 @@
 
 CDWProcessMgt::CDWProcessMgt(void)
 {
-    m_dwMaxWndCreate = 1;
+    m_dwMaxWndCreate = -1;
 
     CloseHandle(
         CreateThread( NULL, 0, AsynMsgLoopThread, this, 0, &m_dwThreadId) );

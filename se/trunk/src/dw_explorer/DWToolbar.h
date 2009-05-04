@@ -208,7 +208,7 @@ public:
     }
     LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        if ( m_nHotIndex ==  m_nClickIndex )
+        if ( m_nHotIndex >= 0 && m_nHotIndex ==  m_nClickIndex )
         {
             CClientDC dc(m_hWnd);
 

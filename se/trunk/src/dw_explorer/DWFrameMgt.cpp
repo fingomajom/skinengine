@@ -41,6 +41,9 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 {
     int nRet = 0;
 
+    HRESULT hRes = ::CoInitialize(NULL);
+    ATLASSERT(SUCCEEDED(hRes));
+
     CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
     CDWFrameMgt&   frmmgt = CDWFrameMgt::Instance();
@@ -67,6 +70,8 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     frmmgt.m_rpcSvr.UninitRpcServer();
     ReleaseMutex ( g_hMutex );
     _Module.RemoveMessageLoop();
+
+    ::CoUninitialize();
 
     delete &frmmgt;
     delete &psmgt;
@@ -124,6 +129,8 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
 
     HRESULT hRes = ::CoInitialize(NULL);
     ATLASSERT(SUCCEEDED(hRes));
+
+    AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);	
 
     _Module.AddMessageLoop(&theLoop);
     

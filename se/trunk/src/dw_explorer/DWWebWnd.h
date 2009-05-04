@@ -229,7 +229,7 @@ public:
         VARIANT *StatusCode,
         VARIANT_BOOL *bCancel)
     {
-        *bCancel = VARIANT_TRUE;
+        //*bCancel = VARIANT_TRUE;
         //通知父窗口网页打开错误
     }
 
@@ -242,10 +242,3 @@ public:
     ATL::CString m_strTitle;
 };
 
-class CAxBgWnd : public CWindowImpl<CAxBgWnd>
-{
-public:
-
-    DECLARE_EMPTY_MSG_MAP()
-    DECLARE_WND_CLASS(_T("DW_AxBg"))
-};

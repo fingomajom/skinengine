@@ -15,8 +15,25 @@
 
 struct IEFavoriteItem
 {
-    IEFavoriteItem()
+    IEFavoriteItem( LPCTSTR pszTitle, LPCTSTR pszURL = NULL )
     {
+        if ( pszTitle != NULL )
+        {
+            strTitle = pszTitle;
+
+            if ( strTitle.GetLength() > 4 && !StrCmpI( strTitle.Right(4), L".url" ) )
+                strTitle.Delete( strTitle.GetLength() - 4, 4);
+
+            if ( strTitle.GetLength() > 40 )
+            {
+                strTitle.Delete( 40, strTitle.GetLength() - 40 );
+                strTitle += L"...";
+            }
+        }
+
+        if ( pszURL != NULL )
+            strURL = pszURL;
+
         pChildList  = NULL;
         pParentList = NULL;
     }
@@ -91,11 +108,11 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
                 StrCmp(wfd.cFileName, _T("..")) ) 
                 
             {
-                IEFavoriteItem fItem;
-                fItem.strTitle = wfd.cFileName;
+                IEFavoriteItem fItem(wfd.cFileName);
                 fItem.pParentList = pList;
-                fItem.pChildList = new ATL::CAtlList<IEFavoriteItem>;
-                ATLASSERT(fItem->pChildList);
+                fItem.pChildList  = new ATL::CAtlList<IEFavoriteItem>;
+
+                ATLASSERT(fItem.pChildList);
 
                 if ( fItem.pChildList )
                 {
@@ -123,12 +140,10 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
             
             if ( lstrlenW(szURL) > 0 )
             {
-                IEFavoriteItem fItem;
+                IEFavoriteItem fItem(wfd.cFileName, szURL);
 
-                fItem.strTitle = wfd.cFileName;
-                fItem.strURL   = szURL;
                 fItem.pParentList = pList;
-                
+
                 pList->AddTail( fItem );
             }
         }

@@ -26,6 +26,11 @@ public:
         MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
         MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
         MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSkipMsg    )
+        MESSAGE_HANDLER(WM_ACTIVATEAPP  , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_MOUSEACTIVATE  , OnSkipMsg    )
+        MESSAGE_HANDLER(WM_CHILDACTIVATE  , OnSkipMsg    )
+        
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize  )
         MESSAGE_HANDLER(WM_SIZE      , OnSize        )
 
