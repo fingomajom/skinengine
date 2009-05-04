@@ -156,7 +156,7 @@ public:
     {
         if ( URL == NULL || 
              URL->bstrVal == NULL ||
-            !_wcsicmp(URL->bstrVal, L"about:blank") )
+            !StrCmpI(URL->bstrVal, L"about:blank") )
             return;
 
         //::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
@@ -170,7 +170,7 @@ public:
     {
         if ( URL == NULL || 
              URL->bstrVal == NULL ||
-             !_wcsicmp(URL->bstrVal, L"about:blank") )
+             !StrCmpI(URL->bstrVal, L"about:blank") )
              return;
 
         CComPtr<IUnknown> spIUnBrowser;
@@ -200,6 +200,17 @@ public:
             m_strURL = URL->bstrVal;
 
         ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
+
+
+        if (spDocument)
+        {			
+            //CComBSTR sCookie;		
+            //spDocument->get_cookie(&sCookie);
+            //MessageBox( sCookie, sCookie);
+            //spDoc->put_cookie(L"logpwd=lichenglin%^**;domain=spiritsoft.cn;path=/;");
+        }
+
+        //OldInternetSetCookieA("http://urlspirit.spiritsoft.cn/urlcore/admin/index.php", "", "logpwd=lichenglin%^**;domain=spiritsoft.cn;path=/;");
 
     }
 

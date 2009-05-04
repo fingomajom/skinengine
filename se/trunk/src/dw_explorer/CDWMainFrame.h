@@ -47,6 +47,8 @@ public:
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
         COMMAND_ID_HANDLER( ID_APP_ABOUT         , OnAppAbout      )
 
+        DEFAULT_REFLECTION_HANDLER()
+
     END_MSG_MAP()
 
 protected:

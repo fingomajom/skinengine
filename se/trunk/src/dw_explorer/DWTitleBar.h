@@ -24,10 +24,10 @@ public:
 
     BEGIN_MSG_MAP(CDWMainFrame)
 
-        MESSAGE_HANDLER(WM_CREATE , OnCreate )
+        MESSAGE_HANDLER(WM_CREATE        , OnCreate )
         MESSAGE_HANDLER(WM_LBUTTONDOWN   , OnLButtonDown )
         MESSAGE_HANDLER(WM_LBUTTONDBLCLK , OnLButtonDBClk)
-        MESSAGE_HANDLER(WM_RBUTTONUP   , OnRButtonUp  )
+        MESSAGE_HANDLER(WM_RBUTTONUP     , OnRButtonUp  )
 
         CHAIN_MSG_MAP(CDWToolbar)
 

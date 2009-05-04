@@ -13,6 +13,7 @@ protected:
     {
         RECT      rcBtn;
         UINT      uID;
+        LPARAM    lParam;
         CDWImage* image;
         ATL::CString strCaption;
     };
@@ -26,7 +27,7 @@ public:
         m_nHotIndex = -1;
     }
 
-    BOOL AddToolBtn( LPCTSTR pszCaption, UINT uID, UINT uResId )
+    BOOL AddToolBtn( LPCTSTR pszCaption, UINT uID, UINT uResId, LPARAM lParam = 0 )
     {
         CDWImage* image = new CDWImage();
         if ( image == NULL )
@@ -38,10 +39,10 @@ public:
             return FALSE;
         }
 
-        return AddToolBtn( pszCaption, uID, image );
+        return AddToolBtn2( pszCaption, uID, image, lParam );
     }
 
-    BOOL AddToolBtn( LPCTSTR pszCaption, UINT uID, CDWImage* image )
+    BOOL AddToolBtn2( LPCTSTR pszCaption, UINT uID, CDWImage* image = NULL, LPARAM lParam = 0 )
     {
         ToolBtnInfo info = { 0 };
 
@@ -231,6 +232,10 @@ public:
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
+        ATLASSERT(info.image);
+        if ( info.image == NULL )
+            return;
+
         RECT rcSrcImage = { 0 };
         
         rcSrcImage.left   = info.image->GetWidth() / 4;
@@ -244,19 +249,33 @@ public:
         info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
     }
 
+    virtual void DoBeforePaint( HDC hDC ) {}
+    virtual void DoAfterPaint ( HDC hDC ) {}
+
     LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
         CPaintDC dc(m_hWnd);
 
-        for ( int idx = 0; idx < m_vtToolBtn.GetSize(); idx++ )
-        {
-            ToolBtnInfo& info = m_vtToolBtn[idx];
+        RECT rcClient = { 0 };
+        GetClientRect(&rcClient);
 
-            ATLASSERT(info.image);
-            if ( info.image == NULL )
-                continue;
+        {
+            CMemoryDC memDC( dc, rcClient );
             
-            DrawToolBtn( dc, info, 0 );
+            memDC.FillSolidRect( &rcClient, skin.clrFrameWindow );
+
+            DoBeforePaint( memDC );
+
+            for ( int idx = 0; idx < m_vtToolBtn.GetSize(); idx++ )
+            {
+                ToolBtnInfo& info = m_vtToolBtn[idx];
+
+                DrawToolBtn( memDC, info, 0 );
+            }
+
+            DoAfterPaint( memDC );
         }
 
         return 1L;
@@ -264,6 +283,7 @@ public:
 
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        return 1L;
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
         CDCHandle dc = (HDC)wParam;

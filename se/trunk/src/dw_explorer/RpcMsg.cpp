@@ -133,7 +133,7 @@ BOOL CRpcMsgClient::InitRpcClient( LPCWSTR pszSvrName )
     if ( m_rpcHandle != NULL )
         return TRUE;
 
-    while( pszSvrName != NULL && wcslen(pszSvrName) > 0 )
+    while( pszSvrName != NULL && lstrlenW(pszSvrName) > 0 )
     {
         rpcStatus = RpcStringBindingCompose(
             NULL, 

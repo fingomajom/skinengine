@@ -61,7 +61,10 @@ public:
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return 1 ;
+        if ( m_wndClient.IsWindow() )
+            return 1L;
+
+        return DefWindowProc();
     }
 
 
@@ -83,7 +86,8 @@ public:
         }
         else
         {
-            ATLASSERT( m_wndTableBar.SetItemParam( nTabIndex, wParam ) == uID );
+            if( m_wndTableBar.SetItemParam( nTabIndex, wParam ) != uID )
+                ATLASSERT( 0 && L"id changed no.." );
 
             //m_wndTableBar.SetItemCaption( nTabIndex, L"¿Õ°×Ò³" );
 

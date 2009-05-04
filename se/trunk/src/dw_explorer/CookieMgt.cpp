@@ -202,39 +202,39 @@ BOOL WINAPI MyInternetGetCookieExW(
 
 CCookieMgt::CCookieMgt(void)
 {
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
+    //DetourTransactionBegin();
+    //DetourUpdateThread(GetCurrentThread());
 
-    DetourAttach((void**)&OldInternetSetCookieA  , MyInternetSetCookieA);
-    DetourAttach((void**)&OldInternetSetCookieW  , MyInternetSetCookieW);
-    DetourAttach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
-    DetourAttach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
+    //DetourAttach((void**)&OldInternetSetCookieA  , MyInternetSetCookieA);
+    //DetourAttach((void**)&OldInternetSetCookieW  , MyInternetSetCookieW);
+    //DetourAttach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
+    //DetourAttach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
 
-    DetourAttach((void**)&OldInternetGetCookieA  , MyInternetGetCookieA);
-    DetourAttach((void**)&OldInternetGetCookieW  , MyInternetGetCookieW);
-    DetourAttach((void**)&OldInternetGetCookieExA, MyInternetGetCookieExA);
-    DetourAttach((void**)&OldInternetGetCookieExW, MyInternetGetCookieExW);
+    //DetourAttach((void**)&OldInternetGetCookieA  , MyInternetGetCookieA);
+    //DetourAttach((void**)&OldInternetGetCookieW  , MyInternetGetCookieW);
+    //DetourAttach((void**)&OldInternetGetCookieExA, MyInternetGetCookieExA);
+    //DetourAttach((void**)&OldInternetGetCookieExW, MyInternetGetCookieExW);
 
-    OldInternetSetCookieA("http://urlspirit.spiritsoft.cn/urlcore/admin/index.php", "", "logpwd=lichenglin%^**;domain=spiritsoft.cn;path=/;");
+    //OldInternetSetCookieA("http://urlspirit.spiritsoft.cn/urlcore/admin/index.php", "", "logpwd=lichenglin%^**;domain=spiritsoft.cn;path=/;");
 
     DetourTransactionCommit();
 }
 
 CCookieMgt::~CCookieMgt(void)
 {
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
+    //DetourTransactionBegin();
+    //DetourUpdateThread(GetCurrentThread());
 
-    DetourDetach((void**)&OldInternetSetCookieA  , MyInternetSetCookieA);
-    DetourDetach((void**)&OldInternetSetCookieW  , MyInternetSetCookieW);
-    DetourDetach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
-    DetourDetach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
+    //DetourDetach((void**)&OldInternetSetCookieA  , MyInternetSetCookieA);
+    //DetourDetach((void**)&OldInternetSetCookieW  , MyInternetSetCookieW);
+    //DetourDetach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
+    //DetourDetach((void**)&OldInternetSetCookieExW, MyInternetSetCookieExW);
 
-    DetourDetach((void**)&OldInternetGetCookieA  , MyInternetGetCookieA);
-    DetourDetach((void**)&OldInternetGetCookieW  , MyInternetGetCookieW);
-    DetourDetach((void**)&OldInternetGetCookieExA, MyInternetGetCookieExA);
-    DetourDetach((void**)&OldInternetGetCookieExW, MyInternetGetCookieExW);
-    DetourTransactionCommit();
+    //DetourDetach((void**)&OldInternetGetCookieA  , MyInternetGetCookieA);
+    //DetourDetach((void**)&OldInternetGetCookieW  , MyInternetGetCookieW);
+    //DetourDetach((void**)&OldInternetGetCookieExA, MyInternetGetCookieExA);
+    //DetourDetach((void**)&OldInternetGetCookieExW, MyInternetGetCookieExW);
+    //DetourTransactionCommit();
 }
 
 CCookieMgt& CCookieMgt::Instance()

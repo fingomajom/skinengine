@@ -117,7 +117,6 @@ int OnWebWndInfo(
 
     HWND hWnd = (HWND)(*((ULONG*)pParameter->GetDataBuffer()));
     
-
     ATL::CString strTitle;
     ATL::CString strURL;
 
@@ -144,8 +143,8 @@ int OnWebWndInfo(
 
     WCHAR* pszBufer = (WCHAR*)(*ppResult)->GetDataBuffer();
     pszBufer[0] = strTitle.GetLength() + 2;
-    wcscpy_s( pszBufer + 1, strTitle.GetLength() + 1, strTitle);
-    wcscpy_s( pszBufer + pszBufer[0], strURL.GetLength() + 1, strURL);
+    StrCpy( pszBufer + 1, strTitle);
+    StrCpy( pszBufer + pszBufer[0], strURL);
 
     return 0;
 }
@@ -324,7 +323,6 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     ::SetEvent(clt.m_hCreateWebWndEvent);
 
     wndWeb.OpenURL(strURL);
-    //wndWeb.OpenURL(L"http://www.sina.com");
 
     clt._AddWebWnd(&wndWeb);
 

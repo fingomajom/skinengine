@@ -48,7 +48,7 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     ATLASSERT(pLoop != NULL);
     pLoop->AddMessageFilter(this);
 
-    m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
@@ -138,7 +138,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     nIdx++;
 
     ATL::CString strCaption;
-    if ( (pszURL == NULL || wcslen(pszURL) <= 0 ) || !_wcsicmp(pszURL, L"about:blank") )
+    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, L"about:blank") )
         strCaption = L"¿Õ°×Ò³";
     else
         strCaption = pszURL;
@@ -146,7 +146,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     m_wndTableBar.InsertTableItem( nIdx, 
         strCaption, uId, uId );
 
-    pszURL =  (pszURL == NULL || wcslen(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? L"about:blank" : pszURL;
 
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
@@ -162,7 +162,7 @@ void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
 
     int nIdx = m_wndTableBar.GetSelectIndex();
 
-    pszURL =  (pszURL == NULL || wcslen(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? L"about:blank" : pszURL;
 
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 

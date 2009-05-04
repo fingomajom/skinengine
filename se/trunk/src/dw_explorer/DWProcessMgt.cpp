@@ -34,7 +34,7 @@ BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL
     if ( pszOpenURL == NULL )
         return FALSE;
 
-    int nLen = wcslen(pszOpenURL) + 4;
+    int nLen = lstrlenW(pszOpenURL) + 4;
     WCHAR* pParam = new WCHAR[ nLen ];
 
     if ( pParam == NULL )
@@ -42,7 +42,7 @@ BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL
 
     pParam[0] = nLen;
     *((LPARAM*)(pParam+1)) = lParam;
-    wcscpy_s(pParam+3, nLen - 3, pszOpenURL);
+    StrCpy(pParam+3, pszOpenURL);
 
     BOOL bRet = ::PostThreadMessage( m_dwThreadId,
         PMAM_CREATE_WEBWND, (WPARAM)hParent, (LPARAM)pParam );
@@ -63,7 +63,7 @@ BOOL CDWProcessMgt::WebWndOpenURL( HWND hWnd, LPCTSTR pszOpenURL )
     if ( pszOpenURL == NULL || hWnd == NULL )
         return FALSE;
 
-    int nLen = wcslen(pszOpenURL) + 4;
+    int nLen = lstrlenW(pszOpenURL) + 4;
     WCHAR* pParam = new WCHAR[ nLen ];
 
     if ( pParam == NULL )
@@ -71,7 +71,7 @@ BOOL CDWProcessMgt::WebWndOpenURL( HWND hWnd, LPCTSTR pszOpenURL )
 
     pParam[0] = nLen;
     *((HWND*)(pParam+1)) = hWnd;
-    wcscpy_s(pParam+3, nLen - 3, pszOpenURL);
+    StrCpy(pParam+3, pszOpenURL);
 
     BOOL bRet = ::PostThreadMessage( m_dwThreadId,
         PMAM_WEBWND_OPENURL, 00, (LPARAM)pParam );
@@ -134,7 +134,7 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
     LSEDataBuffer createParamBuf((pParam[0]-1) * sizeof(WCHAR));
     WCHAR* pBuffer  = (WCHAR*)createParamBuf.GetDataBuffer();
     *(HWND*)pBuffer = hParent;
-    wcscpy_s( pBuffer+2, pParam[0]-3, pParam+3 );
+    StrCpy( pBuffer+2, pParam+3 );
 
     HWND hWnd = NULL;
     CComPtr<IDataBuffer> spResult;

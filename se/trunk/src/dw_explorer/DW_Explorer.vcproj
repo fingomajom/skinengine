@@ -280,6 +280,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWIEFavoritesMgt.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWImage.h"
 						>
 					</File>
@@ -472,6 +476,7 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						ExcludedFromBuild="true"
 						>
 						<Tool
 							Name="VCMIDLTool"
