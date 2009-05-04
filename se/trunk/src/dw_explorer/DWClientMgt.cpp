@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "DWClientMgt.h"
 #include "DWWebWnd.h"
+#include "CookieMgt.h"
 
 DWORD CDWClientMgt::m_dwMainThreadId = NULL;
 
@@ -207,7 +208,7 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
     CDWClientMgt& cltmgt = CDWClientMgt::Instance();
-
+    CCookieMgt&   ckemgt = CCookieMgt::Instance();
 
     cltmgt.m_rpcSvr.SetReceiveFunc(DWCltReceiveRpcMsg);
     if ( !cltmgt.m_rpcSvr.InitRpcServer(lpstrCmdLine+6) )
@@ -226,6 +227,7 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     _Module.RemoveMessageLoop();
 
     delete &cltmgt;
+    delete &ckemgt;
 
     return nRet;
 }

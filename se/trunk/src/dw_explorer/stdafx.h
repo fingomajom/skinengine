@@ -18,6 +18,7 @@
 #include <atlctrlw.h>
 #include <atlimage.h>
 #include <atlcoll.h>
+#include <WinInet.h>
 
 extern CAppModule _Module;
 
