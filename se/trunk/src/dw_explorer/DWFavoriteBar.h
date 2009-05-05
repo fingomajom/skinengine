@@ -14,9 +14,14 @@
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
 #include "DWIEFavoritesMgt.h"
+#include "DWMenu.h"
 
+static HHOOK g_hFavPopupMenuHook = NULL;
+static HWND  g_wndFav = NULL;
 
-class CDWFavoriteBar : public CDWToolbar
+class CDWFavoriteBar : 
+    public CDWMenuImpl<CDWFavoriteBar>,
+    public CDWToolbar
 {
     enum {
         WM_LOADFAVORITE_OK = WM_USER + 3000
@@ -26,8 +31,8 @@ public:
     CDWFavoriteBar()
     {
         m_nLeftSpace = 10;
+        m_nTopSpace  = 2;
         m_bPopMenu   = FALSE;
-        m_dwMenuThread = 0;
     }
 
     BEGIN_MSG_MAP(CDWFavoriteBar)
@@ -45,7 +50,10 @@ public:
         MESSAGE_HANDLER(WM_LBUTTONDOWN , OnLButtonDown)
         MESSAGE_HANDLER(WM_LBUTTONUP   , OnLButtonUp)
 
+        MESSAGE_HANDLER(WM_TIMER       , OnTimer )
+
         CHAIN_MSG_MAP(CDWToolbar)
+        CHAIN_MSG_MAP(CDWMenuImpl<CDWFavoriteBar>)
 
     END_MSG_MAP()
         
@@ -53,12 +61,11 @@ public:
     {
         DWORD dwThreadId = 0;
         CloseHandle( CreateThread(NULL, 0, LoadFavoritesThread, this, 0, &dwThreadId));
-        CloseHandle( CreateThread(NULL, 0, PopupMenuThread, this, 0, &m_dwMenuThread));
+        //CloseHandle( CreateThread(NULL, 0, PopupMenuThread, this, 0, &m_dwMenuThread));
 
         bHandled = FALSE;
 
-
-        return 1L;    
+        return 0L;    
     }
 
     virtual void RePositionBtns()
@@ -81,7 +88,7 @@ public:
             dc.GetTextExtent( info.strCaption, -1, &sizeText );
 
             rcBtn.right += ( sizeText.cx + 30 );
-            rcBtn.bottom = m_nTopSpace + rcClient.bottom;
+            rcBtn.bottom = rcClient.bottom ;
 
             info.rcBtn = rcBtn;
 
@@ -154,31 +161,49 @@ public:
         return 1L;
     }
 
+    LRESULT OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        bHandled = FALSE;
+        
+        if ( wParam == 1001 )
+        {
+            KillTimer(1001);
+
+            POINT pt;
+            GetCursorPos(&pt);
+            
+            PopupFavMenu();
+        }
+
+        return 0;
+    }
+    
+
     LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         int nOldHotIndex = m_nHotIndex;
 
         CDWToolbar::OnMouseMove( uMsg, wParam, lParam, bHandled );
 
-        if (  m_bPopMenu && (nOldHotIndex < 0 || m_nHotIndex < 0) && m_nClickIndex >= 0)
+        if (  m_bPopMenu && m_nClickIndex >= 0 && (m_nHotIndex < 0 || nOldHotIndex < 0))
         {
             CClientDC dc(m_hWnd);
             DrawToolBtn( dc, m_vtToolBtn[m_nClickIndex], 2 );
         }
 
-        if ( m_bPopMenu && m_nHotIndex >= 0 )
+        if ( m_bPopMenu && m_nHotIndex >= 0  )
         {
-
             if ( m_nHotIndex != m_nClickIndex && m_nHotIndex >= 0 )
             {
                 m_nClickIndex = m_nHotIndex;
 
                 POINT pt;
                 GetCursorPos(&pt);
-                mouse_event( MOUSEEVENTF_LEFTDOWN, pt.x, pt.y, NULL, NULL);
-                mouse_event( MOUSEEVENTF_LEFTUP, pt.x, pt.y, NULL, NULL);
 
-                m_bPopMenu = TRUE;
+                mouse_event( MOUSEEVENTF_LEFTDOWN, pt.x, pt.y, NULL, NULL);
+                mouse_event( MOUSEEVENTF_LEFTUP  , pt.x, pt.y, NULL, NULL);
+
+                SetTimer(1001, 10);
             }
         }
         
@@ -197,14 +222,47 @@ public:
         return 1L;
     }
 
+    void PopupFavMenu()
+    {
+        CMenuHandle menu = CreateFavoriteMenu();
+
+        TPMPARAMS tpmParams;
+        tpmParams.cbSize = sizeof(tpmParams);
+        GetWindowRect(&tpmParams.rcExclude);
+
+        g_wndFav = m_hWnd;
+        g_hFavPopupMenuHook = ::SetWindowsHookEx(WH_GETMESSAGE, 
+            MsgHookFunc, 
+            _Module.GetModuleInstance(), 
+            GetCurrentThreadId());
+        ATLASSERT(g_hFavPopupMenuHook);
+
+        m_bPopMenu = TRUE;
+        int nCmdId = TrackPopupMenu( menu,
+            TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD, 
+            m_ptMenu.x, m_ptMenu.y, m_hWnd, &tpmParams);
+        m_bPopMenu = FALSE;
+
+        UnhookWindowsHookEx(g_hFavPopupMenuHook);
+
+        Invalidate();
+        if ( nCmdId != NULL )
+        {
+            IEFavoriteItem* pitem = (IEFavoriteItem*)nCmdId;
+
+            CDWEventSvr::Instance().OnMessage( edi_open_url, 
+                (WPARAM)(LPCTSTR)pitem->strURL, TRUE );
+        }
+
+    }
+
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CDWToolbar::OnLButtonDown( uMsg, wParam, lParam, bHandled );
         
         if ( m_nClickIndex >= 0 && m_nHotIndex == m_nClickIndex )
         {
-            ::PostMessage(m_hWndMenu, WM_MOUSELEAVE, (WPARAM)this, 0 );
-            m_bPopMenu = TRUE;
+            PopupFavMenu();
         }
 
 
@@ -225,6 +283,39 @@ public:
 
         return 1L;
     }
+
+    static LRESULT CALLBACK MsgHookFunc(
+        int nCode,
+        WPARAM wParam,
+        LPARAM lParam )
+    {
+        LPMSG pMsg = (LPMSG)lParam;
+
+
+        LRESULT lRet = ::CallNextHookEx( g_hFavPopupMenuHook, nCode, wParam, lParam);
+
+        if ( pMsg->message == WM_MOUSEMOVE )
+        {
+            int xPos = GET_X_LPARAM(pMsg->lParam); 
+            int yPos = GET_Y_LPARAM(pMsg->lParam); 
+
+            POINT pt = {xPos, yPos};
+
+            RECT rcWindow = { 0 };
+            ::GetWindowRect(g_wndFav, &rcWindow);
+
+            xPos -= rcWindow.left;
+            yPos -= rcWindow.top;
+
+            if ( ::PtInRect(&rcWindow, pt) )
+            {
+                ::SendMessage( g_wndFav, WM_MOUSEMOVE, pMsg->wParam, MAKELPARAM(xPos,yPos) );
+            }
+        }
+        
+        return lRet;
+    }
+
 
     LRESULT OnDestroy(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
@@ -321,90 +412,9 @@ public:
         return 0;
     }
 
-    class CNullMenuWnd : public CWindowImpl<CNullMenuWnd>
-    {
-    public:
-        BEGIN_MSG_MAP(CDWFavoriteBar)
-
-            MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)
-
-        END_MSG_MAP()
-
-        LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-        {   
-            CDWFavoriteBar* pthis = (CDWFavoriteBar*)wParam;
-
-            CMenuHandle menu = pthis->CreateFavoriteMenu();
-
-            HWND hFocus = GetFocus();
-
-            SetForegroundWindow(m_hWnd);
-
-            TPMPARAMS tpmParams;
-            tpmParams.cbSize = sizeof(tpmParams);
-            pthis->GetWindowRect(&tpmParams.rcExclude);
-
-            pthis->m_bPopMenu = TRUE;                
-            int nCmdId = menu.TrackPopupMenuEx( 
-                TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD, 
-                pthis->m_ptMenu.x, pthis->m_ptMenu.y, m_hWnd, &tpmParams);
-            pthis->m_bPopMenu = FALSE;
-            
-            pthis->Invalidate();            
-            ::SetFocus(hFocus);
-
-            if ( nCmdId != NULL )
-            {
-                IEFavoriteItem* pitem = (IEFavoriteItem*)nCmdId;
-
-                CDWEventSvr::Instance().OnMessage( edi_open_url, 
-                    (WPARAM)(LPCTSTR)pitem->strURL, TRUE );
-            }
-
-            return 1L;
-        }
-
-
-        DECLARE_WND_CLASS(_T("DW_NullMenuWnd"))
-    };
-
-
-
-    static DWORD WINAPI PopupMenuThread( LPVOID p )
-    {
-        CDWFavoriteBar* pthis = (CDWFavoriteBar*)p;
-
-        HRESULT hRes = ::CoInitialize(NULL);
-        ATLASSERT(SUCCEEDED(hRes));
-
-        AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);	
-
-        CMessageLoop theLoop;
-        _Module.AddMessageLoop(&theLoop);
-
-        //MSG msg;
-        CNullMenuWnd wndBk;
-
-        RECT rcDefault = {0,0,0,0};
-
-        pthis->m_hWndMenu = wndBk.Create( NULL, &rcDefault, 0, 
-            WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW );
-        
-        theLoop.Run();
-
-        pthis->m_bPopMenu = FALSE;                
-        wndBk.DestroyWindow();
-
-        _Module.RemoveMessageLoop();
-        ::CoUninitialize();
-
-        return 0;
-    }
 
     POINT m_ptMenu;
     BOOL  m_bPopMenu;
-    DWORD m_dwMenuThread;
-    HWND  m_hWndMenu;
 
 public:
 

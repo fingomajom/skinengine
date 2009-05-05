@@ -17,6 +17,7 @@
 #include "DWFavoriteBar.h"
 #include "DWFrameClient.h"
 
+//#define __TEST_WEB_WND__
 #ifdef __TEST_WEB_WND__
 #include "DWWebWnd.h"
 #endif
@@ -46,8 +47,6 @@ public:
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
         COMMAND_ID_HANDLER( ID_APP_ABOUT         , OnAppAbout      )
-
-        DEFAULT_REFLECTION_HANDLER()
 
     END_MSG_MAP()
 

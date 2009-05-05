@@ -123,7 +123,7 @@ public:
     {
         RePositionBtns();
 
-        return 1L;
+        return 0L;
     }
 
     LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -206,6 +206,12 @@ public:
 
         return 1L;
     }
+
+    virtual BOOL SendClickMsg( UINT nID )
+    {
+        return ::PostMessage( GetParent(), WM_COMMAND, MAKEWPARAM(nID, BN_CLICKED), 0 );
+    }
+
     LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
         if ( m_nHotIndex >= 0 && m_nHotIndex ==  m_nClickIndex )
@@ -215,9 +221,8 @@ public:
             DrawToolBtn( dc, m_vtToolBtn[m_nHotIndex], 0 );
 
             m_nClickIndex = -1;
-
-            ::PostMessage( GetParent(), WM_COMMAND, 
-                MAKEWPARAM(m_vtToolBtn[m_nHotIndex].uID, BN_CLICKED), 0 );
+            
+            SendClickMsg( m_vtToolBtn[m_nHotIndex].uID );
         }
 
         return 1L;

@@ -204,7 +204,7 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     int   nRet = 0;
     DWORD dwThreadId = 0;
 
-    CMessageLoop theLoop;
+    CDWMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
     CDWClientMgt& cltmgt = CDWClientMgt::Instance();
     CCookieMgt&   ckemgt = CCookieMgt::Instance();
@@ -299,7 +299,7 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
 {
     HWND* pWndRet = (HWND*)p;
     DWORD dwRet = 0;
-    CMessageLoop theLoop;
+    CDWMessageLoop theLoop;
     CDWClientMgt& clt = CDWClientMgt::Instance();
 
     HRESULT hRes = ::CoInitialize(NULL);

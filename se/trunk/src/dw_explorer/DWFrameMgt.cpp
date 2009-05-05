@@ -41,10 +41,10 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 {
     int nRet = 0;
 
+    CDWMessageLoop theLoop;
     HRESULT hRes = ::CoInitialize(NULL);
     ATLASSERT(SUCCEEDED(hRes));
 
-    CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
     CDWFrameMgt&   frmmgt = CDWFrameMgt::Instance();
     CDWProcessMgt& psmgt  = CDWProcessMgt::Instance();
@@ -124,7 +124,7 @@ void CDWFrameMgt::_RemoveFrame( CDWMainFrame* pf )
 DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
 {
     DWORD dwRet = 0;
-    CMessageLoop theLoop;
+    CDWMessageLoop theLoop;
     CDWFrameMgt& mgt = CDWFrameMgt::Instance();
 
     HRESULT hRes = ::CoInitialize(NULL);
@@ -140,7 +140,7 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
         ATLTRACE(_T("Main window creation failed!\n"));
         return 0;
     }
-    wndMain.ShowWindow(SW_SHOWDEFAULT);
+    wndMain.ShowWindow(SW_SHOWNORMAL);
     
     mgt._AddFrame(&wndMain);
     

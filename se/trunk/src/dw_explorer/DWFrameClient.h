@@ -133,6 +133,9 @@ public:
                 if ( strTitle.GetLength() > 0 && nTabIndex == m_wndTableBar.GetSelectIndex() )
                 {
                     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM)(LPCTSTR)strTitle, 0 );
+                    if ( ::IsWindow(m_wndClient) )
+                        m_wndClient.SetFocus();
+
                 }
             }
 
@@ -155,25 +158,16 @@ public:
     void ResizeClient()
     {
         RECT rcClient = { 0 };
-        GetClientRect(&rcClient);
-
-        //ClientToScreen(&rcClient);
-        
+      
         if ( ::IsWindow(m_wndClient) )
+        {
+            GetClientRect(&rcClient);
             m_wndClient.MoveWindow(&rcClient);
+        }
     }
 
     void ShowClient( HWND hWndClient )
     {
-        //if ( ::IsWindow(m_wndClient) )
-        //    m_wndClient.PostMessage(WM_SHOWWINDOW, 10, 101);
-
-        //m_wndClient = hWndClient;
-
-        //ResizeClient();
-        //if ( ::IsWindow(m_wndClient) )
-        //    m_wndClient.PostMessage(WM_SHOWWINDOW, 10, 100);
-
         if ( ::IsWindow(m_wndClient) )
             m_wndClient.ShowWindow( SW_HIDE );
 
@@ -181,8 +175,11 @@ public:
 
         ResizeClient();
         if ( ::IsWindow(m_wndClient) )
+        {
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
-
+            m_wndClient.SetFocus();
+            m_wndClient.SetActiveWindow();
+        }
     }
 
     CWindow m_wndClient;

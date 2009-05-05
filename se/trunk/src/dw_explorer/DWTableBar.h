@@ -384,6 +384,8 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     { 
+        LRESULT lResult = DefWindowProc();
+
         m_image_new.LoadFromResource(IDR_PNG_TABLE_NEW);
         m_image_item.LoadFromResource(IDR_PNG_TABLE_ITEM);
         m_image_close.LoadFromResource(IDR_PNG_TABLE_CLOSE);
@@ -400,14 +402,14 @@ public:
         m_vtTableBtn.Add( ItemInfo );
         m_vtTableBtn.Add( ItemInfo );
 
-        return 1L;
+        return lResult;
     }
 
     LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
         RePositionBtns();
 
-        return 1L;
+        return DefWindowProc();
     }
 
     LRESULT OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)

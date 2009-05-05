@@ -82,6 +82,7 @@ public:
         MESSAGE_HANDLER(WM_CREATE     , OnCreate  )
         MESSAGE_HANDLER(WM_DESTROY    , OnDestroy )
         MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
+        MESSAGE_HANDLER(WM_SETFOCUS   , OnSetFocus )
 
         MESSAGE_HANDLER(WM_SHOWWINDOW , OnShowWindow )
 
@@ -108,12 +109,16 @@ public:
 
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        if ( m_spWebBrowser )
-            DispEventUnadvise(m_spWebBrowser);
+        return 1 ;
+    }
+
+
+    LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        MoveFocusToIe(0);
 
         return DefWindowProc();
     }
-
 
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -132,6 +137,65 @@ public:
             return ShowWindow(SW_HIDE);
 
         return DefWindowProc();
+    }
+
+
+    bool IsTabedObject(IHTMLElement * pHtmlElem)
+    {
+        CComQIPtr<IHTMLElement> spHtmlElem = pHtmlElem;
+        if (spHtmlElem)
+        {
+            CComBSTR bstrTagName;
+            if (SUCCEEDED(spHtmlElem->get_tagName(&bstrTagName)) && bstrTagName)
+            {
+                if (_wcsicmp(bstrTagName, L"a") == 0 || 
+                    _wcsicmp(bstrTagName, L"input") == 0 || 
+                    _wcsicmp(bstrTagName, L"button") == 0 || 
+                    _wcsicmp(bstrTagName, L"textarea") == 0 || 
+                    _wcsicmp(bstrTagName, L"select") == 0 || 
+                    _wcsicmp(bstrTagName, L"object") == 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+
+    void MoveFocusToIe(bool bShiftDown1)
+    {
+        CComPtr<IDispatch> spDisp;
+
+        if ( SUCCEEDED(m_spWebBrowser->get_Document(&spDisp)) && spDisp )
+        {
+            CComQIPtr<IHTMLDocument2> spDoc2 = spDisp;
+            if (spDoc2)
+            {
+                CComPtr<IHTMLElementCollection> spColl;
+                if (SUCCEEDED(spDoc2->get_all(&spColl)) && spColl)
+                {
+                    long nCnt = 0;
+                    spColl->get_length(&nCnt);
+
+                    for (long i = 0; i < nCnt; i++)
+                    {
+                        CComVariant varIdx = i;
+                        CComPtr<IDispatch> spTagDisp;
+                        if (SUCCEEDED(spColl->item(varIdx, varIdx, &spTagDisp)) && spTagDisp)
+                        {
+                            CComQIPtr<IHTMLElement> spHtmlElem(spTagDisp);
+                            if (IsTabedObject(spHtmlElem))
+                            {
+                                CComQIPtr<IHTMLElement2> spHtmlElem2 = spHtmlElem;
+                                spHtmlElem2->focus();
+                                break;
+                            }
+                        }
+                    }
+
+                    spColl.Release();
+                }
+            }
+        }
     }
 
 

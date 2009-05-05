@@ -12,6 +12,8 @@
 #pragma once
 
 #include "DWToolbar.h"
+#include "DWEventSvr.h"
+#include "DWColorDlg.h"
 
 
 class CDWTitleBar : public CDWToolbar
@@ -81,7 +83,7 @@ public:
         AddToolBtn( _T(""), SC_MINIMIZE, IDR_PNG_BTN_TITLE_CUS);
 
         bHandled = FALSE;
-        return 1L;
+        return 0L;
     }
 
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
@@ -126,7 +128,6 @@ public:
                 ::PostMessage(GetParent(), WM_SYSCOMMAND, SC_MAXIMIZE, lParam );
              else
                  ::PostMessage(GetParent(), WM_SYSCOMMAND, SC_RESTORE, lParam );
-
         }
         
         return 1L;
@@ -153,6 +154,44 @@ public:
         }
 
         return 1L;
+    }
+
+    CDWColorDialog m_clr_dlg;
+
+    virtual BOOL SendClickMsg( UINT nID )
+    {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        
+        //CColorDialog dlg(skin.clrFrameWindow);
+        //
+        //if ( dlg.DoModal() == IDOK )
+        //{
+        //    skin.clrFrameWindow = dlg.GetColor();
+
+        //    CDWEventSvr::Instance().OnMessage( edi_skin_changed );
+
+        //    ::RedrawWindow(GetParent(), NULL, NULL, RDW_FRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
+        //}
+
+        if ( !m_clr_dlg.IsWindow() )
+            m_clr_dlg.Create( m_hWnd );
+
+        RECT rcWindow = { 0 };
+        m_clr_dlg.GetWindowRect(&rcWindow);
+
+        RECT rcThisWindow;
+        GetWindowRect(&rcThisWindow);
+        POINT pt;
+        GetCursorPos(&pt);
+
+        m_clr_dlg.SetWindowPos(NULL, 
+            pt.x - (rcWindow.right-rcWindow.left)/2, rcThisWindow.bottom, 0, 0, 
+            SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+
+        m_clr_dlg.ShowWindow( SW_SHOW );
+        
+
+        return 0;
     }
 
 };

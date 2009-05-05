@@ -13,6 +13,11 @@ class CDWFrameUIImpl
 {
 public:
 
+    CDWFrameUIImpl()
+    {
+        m_bActivete = FALSE;
+    }
+
     BEGIN_MSG_MAP(CDWFrameUIImpl)
 
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
@@ -26,18 +31,12 @@ public:
         MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
         MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
         MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSkipMsg    )
-        MESSAGE_HANDLER(WM_ACTIVATEAPP  , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_MOUSEACTIVATE  , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_CHILDACTIVATE  , OnSkipMsg    )
         
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize  )
         MESSAGE_HANDLER(WM_SIZE      , OnSize        )
 
-        COMMAND_ID_HANDLER( SC_MINIMIZE         , OnSysBarCmd )
-        COMMAND_ID_HANDLER( SC_MAXIMIZE         , OnSysBarCmd )
-        COMMAND_ID_HANDLER( SC_RESTORE          , OnSysBarCmd )
-        COMMAND_ID_HANDLER( SC_CLOSE            , OnSysBarCmd )
+        MESSAGE_HANDLER(WM_COMMAND   , OnSysBarCmd)
+        MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysBarCmd)
 
     END_MSG_MAP()
 
@@ -54,8 +53,7 @@ public:
         m_sys_bar  .Create( *(T*)this, &m_sys_bar.rcDefault);
         m_sys_title.Create( *(T*)this, &m_sys_title.rcDefault);
 
-
-        return 0;
+        return 0L;
     }
 
     void ReRgnWindow()
@@ -97,8 +95,8 @@ public:
 
         if ( ((T*)this)->IsZoomed() )
         {
-            rcSysBar.top    += GetSystemMetrics(SM_CYSIZEFRAME);
-            rcSysBar.bottom += GetSystemMetrics(SM_CYSIZEFRAME);
+            rcSysBar.top    += 1;
+            rcSysBar.bottom += 1;
         }
 
         if ( ::IsWindow( m_sys_bar ) )
@@ -111,6 +109,9 @@ public:
             rcTitleBar = rcSysBar;
             rcTitleBar.left  = rcClient.left;
             rcTitleBar.right = rcSysBar.left;
+            rcTitleBar.top    += 1;
+            rcTitleBar.bottom += 1;
+
             if ( !((T*)this)->IsZoomed() )
                 rcTitleBar.top++;
 
@@ -128,9 +129,48 @@ public:
         return 0L;
     }
 
-    LRESULT OnSysBarCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    
+    LRESULT OnSysBarCmd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        PostMessage(*(T*)this, WM_SYSCOMMAND, wID, 0);
+        bHandled = FALSE;
+
+        T* pthis = (T*)this;
+
+        int nCmdId = 0;
+
+        if ( uMsg == WM_SYSCOMMAND )
+            nCmdId = wParam;
+        else 
+            nCmdId = LOWORD(wParam);
+
+        switch ( nCmdId )
+        {
+        case SC_MAXIMIZE:
+            {
+                bHandled = TRUE;
+
+                pthis->SetRedraw(FALSE);
+                ::DefWindowProc( *(T*)this, WM_SYSCOMMAND, nCmdId, 0);
+
+                RECT rcWindow = { 0 };
+                SystemParametersInfo( SPI_GETWORKAREA, 0, &rcWindow, 0 );
+
+                rcWindow.left   -=4;
+                rcWindow.right  +=4;
+                rcWindow.top    -=2;
+                rcWindow.bottom +=4;
+
+                pthis->MoveWindow(&rcWindow);
+                pthis->SetRedraw(TRUE);
+                pthis->Invalidate();
+            }
+            break;
+        case SC_MINIMIZE:
+        case SC_RESTORE:
+        case SC_CLOSE:
+            ::DefWindowProc( *(T*)this, WM_SYSCOMMAND, nCmdId, 0);
+            break;
+        }
 
         return 1L;
     }
@@ -179,9 +219,11 @@ public:
         return 1L;
     }
 
-    LRESULT OnSkipMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    LRESULT OnSkipMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        return 1L;
+        LRESULT lResult = ((T*)this)->DefWindowProc();     
+
+        return lResult;
     }
 
 
@@ -229,7 +271,7 @@ public:
             CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, -40, -40 ) );
             CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
             CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  40, 0 ) );
-            CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow );
+            CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow);
             CPen pen5; pen5.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
 
             HPEN   hOldPen   = dc.SelectPen( pen );
@@ -275,6 +317,9 @@ public:
     }
 
 private:
+    
+    BOOL m_bActivete;
+
     CRgn m_rgnWindow;
 
     CDWTitleBar      m_sys_title;

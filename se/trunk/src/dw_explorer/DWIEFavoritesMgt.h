@@ -15,6 +15,10 @@
 
 struct IEFavoriteItem
 {
+    enum{
+        max_fav_title_len = 25
+    };
+
     IEFavoriteItem( LPCTSTR pszTitle, LPCTSTR pszURL = NULL )
     {
         if ( pszTitle != NULL )
@@ -24,11 +28,11 @@ struct IEFavoriteItem
             if ( strTitle.GetLength() > 4 && !StrCmpI( strTitle.Right(4), L".url" ) )
                 strTitle.Delete( strTitle.GetLength() - 4, 4);
 
-            if ( strTitle.GetLength() > 40 )
-            {
-                strTitle.Delete( 40, strTitle.GetLength() - 40 );
-                strTitle += L"...";
-            }
+            //if ( strTitle.GetLength() > max_fav_title_len )
+            //{
+            //    strTitle.Delete( max_fav_title_len, strTitle.GetLength() - max_fav_title_len );
+            //    strTitle += L"...";
+            //}
         }
 
         if ( pszURL != NULL )
@@ -110,7 +114,8 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
             {
                 IEFavoriteItem fItem(wfd.cFileName);
                 fItem.pParentList = pList;
-                fItem.pChildList  = new ATL::CAtlList<IEFavoriteItem>;
+                fItem.pChildList = new ATL::CAtlList<IEFavoriteItem>;
+                ATLASSERT(fItem.pChildList);
 
                 ATLASSERT(fItem.pChildList);
 

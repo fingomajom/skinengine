@@ -61,14 +61,14 @@ public:
     BEGIN_MSG_MAP(CDWMainFrame)
 
         MESSAGE_HANDLER( WM_CREATE    , OnCreate     )
-        //MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
+        MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
         MESSAGE_HANDLER( WM_SIZE      , OnSize       )
 
         MESSAGE_HANDLER( WM_CTLCOLORBTN   , OnCtlColor )
         MESSAGE_HANDLER( WM_CTLCOLORSTATIC, OnCtlColor )
 
         MESSAGE_HANDLER( WM_CTLCOLOREDIT, OnCtlColor )
-        //MESSAGE_HANDLER( WM_CTLCOLORDLG , OnCtlColor )
+        MESSAGE_HANDLER( WM_CTLCOLORDLG , OnCtlColor )
 
         CHAIN_MSG_MAP(CDWToolbar)
 
@@ -87,7 +87,7 @@ public:
         CDWEventSvr::Instance().AddCallback( this );
 
         bHandled = FALSE;
-        return 1L;
+        return 0L;
     }
 
     virtual void DoAfterPaint ( HDC hDC )
@@ -101,8 +101,10 @@ public:
 
         dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
 
+        CIconHandle icon = skin.iconNull;
 
-        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 30, 20);
+
+        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
 
         CPen pen;
         pen.CreatePen( PS_SOLID, 1, clrBorder );
@@ -113,16 +115,23 @@ public:
         m_address_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
         InflateRect(&rcClient, 2, 2);
-        rcClient.bottom-=1;
+        rcClient.top  -= 2;
+        rcClient.left -= 18;
+
+        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
 
         POINT pt = { 5, 5 };
 
         dc.RoundRect(&rcClient, pt);
+        InflateRect(&rcClient, 1, 1);
 
         m_serach_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
         InflateRect(&rcClient, 2, 2);
-        rcClient.bottom-=1;
+        rcClient.top  -= 2;
+        rcClient.left -= 18;
+
+        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
 
         dc.RoundRect(&rcClient, pt);
 
@@ -144,11 +153,10 @@ public:
         CDCHandle dc = (HDC)wParam;
         dc.SetBkMode( TRANSPARENT );
 
-        static CBrush s_bkBrush;
-        if ( s_bkBrush.m_hBrush == NULL )
-            s_bkBrush.CreateSolidBrush( skin.clrFrameWindow );
+        if ( m_bkBrush.m_hBrush == NULL )
+            m_bkBrush.CreateSolidBrush( skin.clrFrameWindow );
 
-        return (LRESULT)s_bkBrush.m_hBrush;
+        return (LRESULT)m_bkBrush.m_hBrush;
     }
 
 
@@ -160,7 +168,7 @@ public:
         GetClientRect(&rcClient);
         
         ::InflateRect(&rcClient, -2, -2);
-        rcClient.top++;
+        rcClient.top+=3;
 
         RECT rcAddr   = rcClient;
         RECT rcSerach = rcClient;
@@ -171,8 +179,14 @@ public:
         else if ( rcSerach.left < 100 )
             rcSerach.left = 100;
 
-        rcSerach.left = rcSerach.right - rcSerach.left;
+        
+        rcSerach.left = rcSerach.right - rcSerach.left;        
+
         rcAddr.right = rcSerach.left - 8;
+
+        rcAddr.left += 22;
+        rcSerach.left += 22;
+
         
         m_address_edit.MoveWindow(&rcAddr);
         m_serach_edit .MoveWindow(&rcSerach);
@@ -183,12 +197,21 @@ public:
     LRESULT OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
     {
         if ( uMsg == eid_addr_changed )
+        {
             m_address_edit.SetWindowText((LPCTSTR)wParam);
+        }
+        else
+        {
+            if (!m_bkBrush.IsNull())
+                m_bkBrush.DeleteObject();
+        }
 
         return 0;
     }
 
 public:
+
+    WTL::CBrush m_bkBrush;
 
     CDWEdit m_address_edit;
     CDWEdit m_serach_edit;

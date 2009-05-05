@@ -27,7 +27,7 @@ HWND CDWMainFrame::CreateEx()
     rcClient.bottom = rcClient.top * 7;
 
     return Create( NULL, &rcClient, _T("DW_Explorer"), 
-         WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN );
+         WS_POPUPWINDOW | WS_SIZEBOX | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
 }
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
@@ -52,7 +52,10 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );
+    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
+#ifdef __TEST_WEB_WND__
+    m_wndClient.OpenURL(L"www.cnbeta.com");
+#endif
 
     m_wndClient.SetFocus();
 
@@ -60,7 +63,7 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     OnNewURL(NULL);
 
 
-    return 0;
+    return 0L;
 }
 
 
@@ -89,21 +92,27 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     
     if ( IsZoomed() )
     {
-        rcToolBar.top    += GetSystemMetrics(SM_CYSIZEFRAME);
-        rcToolBar.bottom += GetSystemMetrics(SM_CYSIZEFRAME);
+        rcToolBar.top    += 1;
+        rcToolBar.bottom += 1;
     }
 
+    rcToolBar.bottom += 2;
     if ( ::IsWindow(m_wndTableBar) )
         m_wndSuperbar.MoveWindow( &rcToolBar );
-    rcToolBar.top += nspace; rcToolBar.bottom += nspace;
+
+    rcToolBar.top    = rcToolBar.bottom; 
+    rcToolBar.bottom = rcToolBar.top + nspace + 2;
+
     if ( ::IsWindow(m_wndFavoriteBar) )
         m_wndFavoriteBar.MoveWindow( &rcToolBar );
-    rcToolBar.top += nspace; rcToolBar.bottom += 28;
+
+    rcToolBar.top = rcToolBar.bottom; 
+    rcToolBar.bottom = rcToolBar.top + 28;
     if ( ::IsWindow(m_wndTableBar) )
         m_wndTableBar.MoveWindow( &rcToolBar );
 
     rcToolBar.top    = rcToolBar.bottom;
-    rcToolBar.bottom = rcClient.bottom+1;
+    rcToolBar.bottom = rcClient.bottom;
 
     if ( ::IsWindow(m_wndClient) )
     {
@@ -199,6 +208,7 @@ void CDWMainFrame::OnSelectURL( int nIndex )
     //ATLASSERT(::IsWindow(hSelWnd));
 #ifndef __TEST_WEB_WND__
     psmgt.GetWebWndInfo( m_wndClient, hSelWnd);
+    m_wndClient.SetFocus();
     m_wndClient.ShowClient( hSelWnd );
 #endif
 }

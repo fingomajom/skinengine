@@ -229,6 +229,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\DWColorDlg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWFrameClient.h"
 					>
 				</File>
@@ -285,6 +289,14 @@
 					</File>
 					<File
 						RelativePath=".\DWImage.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWMenu.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWMessageLoop.h"
 						>
 					</File>
 					<File

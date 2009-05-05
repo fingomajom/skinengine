@@ -19,6 +19,7 @@
 #include <atlimage.h>
 #include <atlcoll.h>
 #include <WinInet.h>
+#include "DWMessageLoop.h"
 
 extern CAppModule _Module;
 

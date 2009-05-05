@@ -67,7 +67,7 @@ public:
             m_image->LoadFromResource(IDR_PNG_BTN_SYS_MAX2);
 
         bHandled = FALSE;
-        return 1L;
+        return 0L;
     }
 
 
