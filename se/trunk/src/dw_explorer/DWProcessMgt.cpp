@@ -87,6 +87,32 @@ BOOL CDWProcessMgt::GetWebWndInfo( HWND hParent, HWND hWnd )
         PMAM_GETWEBWNDINFO, (WPARAM)hParent, (LPARAM)hWnd );
 }
 
+BOOL CDWProcessMgt::AddWnd2Process( HWND hWnd, DWORD dwPID )
+{
+    if ( dwPID == 0 )
+        GetWindowThreadProcessId(hWnd, &dwPID);
+
+    if ( dwPID == 0 )
+        return FALSE;
+
+    ProcessInfo* pPInfo = NULL;
+
+    m_cs.Lock();
+    for ( POSITION pos = m_listProcess.GetHeadPosition(); pos != NULL; )
+    {
+        pPInfo = m_listProcess.GetNext(pos);
+        if ( pPInfo != NULL && pPInfo->dwPID == dwPID )
+            break;
+        pPInfo = NULL;
+    }
+    m_cs.Unlock();
+
+    ATLASSERT(pPInfo != NULL);
+    if ( pPInfo != NULL )
+        pPInfo->m_listWnd.AddTail( hWnd );
+
+    return pPInfo != NULL;
+}
 
 ProcessInfo* CDWProcessMgt::_FindProcessInfo(HWND hWnd)
 {
@@ -290,6 +316,7 @@ ProcessInfo* CDWProcessMgt::CreateSEProcess()
         pRet = new ProcessInfo;
 
         pRet->dwWndCreated = 0;
+        pRet->dwPID        = dwRet;
 
         BOOL bRet = pRet->rpcClt.InitRpcClient( strRpcEPoint );
         int  nLoop = 0;

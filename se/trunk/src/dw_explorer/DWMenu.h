@@ -289,7 +289,7 @@ public:
             CWindow wndMenu = (HWND)wParam;
             
             ::GetClassName(wndMenu, szClassName, cchClassName);
-            if(!lstrcmp(_T("#32768"), szClassName))
+            if(!StrCmpI(_T("#32768"), szClassName))
             {
                 CDWMenuWindow* pWnd = new CDWMenuWindow();
                 ATLASSERT(pWnd);
@@ -303,7 +303,7 @@ public:
             CWindow wndMenu = (HWND)wParam;
 
             ::GetClassName(wndMenu, szClassName, cchClassName);
-            if(!lstrcmp(_T("#32768"), szClassName))
+            if(!StrCmpI(_T("#32768"), szClassName))
             {
             }
         }

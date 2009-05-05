@@ -20,6 +20,7 @@ struct ProcessInfo
    CRpcMsgClient       rpcClt;
    ATL::CAtlList<HWND> m_listWnd;
    DWORD               dwWndCreated;
+   DWORD               dwPID;
 };
 
 class CDWProcessMgt
@@ -36,6 +37,8 @@ public:
     BOOL WebWndOpenURL( HWND hWnd, LPCTSTR pszOpenURL );
 
     BOOL GetWebWndInfo( HWND hParent, HWND hWnd );
+
+    BOOL AddWnd2Process( HWND hWnd, DWORD dwPID = 0 );
 
 protected:
 

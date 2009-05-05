@@ -138,7 +138,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
-				FavorSizeOrSpeed="2"
+				FavorSizeOrSpeed="1"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"

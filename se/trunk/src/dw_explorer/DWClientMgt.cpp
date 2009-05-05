@@ -231,7 +231,13 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     return nRet;
 }
 
-HWND CDWClientMgt::CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL  )
+HWND CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL, IWebBrowser2** ppOut )
+{
+    return CDWClientMgt::Instance().CreateWebWnd( hParent, pszOpenURL, ppOut );
+}
+
+
+HWND CDWClientMgt::CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL, IWebBrowser2** ppOut )
 {
     HWND   hResult    = hParent;    
     DWORD  dwThreadId = 0;
@@ -249,9 +255,11 @@ HWND CDWClientMgt::CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL  )
         WaitForSingleObject(m_hCreateWebWndEvent, INFINITE);
         CloseHandle( hThread );
     }
+    if ( ppOut != NULL )
+        *ppOut = m_piWebBrowser;
     m_CreateWebWndCS.Unlock();
     CloseHandle(m_hCreateWebWndEvent);
-
+    
     if ( hResult == hParent )
         hResult = NULL;
 
@@ -316,13 +324,16 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     wndWeb.m_hNotifyWnd = *pWndRet;
     if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault) == NULL )
     {
+        clt.m_piWebBrowser = NULL;
         ::SetEvent(clt.m_hCreateWebWndEvent);
         return 0;
     }
+    clt.m_piWebBrowser = wndWeb.m_spWebBrowser.p;
     *pWndRet = wndWeb;
     ::SetEvent(clt.m_hCreateWebWndEvent);
 
-    wndWeb.OpenURL(strURL);
+    if ( strURL.GetLength() > 0 )
+        wndWeb.OpenURL(strURL);
 
     clt._AddWebWnd(&wndWeb);
 

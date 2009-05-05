@@ -590,8 +590,6 @@ public:
             SendMsgToParent( WM_TABLE_BAR_MSG, 
                 TGM_ITEM_CLOSE_CLICK, 
                 m_nCloseClickIndex - sys_tbi_count );
-
-            //RemoveTableItem( m_nCloseClickIndex - sys_tbi_count, FALSE);
         }
 
         if (  m_nHotCloseIndex >= 0 && m_nHotCloseIndex == m_nHotIndex )

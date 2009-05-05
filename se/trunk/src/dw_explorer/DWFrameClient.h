@@ -18,6 +18,11 @@
 #include "DWEventSvr.h"
 
 
+struct URL_WND_INFO {
+    ATL::CString strURL;
+    ATL::CString strTitle;
+};
+
 class CDWFrameClient : public CWindowImpl<CDWFrameClient>
 {
 public:
@@ -76,29 +81,55 @@ public:
         if ( !::IsWindow(hCreateWnd) )
             return 1L;
 
-        unsigned short uID  = LOWORD(lParam);
-        int nIdx = HIWORD(lParam);
-
-        int nTabIndex = m_wndTableBar.FindID(uID);
-        if ( nTabIndex < 0 )
+        if ( lParam != 0 )  // 事件创建
         {
-            ATLASSERT(0);
+            unsigned short uID  = LOWORD(lParam);
+            int nIdx = HIWORD(lParam);
+
+            int nTabIndex = m_wndTableBar.FindID(uID);
+            if ( nTabIndex < 0 )
+            {
+                ATLASSERT(0);
+            }
+            else
+            {
+                m_mapUrlWndInfo[hCreateWnd].strURL   = m_mapUrlWndInfo[(HWND)uID].strURL ;
+                m_mapUrlWndInfo[hCreateWnd].strTitle = m_mapUrlWndInfo[(HWND)uID].strTitle ;
+                m_mapUrlWndInfo.RemoveKey((HWND)uID);
+
+                if( m_wndTableBar.SetItemParam( nTabIndex, wParam ) != uID )
+                    ATLASSERT( 0 && L"id changed no.." );
+
+                if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
+                    ShowClient( hCreateWnd );
+            }
         }
-        else
+        else // 单击创建
         {
-            if( m_wndTableBar.SetItemParam( nTabIndex, wParam ) != uID )
-                ATLASSERT( 0 && L"id changed no.." );
+            CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
-            //m_wndTableBar.SetItemCaption( nTabIndex, L"空白页" );
+            psmgt.AddWnd2Process(hCreateWnd);
 
-            if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
-                ShowClient( hCreateWnd );
+            m_mapUrlWndInfo[hCreateWnd].strURL   = L"about:blank";
+            m_mapUrlWndInfo[hCreateWnd].strTitle = L"正在打开";
+            
+
+            int nIdx = m_wndTableBar.GetSelectIndex();
+            nIdx++;
+
+            m_wndTableBar.InsertTableItem( nIdx, 
+                m_mapUrlWndInfo[(HWND)wParam].strTitle, 0, wParam );
+
+            CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
+                (WPARAM)(LPCTSTR)m_mapUrlWndInfo[hCreateWnd].strURL, 0 );
+
+            m_wndTableBar.SelectIndex(nIdx);
+            
+            psmgt.GetWebWndInfo(m_hWnd, hCreateWnd);
+            ShowClient(hCreateWnd);
         }
 
-        //if ( ::IsWindow(m_wndClient) )
-        //    m_wndClient.ShowWindow( SW_SHOWDEFAULT );
 
-        //ResizeClient();
         return 0;
     }
 
@@ -120,6 +151,9 @@ public:
             if ( strTitle.IsEmpty() )
                 strTitle = pszBuf + pszBuf[0];
 
+            m_mapUrlWndInfo[(HWND)wParam].strURL   = pszBuf + pszBuf[0];
+            m_mapUrlWndInfo[(HWND)wParam].strTitle = pszBuf+1;
+
             if ( strTitle.GetLength() )
             {
                 int nTabIndex = m_wndTableBar.FindParam(wParam);
@@ -137,6 +171,7 @@ public:
                         m_wndClient.SetFocus();
 
                 }
+
             }
 
             piBuffer->Release();
@@ -179,8 +214,30 @@ public:
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
             m_wndClient.SetFocus();
             m_wndClient.SetActiveWindow();
+
+
+            ATL::CAtlMap<HWND, URL_WND_INFO>::CPair* pFind = 
+                m_mapUrlWndInfo.Lookup( m_wndClient );
+
+            if ( pFind != NULL )
+            {
+                ATL::CString strTitle = pFind->m_value.strTitle;
+                if ( strTitle.IsEmpty() )
+                    strTitle = pFind->m_value.strURL;
+
+                if ( strTitle.GetLength() )
+                {
+                }
+
+                CDWEventSvr::Instance().OnMessage( 
+                    eid_addr_changed, (WPARAM)(LPCTSTR)pFind->m_value.strURL, 0 );
+
+
+            }
         }
     }
 
     CWindow m_wndClient;
+
+    ATL::CAtlMap<HWND, URL_WND_INFO> m_mapUrlWndInfo;
 };

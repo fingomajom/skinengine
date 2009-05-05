@@ -35,7 +35,7 @@ static _ATL_FUNC_INFO NavigateCompleteFuncInfo = { CC_STDCALL, VT_EMPTY, 2 , VT_
 static _ATL_FUNC_INFO DocumentCompleteFuncInfo = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH, 
     VT_VARIANT | VT_BYREF };
 
-static _ATL_FUNC_INFO NewWindowOpenFuncInfo2   = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH, 
+static _ATL_FUNC_INFO NewWindowOpenFuncInfo2   = { CC_STDCALL, VT_EMPTY, 2 , VT_DISPATCH | VT_BYREF, 
     VT_VARIANT | VT_BYREF };
 
 static _ATL_FUNC_INFO FileDownloadFuncInfo     = { CC_STDCALL, VT_EMPTY, 2 , VT_VARIANT | VT_BYREF, 
@@ -46,6 +46,9 @@ static _ATL_FUNC_INFO NavigateErrorFuncinfo    = { CC_STDCALL, VT_EMPTY, 5 , VT_
     VT_VARIANT | VT_BYREF,
     VT_VARIANT | VT_BYREF,
     VT_VARIANT | VT_BYREF };
+
+
+HWND CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL, IWebBrowser2** ppOut );
 
 
 class CDWWebWnd : 
@@ -73,6 +76,10 @@ public:
 
         m_strTitle.Empty();
         m_strURL = pszURL;
+
+        //m_spWebBrowser->Stop();
+        //m_spWebBrowser->Navigate( L"about:blank", 0, 0, 0, 0 );
+
 
         return SUCCEEDED(m_spWebBrowser->Navigate( (BSTR)pszURL, 0, 0, 0, 0 ));
     }
@@ -115,7 +122,7 @@ public:
 
     LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        MoveFocusToIe(0);
+        //MoveFocusToIe(0);
 
         return DefWindowProc();
     }
@@ -148,12 +155,12 @@ public:
             CComBSTR bstrTagName;
             if (SUCCEEDED(spHtmlElem->get_tagName(&bstrTagName)) && bstrTagName)
             {
-                if (_wcsicmp(bstrTagName, L"a") == 0 || 
-                    _wcsicmp(bstrTagName, L"input") == 0 || 
-                    _wcsicmp(bstrTagName, L"button") == 0 || 
-                    _wcsicmp(bstrTagName, L"textarea") == 0 || 
-                    _wcsicmp(bstrTagName, L"select") == 0 || 
-                    _wcsicmp(bstrTagName, L"object") == 0)
+                if (StrCmpI(bstrTagName, L"a") == 0 || 
+                    StrCmpI(bstrTagName, L"input") == 0 || 
+                    StrCmpI(bstrTagName, L"button") == 0 || 
+                    StrCmpI(bstrTagName, L"textarea") == 0 || 
+                    StrCmpI(bstrTagName, L"select") == 0 || 
+                    StrCmpI(bstrTagName, L"object") == 0)
                     return true;
             }
         }
@@ -278,8 +285,23 @@ public:
 
     }
 
-    void __stdcall OnNewWindowOpen2(LPDISPATCH pDisp, VARIANT_BOOL *bCancel)
+    void __stdcall OnNewWindowOpen2(LPDISPATCH* pDisp, VARIANT_BOOL *bCancel)
     {
+        IWebBrowser2* pWebBrowser = NULL;
+
+        HWND hWnd = CreateWebWnd( GetParent(), L"", &pWebBrowser);
+        if ( pWebBrowser != NULL )
+        {
+            //CComQIPtr<IDispatch> spDispatch(pWebBrowser);
+            pWebBrowser->AddRef();
+
+            pWebBrowser->get_Application(pDisp);
+
+            //(*pDisp) = spDispatch;
+            (*pDisp)->AddRef();
+
+            ::PostMessage( GetParent(), WM_CREATE_WEB_WND, (WPARAM)hWnd, 0 );
+        }
     }
 
     void __stdcall OnFileDownload(VARIANT* bActiveDocument, VARIANT_BOOL *bCancel)
@@ -290,7 +312,7 @@ public:
         IDispatch *pDisp,
         VARIANT *URL,
         VARIANT *TargetFrameName,
-        VARIANT *StatusCode,
+        VARIANT *StatusCode, 
         VARIANT_BOOL *bCancel)
     {
         //*bCancel = VARIANT_TRUE;

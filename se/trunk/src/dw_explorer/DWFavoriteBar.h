@@ -120,7 +120,7 @@ public:
         if ( nIndex == 1 )
         {
             clrText = clrL ;
-            dc.Draw3dRect(&info.rcBtn, clrL, clrS );
+            dc.Draw3dRect(&info.rcBtn, clrL, clrL );
         }
         else if ( nIndex == 2  )
         {

@@ -159,6 +159,11 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
+#ifndef __TEST_WEB_WND__
+    m_wndClient.m_mapUrlWndInfo[(HWND)uId].strURL   = pszURL;
+    m_wndClient.m_mapUrlWndInfo[(HWND)uId].strTitle = strCaption;
+#endif
+
     psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), pszURL);
 
     m_wndTableBar.SelectIndex(nIdx);
@@ -202,12 +207,9 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 
 void CDWMainFrame::OnSelectURL( int nIndex )
 {
-    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
-
     HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
     //ATLASSERT(::IsWindow(hSelWnd));
 #ifndef __TEST_WEB_WND__
-    psmgt.GetWebWndInfo( m_wndClient, hSelWnd);
     m_wndClient.SetFocus();
     m_wndClient.ShowClient( hSelWnd );
 #endif
@@ -219,7 +221,18 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
     if ( uMsg == edi_open_url )
     {
         if ( lParam )
-            OnNewURL( (LPCTSTR) wParam );
+        {
+#ifndef __TEST_WEB_WND__
+
+            if ( m_wndClient.m_wndClient.IsWindow() && 
+                 m_wndClient.m_mapUrlWndInfo[m_wndClient.m_wndClient].strURL == L"about:blank" )
+            {
+                OnOpenURL( (LPCTSTR) wParam );
+            }
+            else
+#endif
+                OnNewURL( (LPCTSTR) wParam );
+        }
         else
             OnOpenURL( (LPCTSTR) wParam );
     }
