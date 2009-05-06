@@ -61,7 +61,6 @@ public:
     {
         DWORD dwThreadId = 0;
         CloseHandle( CreateThread(NULL, 0, LoadFavoritesThread, this, 0, &dwThreadId));
-        //CloseHandle( CreateThread(NULL, 0, PopupMenuThread, this, 0, &m_dwMenuThread));
 
         bHandled = FALSE;
 
@@ -124,13 +123,18 @@ public:
         }
         else if ( nIndex == 2  )
         {
-            rcText.top+=2;
+            rcText.top+=1;
+            rcText.bottom += 1;
             dc.Draw3dRect(&info.rcBtn, clrS , clrL );
         }
 
         dc.SetTextColor( clrText );
 
-        skin.iconFavDir.DrawIconEx( dc, info.rcBtn.left + 4, rcText.top + 2, 16, 16 );
+        CIconHandle icon = skin.iconFavDir;
+        if ( ((IEFavoriteItem*)info.lParam)->pChildList == NULL )
+            icon = skin.iconNull;
+        
+        icon.DrawIconEx( dc, info.rcBtn.left + 4, rcText.top + 2, 16, 16 );
 
         dc.DrawText(info.strCaption, -1, &rcText, DT_LEFT | DT_SINGLELINE | DT_VCENTER );
         
@@ -140,6 +144,8 @@ public:
 
     LRESULT OnLoadFavoritesOK(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        m_vtToolBtn.RemoveAll();
+
         ATL::CAtlList<IEFavoriteItem>& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
 
         for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
@@ -150,6 +156,8 @@ public:
 
         RePositionBtns();
         CWindow::Invalidate();
+
+        m_favMenu.DestroyMenu();
        
         return 1L;
     }
@@ -178,6 +186,16 @@ public:
         return 0;
     }
     
+    BOOL IsHasSubMenu( int nIndex )
+    {
+        if  ( nIndex < 0 || nIndex > m_vtToolBtn.GetSize() )
+            return FALSE;
+
+        IEFavoriteItem* favItem = (IEFavoriteItem*)m_vtToolBtn[m_nClickIndex].lParam;
+        ATLASSERT(favItem != NULL);
+
+        return favItem->pChildList != NULL;
+    }
 
     LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -185,10 +203,13 @@ public:
 
         CDWToolbar::OnMouseMove( uMsg, wParam, lParam, bHandled );
 
-        if (  m_bPopMenu && m_nClickIndex >= 0 && (m_nHotIndex < 0 || nOldHotIndex < 0))
+        if (  m_bPopMenu && m_nClickIndex >= 0 && (m_nHotIndex < 0 || nOldHotIndex < 0) )
         {
-            CClientDC dc(m_hWnd);
-            DrawToolBtn( dc, m_vtToolBtn[m_nClickIndex], 2 );
+            if ( IsHasSubMenu(m_nClickIndex) )
+            {
+                CClientDC dc(m_hWnd);
+                DrawToolBtn( dc, m_vtToolBtn[m_nClickIndex], 2 );
+            }
         }
 
         if ( m_bPopMenu && m_nHotIndex >= 0  )
@@ -197,13 +218,16 @@ public:
             {
                 m_nClickIndex = m_nHotIndex;
 
-                POINT pt;
-                GetCursorPos(&pt);
+                if ( IsHasSubMenu(m_nClickIndex) )
+                {
+                    POINT pt;
+                    GetCursorPos(&pt);
 
-                mouse_event( MOUSEEVENTF_LEFTDOWN, pt.x, pt.y, NULL, NULL);
-                mouse_event( MOUSEEVENTF_LEFTUP  , pt.x, pt.y, NULL, NULL);
+                    mouse_event( MOUSEEVENTF_LEFTDOWN, pt.x, pt.y, NULL, NULL);
+                    mouse_event( MOUSEEVENTF_LEFTUP  , pt.x, pt.y, NULL, NULL);
 
-                SetTimer(1001, 10);
+                    SetTimer(1001, 10);
+                }
             }
         }
         
@@ -219,12 +243,15 @@ public:
             CClientDC dc(m_hWnd);
             DrawToolBtn( dc, m_vtToolBtn[m_nClickIndex], 2 );
         }
+
         return 1L;
     }
 
     void PopupFavMenu()
     {
         CMenuHandle menu = CreateFavoriteMenu();
+        if ( !menu.IsMenu() )
+            return;
 
         TPMPARAMS tpmParams;
         tpmParams.cbSize = sizeof(tpmParams);
@@ -237,10 +264,18 @@ public:
             GetCurrentThreadId());
         ATLASSERT(g_hFavPopupMenuHook);
 
+        POINT pt;
+
+        pt.x = m_vtToolBtn[m_nClickIndex].rcBtn.left,
+        pt.y = m_vtToolBtn[m_nClickIndex].rcBtn.bottom,
+
+        ClientToScreen(&pt);
+
         m_bPopMenu = TRUE;
         int nCmdId = TrackPopupMenu( menu,
             TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD, 
-            m_ptMenu.x, m_ptMenu.y, m_hWnd, &tpmParams);
+            pt.x, pt.y,
+            m_hWnd, &tpmParams);
         m_bPopMenu = FALSE;
 
         UnhookWindowsHookEx(g_hFavPopupMenuHook);
@@ -262,9 +297,19 @@ public:
         
         if ( m_nClickIndex >= 0 && m_nHotIndex == m_nClickIndex )
         {
-            PopupFavMenu();
-        }
+            IEFavoriteItem* favItem = (IEFavoriteItem*)m_vtToolBtn[m_nClickIndex].lParam;
+            ATLASSERT(favItem != NULL);
 
+            if ( favItem->pChildList == NULL )
+            {
+                CDWEventSvr::Instance().OnMessage( edi_open_url, 
+                    (WPARAM)(LPCTSTR)favItem->strURL, TRUE );
+            }
+            else
+            {
+                PopupFavMenu();
+            }
+        }
 
         return 1L;
     }
@@ -340,11 +385,10 @@ public:
 
         ATL::CAtlList<IEFavoriteItem>& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
 
-        static CMenu smenu;
-        if ( !smenu.IsMenu() )
+        if ( !m_favMenu.IsMenu() )
         {
-            smenu.CreatePopupMenu();
-            _CreateFavoriteMenu( smenu.m_hMenu, fList );
+            m_favMenu.CreatePopupMenu();
+            _CreateFavoriteMenu( m_favMenu.m_hMenu, fList );
         }
 
         ATLASSERT( m_nClickIndex>= 0 );
@@ -363,12 +407,7 @@ public:
         if ( pItem == NULL && pItem->pChildList == NULL )
             return NULL;
 
-        m_ptMenu.x = m_vtToolBtn[m_nClickIndex].rcBtn.left;
-        m_ptMenu.y = m_vtToolBtn[m_nClickIndex].rcBtn.bottom;
-
-        ClientToScreen(&m_ptMenu);
-
-        menu = smenu.GetSubMenu( m_nClickIndex );
+        menu = m_favMenu.GetSubMenu( m_nClickIndex );
         
         return menu;
     }
@@ -377,6 +416,17 @@ public:
 
     HMENU _CreateFavoriteMenu( CMenuHandle menu, ATL::CAtlList<IEFavoriteItem>& fList )
     {
+        ATLASSERT( menu.IsMenu() );
+        if ( !menu.IsMenu() )
+            return NULL;
+
+        static IEFavoriteItem sitem( L"添加到此文件夹...", 0 );
+
+        if ( menu.m_hMenu != m_favMenu.m_hMenu )
+        {
+            menu.AppendMenu( MF_STRING, (UINT_PTR)&sitem, L"添加到此文件夹..." );
+            menu.AppendMenu( MF_SEPARATOR , (UINT_PTR)ID_SEPARATOR, L"" );
+        }
         
         for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
         {
@@ -412,9 +462,8 @@ public:
         return 0;
     }
 
-
-    POINT m_ptMenu;
     BOOL  m_bPopMenu;
+    CMenu m_favMenu;
 
 public:
 

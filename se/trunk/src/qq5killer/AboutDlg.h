@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atlctrlx.h>
+
 class CAboutDlg : public CDialogImpl<CAboutDlg>
 {
 public:
@@ -15,6 +17,8 @@ public:
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 	END_MSG_MAP()
 
+    CHyperLink m_link;
+
 // Handler prototypes (uncomment arguments if needed):
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -23,6 +27,10 @@ public:
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		CenterWindow(GetParent());
+
+        m_link.SetHyperLink(L"http://www.spiritsoft.cn");
+        m_link.SubclassWindow(GetDlgItem( IDC_URL_STATIC ));
+
 		return TRUE;
 	}
 

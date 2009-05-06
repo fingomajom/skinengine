@@ -19,8 +19,9 @@
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
+			UseOfATL="1"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -63,7 +64,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
+				Culture="0"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
@@ -106,8 +107,9 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
+			UseOfATL="1"
 			ATLMinimizesCRunTimeLibraryUsage="true"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -135,6 +137,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="1"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
@@ -148,7 +151,7 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
+				Culture="0"
 				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
@@ -157,6 +160,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

@@ -46,8 +46,9 @@ public:
     {
         ToolBtnInfo info = { 0 };
 
-        info.uID = uID;
-        info.image = image;
+        info.uID        = uID;
+        info.image      = image;
+        info.lParam     = lParam;
         info.strCaption = pszCaption;
 
         m_vtToolBtn.Add( info );
@@ -224,6 +225,14 @@ public:
             
             SendClickMsg( m_vtToolBtn[m_nHotIndex].uID );
         }
+
+        if ( m_nHotIndex >= 0 )
+        {
+            CClientDC dc(m_hWnd);
+
+            DrawToolBtn( dc, m_vtToolBtn[m_nHotIndex], 1 );
+        }
+
 
         return 1L;
     }

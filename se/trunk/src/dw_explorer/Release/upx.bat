@@ -1,2 +1,2 @@
-copy Release\DW_Explorer.exe Release\explorer.exe
-Release\upx.exe Release\explorer.exe
+copy Release\DW_Explorer.exe Release\sse.exe
+Release\upx.exe Release\sse.exe

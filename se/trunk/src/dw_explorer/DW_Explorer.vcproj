@@ -281,6 +281,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWFavIconMgt.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWGDI.h"
 						>
 					</File>

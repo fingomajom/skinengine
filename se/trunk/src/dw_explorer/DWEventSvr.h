@@ -13,11 +13,13 @@
 #pragma once
 
 
-#define eid_addr_changed   1
-#define edi_open_url       2
+#define eid_addr_changed        1
+#define edi_open_url            2
+
+#define edi_spr_icon_changed    10
 
 
-#define edi_skin_changed   101
+#define edi_skin_changed        101
 
 
 

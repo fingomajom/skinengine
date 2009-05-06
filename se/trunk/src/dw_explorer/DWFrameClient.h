@@ -16,6 +16,7 @@
 #include "DWTableBar.h"
 #include "DWProcessMgt.h"
 #include "DWEventSvr.h"
+#include "DWFavIconMgt.h"
 
 
 struct URL_WND_INFO {
@@ -51,9 +52,11 @@ public:
 
         MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
 
-        MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd )
-        MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd )
+        MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd     )
+        MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd   )
+        MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
 
+        
         MESSAGE_HANDLER(WM_WEBWND_INFO_CHANGED , OnWebWndInfoChanged )
         
     END_MSG_MAP()
@@ -106,6 +109,11 @@ public:
                 m_mapUrlWndInfo[hCreateWnd].strTitle = m_mapUrlWndInfo[(HWND)uID].strTitle ;
                 m_mapUrlWndInfo.RemoveKey((HWND)uID);
 
+                HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( m_mapUrlWndInfo[hCreateWnd].strURL
+                    , m_hWnd, wParam );
+                if ( hIcon != NULL )
+                    m_wndTableBar.SetItemIcon( nTabIndex, hIcon );
+
                 if( m_wndTableBar.SetItemParam( nTabIndex, wParam ) != uID )
                     ATLASSERT( 0 && L"id changed no.." );
 
@@ -120,8 +128,7 @@ public:
             psmgt.AddWnd2Process(hCreateWnd);
 
             m_mapUrlWndInfo[hCreateWnd].strURL   = L"about:blank";
-            m_mapUrlWndInfo[hCreateWnd].strTitle = L"正在打开";
-            
+            m_mapUrlWndInfo[hCreateWnd].strTitle = L"正在打开";            
 
             int nIdx = m_wndTableBar.GetSelectIndex();
             nIdx++;
@@ -138,8 +145,25 @@ public:
             ShowClient(hCreateWnd);
         }
 
-
         return 0;
+    }
+
+    LRESULT OnFavIconReflash(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        int nTabIndex = m_wndTableBar.FindParam(lParam);
+        ATLASSERT(nTabIndex >= 0);
+
+        if ( nTabIndex >= 0 && wParam != NULL )
+        {
+            m_wndTableBar.SetItemIcon( nTabIndex, (HICON)wParam );
+
+            if ( nTabIndex == m_wndTableBar.GetSelectIndex() )
+                CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+                wParam, 0 );
+
+        }
+
+        return 0L;
     }
 
     LRESULT OnWebWndInfoChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -182,6 +206,20 @@ public:
                 {
                     m_wndTableBar.SetItemCaption( nTabIndex, strTitle );
                 }
+
+                if ( strURL.GetLength() > 0 && strURL.CollateNoCase(L"about:blank") )
+                {
+                    HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( strURL, m_hWnd, wParam );
+                    if ( hIcon != NULL )
+                    {
+                        m_wndTableBar.SetItemIcon( nTabIndex, hIcon );
+
+                        if ( nTabIndex == m_wndTableBar.GetSelectIndex() )
+                            CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+                            (WPARAM)hIcon, 0 );
+
+                    }
+                }
             }
 
             piBuffer->Release();
@@ -219,10 +257,20 @@ public:
         m_wndClient = hWndClient;
 
         ResizeClient();
+
         if ( ::IsWindow(m_wndClient) )
         {
+            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
             m_wndClient.SetFocus();
+
+            HICON hIcon = m_wndTableBar.GetItemIcon( m_wndTableBar.FindParam((WPARAM)hWndClient) );
+            if ( hIcon == NULL )
+                hIcon = skin.iconNull;
+            CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+                (WPARAM)hIcon, 0 );
+
 
             ATL::CAtlMap<HWND, URL_WND_INFO>::CPair* pFind = 
                 m_mapUrlWndInfo.Lookup( m_wndClient );

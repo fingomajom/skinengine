@@ -3,6 +3,7 @@
 #include "CDWMainFrame.h"
 #include "DWProcessMgt.h"
 #include "DWEventSvr.h"
+#include "DWFavIconMgt.h"
 
 DWORD CDWFrameMgt::m_dwMainThreadId = NULL;
 
@@ -48,6 +49,7 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     _Module.AddMessageLoop(&theLoop);
     CDWFrameMgt&   frmmgt = CDWFrameMgt::Instance();
     CDWProcessMgt& psmgt  = CDWProcessMgt::Instance();
+    CDWFavIconMgt& fimgt  = CDWFavIconMgt::Instance();
 
     g_hMutex = OpenMutex( MUTEX_MODIFY_STATE, TRUE, g_pszMutexName );
     if ( g_hMutex != NULL )
@@ -75,6 +77,7 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     delete &frmmgt;
     delete &psmgt;
+    delete &fimgt;
     delete &CDWEventSvr::Instance();
 
     return nRet;

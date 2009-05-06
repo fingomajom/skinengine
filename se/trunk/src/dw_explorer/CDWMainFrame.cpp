@@ -34,10 +34,15 @@ HWND CDWMainFrame::CreateEx()
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-    //if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB)
-    //{
-    //    return m_wndClient.PreTranslateMessage(pMsg);
-    //}
+    if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB )
+    {
+        HWND hFWnd = GetFocus();
+
+        if ( m_wndSuperbar.m_address_edit == hFWnd )
+            m_wndSuperbar.m_serach_edit.SetFocus();
+        else if ( m_wndSuperbar.m_serach_edit == hFWnd )
+            m_wndClient.SetFocus();        
+    }
     
     m_wndSuperbar.PreTranslateMessage(pMsg);
 
@@ -204,6 +209,7 @@ void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
         return;
 
     m_wndTableBar.SetItemCaption( nIdx, strCaption );
+    m_wndTableBar.SetItemIcon( nIdx, NULL );
 
     m_wndClient.m_mapUrlWndInfo[hWnd].strURL   = pszURL;
     m_wndClient.m_mapUrlWndInfo[hWnd].strTitle = strCaption;
@@ -286,6 +292,11 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
         }
 
         m_sys_title.Invalidate();
+    }
+    else if ( uMsg == edi_spr_icon_changed )
+    {
+        //SetIcon( (HICON) wParam, FALSE );
+        //m_sys_title.Invalidate();
     }
 
     return 0;

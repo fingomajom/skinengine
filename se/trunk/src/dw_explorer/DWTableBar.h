@@ -153,6 +153,29 @@ public:
         }
     }
 
+    void SetItemIcon( int nIndex, HICON hIcon, BOOL bRePaint = TRUE )
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+        {
+            m_vtTableBtn[nIndex].icon = hIcon;
+            if ( bRePaint )
+                CWindow::Invalidate();
+        }
+    }
+
+    HICON GetItemIcon( int nIndex )
+    {
+        nIndex += sys_tbi_count;
+
+        if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
+            return m_vtTableBtn[nIndex].icon;
+
+        return NULL;
+    }
+
+
     LPARAM GetItemId(int nIndex) const
     {
         nIndex += sys_tbi_count;

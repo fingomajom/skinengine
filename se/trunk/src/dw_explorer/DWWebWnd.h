@@ -125,11 +125,18 @@ public:
 
     LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        MoveFocusToIe(0);
+        HWND hShellEmbedding = ::GetWindow(m_hWnd, GW_CHILD);
+        if (hShellEmbedding == NULL)
+            return 0L;
+        HWND hDocObj = ::GetWindow(hShellEmbedding, GW_CHILD);
+        if (hDocObj == NULL)
+            return 0L;
+        HWND hIEServer = ::FindWindowEx(hDocObj, NULL, CLASS_NAME_IE_SERVER, NULL);
 
-        return DefWindowProc();
+        ::SetFocus(hIEServer);
+
+        return 0L;
     }
-
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -294,31 +301,38 @@ public:
 
         CComPtr<IUnknown> spIUnBrowser;
         CComPtr<IUnknown> spIUnDisp;
+
         m_spWebBrowser->QueryInterface( IID_IUnknown,  (void**)&spIUnBrowser );
         pDisp->QueryInterface( IID_IUnknown,  (void**)&spIUnDisp );
 
         BOOL bTopFrame = (spIUnBrowser != NULL && spIUnBrowser == spIUnDisp);
-        
-        ATL::CString strMsg;
-        if ( URL != NULL && URL->bstrVal )
-            strMsg = URL->bstrVal;
 
-        CComBSTR bstrtitle;
+        BOOL         bChanged = FALSE;
+        CComBSTR     bstrTitle;
 
-        CComPtr<IDispatch> spDispatch;
+        CComPtr<IDispatch>      spDispatch;
         CComPtr<IHTMLDocument2> spDocument;
 
         m_spWebBrowser->get_Document(&spDispatch);
         if (spDispatch)
             spDispatch->QueryInterface(&spDocument);
 
-        spDocument->get_title( &bstrtitle );
+        spDocument->get_title( &bstrTitle );
 
-        m_strTitle = bstrtitle;
+        if ( StrCmpI(bstrTitle, m_strTitle) )
+            bChanged = TRUE;
+
+        m_strTitle = bstrTitle;
         if ( bTopFrame )
-            m_strURL = URL->bstrVal;
+        {
+            if ( StrCmpI(m_strURL, URL->bstrVal) )
+                bChanged = TRUE;
 
-        ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
+            m_strURL = URL->bstrVal;
+        }
+        
+        if ( bChanged )
+            ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
 
 
         if (spDocument)

@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <atlutil.h>
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
 
@@ -10,7 +11,9 @@ class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
 public:
     BEGIN_MSG_MAP(CDWMainFrame)
 
-        MESSAGE_HANDLER( WM_KEYDOWN , OnKeyDown )
+        MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
+        MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
 
     END_MSG_MAP()
 
@@ -22,6 +25,31 @@ public:
 
         return lResult;
     }
+
+    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
+
+        SetSelAll();
+
+        return lResult;
+    }
+
+    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        BOOL bSelAll = FALSE;
+
+        if ( GetFocus() != m_hWnd )
+            bSelAll = TRUE;
+
+        LRESULT lResult = DefWindowProc();
+
+        if ( bSelAll )
+            SetSelAll();
+
+        return lResult;
+    }
+
 };
 
 class CDWSuperToolbar : 
@@ -30,30 +58,79 @@ class CDWSuperToolbar :
 {
 public:
 
+    static CStringA EscapeUrl( LPCTSTR pszURL )
+    {
+        CStringA strURL;
+        CStringA strResult;
+
+        strURL = pszURL;
+
+        DWORD dwLen = strURL.GetLength() * 8 + 1;
+
+        LPSTR pszBuffer = strResult.GetBuffer( dwLen + 1 );
+        if ( pszBuffer == NULL )
+            return strResult;
+
+
+        AtlEscapeUrl(strURL, pszBuffer, &dwLen, dwLen, ATL_URL_ENCODE_PERCENT);
+        strResult.ReleaseBuffer();
+
+        return strResult;
+    }
+
+
+    void OpenURL( LPCTSTR URL )
+    {
+        if ( StrStrI( URL, L"." ) == NULL )
+        {
+            OpenSerach(URL);
+            return;
+        }
+
+        CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)URL, FALSE);
+    }
+
+    void OpenSerach( LPCTSTR pszKeyWord )
+    {
+        ATL::CString strURL;
+        ATL::CString strKeyword = EscapeUrl(pszKeyWord);
+
+        strURL.Format(L"http://www.baidu.com/s?wd=%s", strKeyword);
+
+        CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)(LPCTSTR)strURL, FALSE);
+    }
 
     BOOL PreTranslateMessage(MSG* pMsg)
     {
-        if ( pMsg->hwnd == m_address_edit && pMsg->message == WM_KEYDOWN ) 
+        if ( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN ) 
         {
-            if ( pMsg->wParam == VK_RETURN )
+            if ( pMsg->hwnd == m_address_edit )
             {
                 int nTextLen = m_address_edit.GetWindowTextLength();
                 if ( nTextLen <= 0)
                     return FALSE;
 
-                WCHAR* pAddr = new WCHAR[ nTextLen + 1];
-                m_address_edit.GetWindowText( pAddr, nTextLen + 1);
+                WCHAR* URL = new WCHAR[ nTextLen + 1];
+                m_address_edit.GetWindowText( URL, nTextLen + 1);
 
-                CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)pAddr, FALSE);
+                OpenURL( URL );
 
-                delete []pAddr;
+                delete []URL;
+            }
+            else if ( pMsg->hwnd == m_serach_edit )
+            {
+                int nTextLen = m_serach_edit.GetWindowTextLength();
+                if ( nTextLen <= 0)
+                    return FALSE;
+
+                WCHAR* URL = new WCHAR[ nTextLen + 1];
+                m_serach_edit.GetWindowText( URL, nTextLen + 1);
+
+                OpenSerach( URL );
+
+                delete []URL;
             }
         }
-        else if ( pMsg->hwnd == m_address_edit && pMsg->message == WM_SETFOCUS )
-        {
-            m_address_edit.SetSel( 0, -1 );
-        }
-
 
         return FALSE;
     }
@@ -101,8 +178,10 @@ public:
 
         dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
 
-        CIconHandle icon = skin.iconNull;
-
+        if ( m_icon_addr.IsNull() )
+            m_icon_addr = skin.iconNull;
+        if ( m_icon_search.IsNull() )
+            m_icon_search = skin.iconNull;
 
         COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
 
@@ -124,7 +203,7 @@ public:
         POINT pt = { 5, 5 };
 
         dc.RoundRect(&rcClient, pt);
-        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+        m_icon_addr.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
         InflateRect(&rcClient, 1, 1);
 
         m_serach_edit.GetWindowRect(&rcClient);
@@ -134,7 +213,7 @@ public:
         rcClient.left -= 18;
 
         dc.RoundRect(&rcClient, pt);
-        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+        m_icon_search.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -202,10 +281,20 @@ public:
         {
             m_address_edit.SetWindowText((LPCTSTR)wParam);
         }
-        else
+        else if ( uMsg == edi_skin_changed )
         {
             if (!m_bkBrush.IsNull())
                 m_bkBrush.DeleteObject();
+        }
+        else if ( uMsg == edi_spr_icon_changed )
+        {
+            if ( wParam != NULL )
+                m_icon_addr = (HICON)wParam;
+            if ( lParam != NULL )
+                m_icon_search = (HICON)lParam;
+
+            if ( wParam != NULL || lParam != NULL )
+                Invalidate();
         }
 
         return 0;
@@ -217,4 +306,7 @@ public:
 
     CDWEdit m_address_edit;
     CDWEdit m_serach_edit;
+
+    CIconHandle m_icon_addr;
+    CIconHandle m_icon_search;
 };

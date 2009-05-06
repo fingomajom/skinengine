@@ -22,8 +22,7 @@
 
 
 #define WM_CREATE_WEB_WND       (WM_USER + 1100)
-
-
+#define WM_FAV_ICON_REFLASH     (WM_USER + 1110)
 
 #define WM_WEBWND_INFO_CHANGED  (WM_USER + 1200)
 
@@ -35,3 +34,6 @@
 #define WM_USER_GET_WEBBROWSER2_CROSS_PROCESS   (WM_USER + 1501)
 #define WM_USER_MULTI_PROCESS_GET_STREAM		(WM_USER + 1502)
 
+
+
+#define CLASS_NAME_IE_SERVER            _T("Internet Explorer_Server")

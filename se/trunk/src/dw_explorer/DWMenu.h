@@ -115,36 +115,57 @@ public:
 
         CDCHandle dc = lpDrawItem->hDC;
 
-        OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, 
-            ((lpDrawItem->itemAction & ODA_SELECT) && (lpDrawItem->itemState & ODS_SELECTED)));  
+        if ( lpDrawItem->itemID != ID_SEPARATOR )
+        {
+            OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, 
+                ((lpDrawItem->itemAction & ODA_SELECT) && (lpDrawItem->itemState & ODS_SELECTED)));  
 
-        int nBkMode = dc.SetBkMode(TRANSPARENT);
-        HFONT hOld = dc.SelectFont(skin.fontDefault);
+            int nBkMode = dc.SetBkMode(TRANSPARENT);
+            HFONT hOld = dc.SelectFont(skin.fontDefault);
 
-        CMenuHandle menu = (HMENU)lpDrawItem->hwndItem;
+            CMenuHandle menu = (HMENU)lpDrawItem->hwndItem;
 
-        menu.GetMenuString( lpDrawItem->itemID, szBuffer, MAX_PATH, MF_BYCOMMAND);
+            menu.GetMenuString( lpDrawItem->itemID, szBuffer, MAX_PATH, MF_BYCOMMAND);
 
-        CIconHandle icon = skin.iconNull;
-        if ( ::IsMenu((HMENU)lpDrawItem->itemID) )
-            icon = skin.iconFavDir;
+            CIconHandle icon = skin.iconNull;
+            if ( ::IsMenu((HMENU)lpDrawItem->itemID) )
+                icon = skin.iconFavDir;
 
-        icon.DrawIconEx( dc,
-            lpDrawItem->rcItem.left + 5,
-            lpDrawItem->rcItem.top  + 2,
-            16, 16);
+            icon.DrawIconEx( dc,
+                lpDrawItem->rcItem.left + 5,
+                lpDrawItem->rcItem.top  + 2,
+                16, 16);
 
-        RECT rcText   = lpDrawItem->rcItem;
-        rcText.left  += menu_icon_width;
-        rcText.left  += menu_text_space;
-        rcText.right -= menu_text_space;
+            RECT rcText   = lpDrawItem->rcItem;
+            rcText.left  += menu_icon_width;
+            rcText.left  += menu_text_space;
+            rcText.right -= menu_text_space;
 
-        dc.DrawText( szBuffer, -1, 
-            &rcText, 
-            DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS );
+            dc.DrawText( szBuffer, -1, 
+                &rcText, 
+                DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS );
 
-        dc.SetBkMode(nBkMode);
-        dc.SelectFont(hOld);
+            dc.SetBkMode(nBkMode);
+            dc.SelectFont(hOld);
+        }
+        else
+        {
+            OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, FALSE);  
+            
+            RECT rcSeparator = lpDrawItem->rcItem;
+            rcSeparator.top = rcSeparator.bottom = ( rcSeparator.top + rcSeparator.bottom ) / 2;
+            
+            rcSeparator.left  += 5;
+            rcSeparator.right -= 5;
+
+            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+            COLORREF clrL    = HLS_TRANSFORM( skin.clrFrameWindow, +50, 0 );
+            COLORREF clrS    = HLS_TRANSFORM( skin.clrFrameWindow, -50, 0 );
+
+            dc.Draw3dRect( &rcSeparator, clrL, clrS );
+        }
+
 
 
         return 0L;    
