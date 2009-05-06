@@ -118,8 +118,15 @@ public:
 
         if ( nIndex == 1 )
         {
-            clrText = clrL ;
-            dc.Draw3dRect(&info.rcBtn, clrL, clrL );
+            CPen pen; pen.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, +60, 0 ) );
+            CBrush brush; brush.CreateSolidBrush( clrL );
+
+            HPEN hOldPen = dc.SelectPen(pen);
+            HBRUSH hOldBrush = dc.SelectBrush(brush);
+            POINT pt = { 3, 3 };
+            dc.RoundRect( &info.rcBtn, pt );
+            dc.SelectPen(hOldPen);
+            dc.SelectBrush(hOldBrush);
         }
         else if ( nIndex == 2  )
         {

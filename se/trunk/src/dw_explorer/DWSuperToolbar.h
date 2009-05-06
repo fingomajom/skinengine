@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <atlutil.h>
+//#include <atlutil.h>
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
 
@@ -59,22 +59,28 @@ class CDWSuperToolbar :
 {
 public:
 
-    static CStringA EscapeUrl( LPCTSTR pszURL )
+    static CString EscapeUrl( LPCTSTR pszURL )
     {
-        CStringA strURL;
-        CStringA strResult;
+        ATL::CString strResult;
+        ATL::CString strTemp;
 
-        strURL = pszURL;
+        CW2AEX<> URL(pszURL, CP_ACP);
 
-        DWORD dwLen = strURL.GetLength() * 8 + 1;
+        for ( LPSTR pch = URL.m_psz; *pch ; pch++ )
+        {
+            if ( (*pch >= '0' && *pch <= '9') ||
+                 (*pch >= 'A' && *pch <= 'Z') ||
+                 (*pch >= 'a' && *pch <= 'z') )
+            {
+                strResult += *pch;
+            }
+            else
+            {
+                strTemp.Format(L"%%%02x", BYTE(*pch) );
+                strResult += strTemp;
+            }
+        }
 
-        LPSTR pszBuffer = strResult.GetBuffer( dwLen + 1 );
-        if ( pszBuffer == NULL )
-            return strResult;
-
-
-        AtlEscapeUrl(strURL, pszBuffer, &dwLen, dwLen, ATL_URL_ENCODE_PERCENT);
-        strResult.ReleaseBuffer();
 
         return strResult;
     }
@@ -158,8 +164,10 @@ public:
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
-        m_address_edit.Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_WANTRETURN | WS_TABSTOP );
-        m_serach_edit .Create(m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_WANTRETURN | WS_TABSTOP );
+        m_address_edit.Create(m_hWnd, &rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
+        m_serach_edit .Create(m_hWnd, &rcDefault, NULL, 
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
 
         m_address_edit.SetFont( skin.fontDefault );
         m_serach_edit.SetFont( skin.fontDefault );

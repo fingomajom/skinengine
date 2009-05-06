@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <atlutil.h>
 
 #define WM_DOWNLOAD_FAV_ICON   (WM_USER + 1000)
 

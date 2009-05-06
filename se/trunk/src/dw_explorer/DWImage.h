@@ -97,7 +97,7 @@ public:
                 switch (nFlags)
                 {
                 case 1:
-                    sr = sg = sb = (pSrcBuf[nSPos] + pSrcBuf[nSPos+1] + pSrcBuf[nSPos+2])/3;
+                    sr = sg = sb = ((pSrcBuf[nSPos] + pSrcBuf[nSPos+1] + pSrcBuf[nSPos+2])/3);
                     break;
                 case 0:
                 default:
