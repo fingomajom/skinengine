@@ -27,10 +27,10 @@ public:
 
         MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint   )
 
-        MESSAGE_HANDLER(WM_SETFOCUS   , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
-        MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
+        //MESSAGE_HANDLER(WM_SETFOCUS   , OnSkipMsg    )
+        //MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
+        //MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
+        //MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
         
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize  )
         MESSAGE_HANDLER(WM_SIZE      , OnSize        )
@@ -221,7 +221,7 @@ public:
 
     LRESULT OnSkipMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        LRESULT lResult = ((T*)this)->DefWindowProc();     
+        LRESULT lResult = ((T*)this)->DefWindowProc();
 
         return lResult;
     }

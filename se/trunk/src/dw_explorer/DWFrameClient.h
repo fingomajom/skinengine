@@ -71,7 +71,9 @@ public:
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
         if ( m_wndClient.IsWindow() )
+        {
             m_wndClient.SetFocus();
+        }
 
         return 0;
     }
@@ -240,13 +242,26 @@ public:
 
     void ResizeClient()
     {
-        RECT rcClient = { 0 };
-      
-        if ( ::IsWindow(m_wndClient) )
+        RECT rcClient  = { 0 };
+        RECT rcCClient = { 0 };
+
+        if ( !::IsWindow(m_wndClient) )
+            return;
+
+        if ( !GetClientRect(&rcClient) ||
+             !m_wndClient.GetClientRect(&rcCClient) ||
+             (rcClient.right == 0 && rcClient.bottom == 0 ) )
         {
-            GetClientRect(&rcClient);
-            m_wndClient.MoveWindow(&rcClient);
+             return;
         }
+
+        if ( rcCClient.bottom == rcClient.bottom &&
+             rcCClient.right  == rcClient.right  )
+             return;
+      
+        m_wndClient.SetRedraw(FALSE);
+        m_wndClient.MoveWindow(&rcClient);
+        m_wndClient.SetRedraw(TRUE);
     }
 
     void ShowClient( HWND hWndClient )
@@ -281,16 +296,10 @@ public:
                 if ( strTitle.IsEmpty() )
                     strTitle = pFind->m_value.strURL;
 
-                if ( strTitle.GetLength() )
-                {
-                }
-
                 CDWEventSvr::Instance().OnMessage( 
                     eid_addr_changed, 
                     (WPARAM)(LPCTSTR)pFind->m_value.strURL, 
                     (WPARAM)(LPCTSTR)pFind->m_value.strTitle);
-
-
             }
         }
     }

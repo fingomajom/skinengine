@@ -140,7 +140,7 @@ public:
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return 1 ;
+        return 1;
     }
 
     LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -160,7 +160,6 @@ public:
     {
         __try
         {
-            //特别注意不要在单线程的情况下掉这个函数
             IStream* pStream = NULL ;
 
             HRESULT hr = CoMarshalInterThreadInterfaceInStream(IID_IWebBrowser2, m_spWebBrowser, &pStream) ;
@@ -317,7 +316,10 @@ public:
         if (spDispatch)
             spDispatch->QueryInterface(&spDocument);
 
-        spDocument->get_title( &bstrTitle );
+        if ( spDocument )
+        {
+            spDocument->get_title( &bstrTitle );
+        }
 
         if ( StrCmpI(bstrTitle, m_strTitle) )
             bChanged = TRUE;

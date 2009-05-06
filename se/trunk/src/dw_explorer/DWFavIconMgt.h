@@ -5,6 +5,7 @@
 
 #define WM_DOWNLOAD_FAV_ICON   (WM_USER + 1000)
 
+
 class CDWFavIconMgt
 {
     CDWFavIconMgt();

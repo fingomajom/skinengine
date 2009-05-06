@@ -138,6 +138,13 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     return 0L;
 }
 
+LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    m_wndClient.SetFocus();
+
+    return DefWindowProc();
+}
+
 
 LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
@@ -180,9 +187,9 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     m_wndClient.m_mapUrlWndInfo[(HWND)uId].strTitle = strCaption;
 #endif
 
+    m_wndTableBar.SelectIndex(nIdx);
     psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), pszURL);
 
-    m_wndTableBar.SelectIndex(nIdx);
 }
 
 
@@ -244,8 +251,12 @@ void CDWMainFrame::OnCloseURL( int nIndex )
     m_wndTableBar.RemoveTableItem(nSelIndex);
     psmgt.DestryWebWnd( hSelWnd );
     
-    if ( nSelIndex >= m_wndTableBar.GetItemCount() )
-        nSelIndex = m_wndTableBar.GetItemCount()-1;
+    //if ( nSelIndex >= m_wndTableBar.GetItemCount() )
+    //    nSelIndex = m_wndTableBar.GetItemCount()-1;
+    if ( --nSelIndex < 0 )
+        nSelIndex = 0;
+    
+
     m_wndTableBar.SelectIndex( nSelIndex );
     OnSelectURL(nSelIndex);
 }

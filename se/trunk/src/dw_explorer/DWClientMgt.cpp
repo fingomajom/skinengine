@@ -322,7 +322,7 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     //*pWndRet
 
     wndWeb.m_hNotifyWnd = *pWndRet;
-    if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault) == NULL )
+    if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault ) == NULL )
     {
         clt.m_piWebBrowser = NULL;
         ::SetEvent(clt.m_hCreateWebWndEvent);

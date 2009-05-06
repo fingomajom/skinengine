@@ -38,9 +38,10 @@ public:
 
         CHAIN_MSG_MAP(CDWFrameUIImpl<CDWMainFrame>)
 
-        MESSAGE_HANDLER(WM_CREATE , OnCreate )
-        MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
-        MESSAGE_HANDLER(WM_SIZE   , OnSize   )
+        MESSAGE_HANDLER(WM_CREATE  , OnCreate   )
+        MESSAGE_HANDLER(WM_DESTROY , OnDestroy  )
+        MESSAGE_HANDLER(WM_SIZE    , OnSize     )
+        MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
 
         MESSAGE_HANDLER(WM_TABLE_BAR_MSG, OnTableBarMsg)
 
@@ -71,6 +72,7 @@ protected:
     LRESULT OnCreate    (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnDestroy   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnTableBarMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
@@ -84,7 +86,7 @@ public:
 
     DECLARE_WND_CLASS(_T("DWExplorer_MainFrame"));
 
-private:
+protected:
 
     CDWSuperToolbar m_wndSuperbar;
     CDWFavoriteBar  m_wndFavoriteBar;

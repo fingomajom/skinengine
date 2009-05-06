@@ -22,6 +22,7 @@ public:
         LRESULT lResult = DefWindowProc();
         
         CWindow::Invalidate();
+        CWindow(GetParent()).Invalidate();
 
         return lResult;
     }
@@ -81,7 +82,9 @@ public:
 
     void OpenURL( LPCTSTR URL )
     {
-        if ( StrStrI( URL, L"." ) == NULL )
+        if ( StrStrI( URL, L"." ) == NULL && 
+             StrStrI( URL, L"://" ) == NULL &&
+             StrStrI( URL, L":\\" ) == NULL )
         {
             OpenSerach(URL);
             return;
@@ -174,7 +177,10 @@ public:
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
 
-        CDCHandle dc(hDC);
+        CMemoryDC dc(hDC, rcClient);
+
+
+        CreateBkBrush();
 
         dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
 
@@ -188,11 +194,8 @@ public:
         CPen pen;
         pen.CreatePen( PS_SOLID, 1, clrBorder );
 
-        CBrush brush;
-        brush.CreateSolidBrush( HLS_TRANSFORM(skin.clrFrameWindow, 20, 0) );
-
         HPEN   hOldPen   = dc.SelectPen( pen );
-        HBRUSH hOldBrush = dc.SelectBrush( brush );
+        HBRUSH hOldBrush = dc.SelectBrush( IsHttps() ? m_bkSBrush : m_bkBrush );
 
         m_address_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
@@ -203,9 +206,10 @@ public:
         POINT pt = { 5, 5 };
 
         dc.RoundRect(&rcClient, pt);
-        m_icon_addr.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+        m_icon_addr.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
         InflateRect(&rcClient, 1, 1);
 
+        dc.SelectBrush( m_bkBrush );
         m_serach_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
         InflateRect(&rcClient, 2, 2);
@@ -213,7 +217,7 @@ public:
         rcClient.left -= 18;
 
         dc.RoundRect(&rcClient, pt);
-        m_icon_search.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+        m_icon_search.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -226,15 +230,48 @@ public:
         return 1L;
     }
 
-    LRESULT OnCtlColor(UINT /* uMsg */, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+    BOOL IsHttps()
+    {
+        TCHAR szText[10] = { 0 };
+
+        m_address_edit.GetWindowText(szText, 9);
+
+        return !StrCmpNI(szText, L"https://", 8 );
+    }
+
+    void CreateBkBrush()
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
-        CDCHandle dc = (HDC)wParam;
-        dc.SetBkMode( TRANSPARENT );
-
         if ( m_bkBrush.m_hBrush == NULL )
             m_bkBrush.CreateSolidBrush( HLS_TRANSFORM(skin.clrFrameWindow, 20, 0) );
+        
+        if ( m_bkSBrush.m_hBrush == NULL )
+        {
+            COLORREF clrOld = HLS_TRANSFORM(skin.clrFrameWindow, 40, 0 );
+
+            BYTE r,g,b;
+            
+            r = GetRValue(clrOld);
+            g = GetGValue(clrOld);
+            b = GetBValue(clrOld);
+            
+            r += 60;
+            r = r < 60 ? 255 : r;
+
+            m_bkSBrush.CreateSolidBrush( RGB(r,g,b) );
+        }
+    }
+
+    LRESULT OnCtlColor(UINT /* uMsg */, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+    {
+        CDCHandle dc = (HDC)wParam;
+        dc.SetBkMode( TRANSPARENT );
+        
+        CreateBkBrush();
+
+        if ( (HWND)lParam == m_address_edit.m_hWnd && IsHttps() )
+            return (LRESULT)m_bkSBrush.m_hBrush;
 
         return (LRESULT)m_bkBrush.m_hBrush;
     }
@@ -259,7 +296,6 @@ public:
             rcSerach.left = 250;
         else if ( rcSerach.left < 100 )
             rcSerach.left = 100;
-
         
         rcSerach.left = rcSerach.right - rcSerach.left;        
 
@@ -280,11 +316,14 @@ public:
         if ( uMsg == eid_addr_changed )
         {
             m_address_edit.SetWindowText((LPCTSTR)wParam);
+            CWindow::Invalidate();
         }
         else if ( uMsg == edi_skin_changed )
         {
             if (!m_bkBrush.IsNull())
                 m_bkBrush.DeleteObject();
+            if (!m_bkSBrush.IsNull())
+                m_bkSBrush.DeleteObject();
         }
         else if ( uMsg == edi_spr_icon_changed )
         {
@@ -303,6 +342,7 @@ public:
 public:
 
     WTL::CBrush m_bkBrush;
+    WTL::CBrush m_bkSBrush;
 
     CDWEdit m_address_edit;
     CDWEdit m_serach_edit;

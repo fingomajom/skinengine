@@ -271,7 +271,7 @@ public:
         // µ×Í¼
         m_image_item.AlphaDraw( hDC, 
             tabInfo.rcBtn.left, tabInfo.rcBtn.top, 
-            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
+            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.2f : 1.5f );
 
         rcSrcImage1 = rcSrcImage;
         rcSrcImage1.left  = rcSrcImage1.left + nHufWidth;
@@ -281,14 +281,14 @@ public:
         {
             m_image_item.AlphaDraw( hDC, 
                 tabInfo.rcBtn.left + nHufWidth + i, tabInfo.rcBtn.top, 
-                &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
+                &rcSrcImage1 , 1, nImageIdx == 2 ? 1.2f : 1.5f );
         }
 
         rcSrcImage1 = rcSrcImage;
         rcSrcImage1.left = rcSrcImage1.left + nHufWidth;
         m_image_item.AlphaDraw( hDC, 
             tabInfo.rcBtn.left + nDifWidth + nHufWidth, tabInfo.rcBtn.top, 
-            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.0f : 1.5f );
+            &rcSrcImage1 , 1, nImageIdx == 2 ? 1.2f : 1.5f );
 
         // Í¼±ê
         CIconHandle icon = tabInfo.icon;
