@@ -49,9 +49,10 @@ public:
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
         MESSAGE_HANDLER(WM_SIZE   , OnSize   )
 
+        MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
+
         MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd )
         MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd )
-
 
         MESSAGE_HANDLER(WM_WEBWND_INFO_CHANGED , OnWebWndInfoChanged )
         
@@ -60,6 +61,14 @@ public:
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
         bHandled = FALSE;
+
+        return 0;
+    }
+
+    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        if ( m_wndClient.IsWindow() )
+            m_wndClient.SetFocus();
 
         return 0;
     }
@@ -81,7 +90,7 @@ public:
         if ( !::IsWindow(hCreateWnd) )
             return 1L;
 
-        if ( lParam != 0 )  // 事件创建
+        if ( lParam != 0 )  // 事件创建 进程内发来
         {
             unsigned short uID  = LOWORD(lParam);
             int nIdx = HIWORD(lParam);
@@ -104,7 +113,7 @@ public:
                     ShowClient( hCreateWnd );
             }
         }
-        else // 单击创建
+        else // 单击创建 从进程外发来
         {
             CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
@@ -148,30 +157,31 @@ public:
             WCHAR* pszBuf = (WCHAR*)piBuffer->GetDataBuffer();
 
             ATL::CString strTitle = pszBuf+1;
-            if ( strTitle.IsEmpty() )
-                strTitle = pszBuf + pszBuf[0];
+            ATL::CString strURL   = pszBuf + pszBuf[0];
 
-            m_mapUrlWndInfo[(HWND)wParam].strURL   = pszBuf + pszBuf[0];
-            m_mapUrlWndInfo[(HWND)wParam].strTitle = pszBuf+1;
+            m_mapUrlWndInfo[(HWND)wParam].strURL   = strURL;
+            m_mapUrlWndInfo[(HWND)wParam].strTitle = strTitle;
 
-            if ( strTitle.GetLength() )
+            if ( strTitle.GetLength() > 0 || strURL.GetLength() > 0 )
             {
                 int nTabIndex = m_wndTableBar.FindParam(wParam);
                 ATLASSERT(nTabIndex >= 0);
+
+                if ( strURL.GetLength() > 0 && nTabIndex == m_wndTableBar.GetSelectIndex() )
+                {
+                    CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
+                        (WPARAM)(LPCTSTR)strURL, 
+                        (WPARAM)(LPCTSTR)strTitle);
+                    if ( ::IsWindow(m_wndClient) )
+                        m_wndClient.SetFocus();
+                }                
+
+                if ( strTitle.GetLength() <= 0 )
+                    strTitle = strURL;
                 if ( nTabIndex >= 0 && strTitle.CollateNoCase(L"about:blank"))
                 {
                     m_wndTableBar.SetItemCaption( nTabIndex, strTitle );
                 }
-
-                strTitle = pszBuf + pszBuf[0];
-                if ( strTitle.GetLength() > 0 && nTabIndex == m_wndTableBar.GetSelectIndex() )
-                {
-                    CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM)(LPCTSTR)strTitle, 0 );
-                    if ( ::IsWindow(m_wndClient) )
-                        m_wndClient.SetFocus();
-
-                }
-
             }
 
             piBuffer->Release();
@@ -213,8 +223,6 @@ public:
         {
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );
             m_wndClient.SetFocus();
-            m_wndClient.SetActiveWindow();
-
 
             ATL::CAtlMap<HWND, URL_WND_INFO>::CPair* pFind = 
                 m_mapUrlWndInfo.Lookup( m_wndClient );
@@ -230,7 +238,9 @@ public:
                 }
 
                 CDWEventSvr::Instance().OnMessage( 
-                    eid_addr_changed, (WPARAM)(LPCTSTR)pFind->m_value.strURL, 0 );
+                    eid_addr_changed, 
+                    (WPARAM)(LPCTSTR)pFind->m_value.strURL, 
+                    (WPARAM)(LPCTSTR)pFind->m_value.strTitle);
 
 
             }

@@ -93,6 +93,9 @@ public:
 
         MESSAGE_HANDLER(WM_SHOWWINDOW , OnShowWindow )
 
+        MESSAGE_HANDLER(WM_USER_GET_WEBBROWSER2_CROSS_THREAD , OnGetMarshalWebBrowser2CrossThread)
+        MESSAGE_HANDLER(WM_USER_GET_WEBBROWSER2_CROSS_PROCESS, OnGetMarshalWebBrowser2CrossProcess)
+
     END_MSG_MAP()
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -122,7 +125,7 @@ public:
 
     LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        //MoveFocusToIe(0);
+        MoveFocusToIe(0);
 
         return DefWindowProc();
     }
@@ -144,6 +147,51 @@ public:
             return ShowWindow(SW_HIDE);
 
         return DefWindowProc();
+    }
+
+    LRESULT OnGetMarshalWebBrowser2CrossThread(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        __try
+        {
+            //特别注意不要在单线程的情况下掉这个函数
+            IStream* pStream = NULL ;
+
+            HRESULT hr = CoMarshalInterThreadInterfaceInStream(IID_IWebBrowser2, m_spWebBrowser, &pStream) ;
+            if (FAILED(hr) || !pStream)
+            {
+                return NULL ;
+            }
+            return (LRESULT)pStream ;
+        }
+        __except (1)
+        {
+            ATLASSERT(FALSE) ;
+            return NULL ;
+        }
+    }
+    LRESULT OnGetMarshalWebBrowser2CrossProcess(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        DWORD dwRet = 0;
+
+        ULONG ulSize = 0;
+        if (SUCCEEDED(::CoGetMarshalSizeMax (&ulSize, IID_IWebBrowser2, m_spWebBrowser, MSHCTX_LOCAL, NULL, MSHLFLAGS_NORMAL)))
+        {
+            HGLOBAL hGlobal = ::GlobalAlloc(GHND, (DWORD)ulSize);
+            if (hGlobal)
+            {
+                IStream* pStream = NULL ;
+                if (SUCCEEDED(::CreateStreamOnHGlobal (hGlobal, FALSE, &pStream)))
+                {
+                    if (SUCCEEDED(CoMarshalInterface(pStream, IID_IWebBrowser2, m_spWebBrowser, MSHCTX_LOCAL, NULL, MSHLFLAGS_NORMAL)))
+                    {
+                        COPYDATASTRUCT cds = { WM_USER_MULTI_PROCESS_GET_STREAM, ulSize, ::GlobalLock(hGlobal) };
+                        ::SendMessage((HWND)wParam, WM_COPYDATA, (WPARAM)m_hWnd, (LPARAM)&cds);
+                    }
+                }
+            }
+        }
+
+        return dwRet;
     }
 
 
@@ -285,20 +333,36 @@ public:
 
     }
 
-    void __stdcall OnNewWindowOpen2(LPDISPATCH* pDisp, VARIANT_BOOL *bCancel)
+    void __stdcall OnNewWindowOpen2(LPDISPATCH* ppDisp, VARIANT_BOOL *bCancel)
     {
         IWebBrowser2* pWebBrowser = NULL;
 
         HWND hWnd = CreateWebWnd( GetParent(), L"", &pWebBrowser);
-        if ( pWebBrowser != NULL )
+        if ( hWnd == NULL )
         {
-            //CComQIPtr<IDispatch> spDispatch(pWebBrowser);
-            pWebBrowser->AddRef();
+            *bCancel = VARIANT_TRUE;
+            return;
+        }
 
-            pWebBrowser->get_Application(pDisp);
+        DWORD dwPID = 0 ;
+        GetWindowThreadProcessId(hWnd, &dwPID);
 
-            //(*pDisp) = spDispatch;
-            (*pDisp)->AddRef();
+        ATLASSERT ( dwPID == GetCurrentProcessId() );
+        if ( pWebBrowser != NULL && dwPID == GetCurrentProcessId() )
+        {	
+
+            IStream* pStream = (IStream*)::SendMessage(hWnd, WM_USER_GET_WEBBROWSER2_CROSS_THREAD, 0, 0) ;
+            ATLASSERT(pStream);
+            if (!pStream)
+            {
+                *bCancel = VARIANT_TRUE;
+                return;
+            }
+            CComPtr<IWebBrowser2> spWebBrowser2;
+            if (SUCCEEDED(CoGetInterfaceAndReleaseStream(pStream, IID_IWebBrowser2, (void**)&spWebBrowser2)) && spWebBrowser2)
+            {
+                spWebBrowser2->get_Application(ppDisp);
+            }
 
             ::PostMessage( GetParent(), WM_CREATE_WEB_WND, (WPARAM)hWnd, 0 );
         }

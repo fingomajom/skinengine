@@ -86,6 +86,41 @@ public:
         return 0L;
     }
 
+    virtual void DoAfterPaint ( HDC hDC ) 
+    {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        
+        RECT rcClient;
+        GetClientRect(&rcClient);
+
+        rcClient.top   += 2;
+        rcClient.left  += 2;
+        rcClient.right -= 40;
+
+        TCHAR szText[MAX_PATH] = { 0 };
+        ::GetWindowText(GetParent(), szText, MAX_PATH);
+
+        CIconHandle icon = (HICON)::SendMessage(GetParent(), WM_GETICON, FALSE, 0);
+        if ( icon.m_hIcon != NULL )
+        {
+            icon.DrawIconEx( hDC, rcClient.left, rcClient.top , 16, 16 );
+            rcClient.left += 20;
+        }
+        
+        rcClient.top += 1;
+
+        int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
+        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
+        ::SetTextColor(hDC, HLS_TRANSFORM(skin.clrFrameWindow, -60, 0));
+
+        DrawText( hDC, szText, -1, &rcClient, 
+            DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+
+        ::SelectObject( hDC, hOldObj );
+        ::SetBkMode( hDC, nBkMode );
+
+    }
+
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
     {
         bHandled = FALSE;
@@ -162,17 +197,6 @@ public:
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
         
-        //CColorDialog dlg(skin.clrFrameWindow);
-        //
-        //if ( dlg.DoModal() == IDOK )
-        //{
-        //    skin.clrFrameWindow = dlg.GetColor();
-
-        //    CDWEventSvr::Instance().OnMessage( edi_skin_changed );
-
-        //    ::RedrawWindow(GetParent(), NULL, NULL, RDW_FRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
-        //}
-
         if ( !m_clr_dlg.IsWindow() )
             m_clr_dlg.Create( m_hWnd );
 

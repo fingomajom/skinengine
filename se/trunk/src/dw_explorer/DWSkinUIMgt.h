@@ -16,7 +16,7 @@ public:
     CDWSkinUIMgt()
     {
         clrFrameNcBorder = RGB( 90 , 90, 90);
-        clrFrameWindow   = RGB( 196, 80, 220 );
+        clrFrameWindow   = RGB( 60, 130, 255 );
 
         fontDefault.CreatePointFont( 90, L"Tahoma" );
 

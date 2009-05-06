@@ -104,8 +104,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
+			OutputDirectory="$(ProjectDir)\Release"
+			IntermediateDirectory="$(ProjectDir)\Release"
 			ConfigurationType="1"
 			UseOfATL="1"
 			ATLMinimizesCRunTimeLibraryUsage="true"
@@ -192,6 +192,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="$(ProjectDir)\Release\upx.bat"
 			/>
 		</Configuration>
 	</Configurations>

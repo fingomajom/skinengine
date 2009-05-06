@@ -109,8 +109,11 @@ public:
         CPen pen;
         pen.CreatePen( PS_SOLID, 1, clrBorder );
 
+        CBrush brush;
+        brush.CreateSolidBrush( HLS_TRANSFORM(skin.clrFrameWindow, 20, 0) );
+
         HPEN   hOldPen   = dc.SelectPen( pen );
-        HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
+        HBRUSH hOldBrush = dc.SelectBrush( brush );
 
         m_address_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
@@ -118,11 +121,10 @@ public:
         rcClient.top  -= 2;
         rcClient.left -= 18;
 
-        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
-
         POINT pt = { 5, 5 };
 
         dc.RoundRect(&rcClient, pt);
+        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
         InflateRect(&rcClient, 1, 1);
 
         m_serach_edit.GetWindowRect(&rcClient);
@@ -131,9 +133,8 @@ public:
         rcClient.top  -= 2;
         rcClient.left -= 18;
 
-        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
-
         dc.RoundRect(&rcClient, pt);
+        icon.DrawIconEx( hDC, rcClient.left + 4, rcClient.top + 3, 16, 16 );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -154,7 +155,7 @@ public:
         dc.SetBkMode( TRANSPARENT );
 
         if ( m_bkBrush.m_hBrush == NULL )
-            m_bkBrush.CreateSolidBrush( skin.clrFrameWindow );
+            m_bkBrush.CreateSolidBrush( HLS_TRANSFORM(skin.clrFrameWindow, 20, 0) );
 
         return (LRESULT)m_bkBrush.m_hBrush;
     }
@@ -169,6 +170,7 @@ public:
         
         ::InflateRect(&rcClient, -2, -2);
         rcClient.top+=3;
+        rcClient.right -= 5 ;
 
         RECT rcAddr   = rcClient;
         RECT rcSerach = rcClient;

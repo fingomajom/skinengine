@@ -26,8 +26,10 @@ HWND CDWMainFrame::CreateEx()
     rcClient.top    = ( rcClient.bottom - rcClient.top ) / 8;
     rcClient.bottom = rcClient.top * 7;
 
-    return Create( NULL, &rcClient, _T("DW_Explorer"), 
-         WS_POPUPWINDOW | WS_SIZEBOX | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
+    return Create( NULL, &rcClient, _T("¿Õ°×Ò³ - ¾«Áéä¯ÀÀÆ÷"), 
+         WS_POPUPWINDOW | WS_SIZEBOX | 
+         //WS_CAPTION |
+         WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
 }
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
@@ -47,6 +49,15 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     CMessageLoop* pLoop = _Module.GetMessageLoop();
     ATLASSERT(pLoop != NULL);
     pLoop->AddMessageFilter(this);
+
+
+    HICON hIcon = (HICON)::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME), 
+        IMAGE_ICON, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR);
+    SetIcon(hIcon, TRUE);
+    HICON hIconSmall = (HICON)::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME), 
+        IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+    SetIcon(hIconSmall, FALSE);
+
 
     m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
@@ -175,13 +186,33 @@ void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
     CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
     int nIdx = m_wndTableBar.GetSelectIndex();
+    ATLASSERT( nIdx >= 0 );
+    if ( nIdx < 0 )
+        return;
+
+    ATL::CString strCaption;
+    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, L"about:blank") )
+        strCaption = L"¿Õ°×Ò³";
+    else
+        strCaption = pszURL;
 
     pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? L"about:blank" : pszURL;
 
+    HWND hWnd = (HWND)m_wndTableBar.GetItemParam(nIdx);
+    ATLASSERT(::IsWindow(hWnd));
+    if ( !::IsWindow(hWnd) )
+        return;
+
+    m_wndTableBar.SetItemCaption( nIdx, strCaption );
+
+    m_wndClient.m_mapUrlWndInfo[hWnd].strURL   = pszURL;
+    m_wndClient.m_mapUrlWndInfo[hWnd].strTitle = strCaption;
+    
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
-    psmgt.WebWndOpenURL( (HWND)m_wndTableBar.GetItemParam(nIdx), pszURL );
-
+    psmgt.WebWndOpenURL( hWnd, pszURL );
+    if ( m_wndClient.IsWindow() )
+        m_wndClient.SetFocus();
 }
 
 
@@ -189,8 +220,16 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 {
     CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
-    if ( m_wndTableBar.GetItemCount() == 1)
+    if ( m_wndTableBar.GetItemCount() == 1) // ×îºóÒ»Ò³ ²»¹Ø±Õ 
+    {   
+        OnOpenURL(NULL);
+
+        m_wndSuperbar.m_address_edit.SetSel(0,-1);
+        m_wndSuperbar.m_address_edit.SetFocus();
+
         return ;
+    }
+
     int nSelIndex = m_wndTableBar.GetSelectIndex();
 
     ATLASSERT( nSelIndex == nIndex );
@@ -235,6 +274,18 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
         }
         else
             OnOpenURL( (LPCTSTR) wParam );
+    }
+    else if ( uMsg == eid_addr_changed )
+    {
+        LPCTSTR pszTitle = (LPCTSTR)lParam;
+        if ( lstrlenW(pszTitle) > 0 && StrCmp(pszTitle, L"¿Õ°×Ò³") )
+        {
+            ATL::CString strNewTitle;
+            strNewTitle.Format(L"%s - ¾«Áéä¯ÀÀÆ÷", pszTitle);
+            SetWindowText(strNewTitle);
+        }
+
+        m_sys_title.Invalidate();
     }
 
     return 0;

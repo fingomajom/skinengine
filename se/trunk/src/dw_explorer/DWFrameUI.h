@@ -316,7 +316,7 @@ public:
         return DefWindowProc();
     }
 
-private:
+protected:
     
     BOOL m_bActivete;
 
