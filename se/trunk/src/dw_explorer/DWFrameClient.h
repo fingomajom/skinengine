@@ -74,8 +74,10 @@ public:
         {
             m_wndClient.SetFocus();
         }
+        
+        LRESULT lResult = DefWindowProc();
 
-        return 0;
+        return lResult;
     }
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -122,6 +124,7 @@ public:
                 if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
                 {
                     ShowClient( hCreateWnd );
+
                     if ( m_mapUrlWndInfo[hCreateWnd].strURL == BLANK_URL )
                     {
                         CDWEventSvr::Instance().OnMessage( edi_addr_setfocus, 0, 0 );
@@ -241,12 +244,12 @@ public:
     {
         bHandled = FALSE;
         
-        ResizeClient();
+        ResizeClient(FALSE);
 
         return 0L;
     }
 
-    void ResizeClient()
+    void ResizeClient( BOOL bRePaint = TRUE )
     {
         RECT rcClient  = { 0 };
         RECT rcCClient = { 0 };
@@ -264,10 +267,14 @@ public:
         if ( rcCClient.bottom == rcClient.bottom &&
              rcCClient.right  == rcClient.right  )
              return;
-      
-        m_wndClient.SetRedraw(FALSE);
+        
+        if ( !bRePaint )
+            m_wndClient.SetRedraw(FALSE);
+
         m_wndClient.MoveWindow(&rcClient);
-        m_wndClient.SetRedraw(TRUE);
+
+        if ( !bRePaint )
+            m_wndClient.SetRedraw(TRUE);
     }
 
     void ShowClient( HWND hWndClient )
