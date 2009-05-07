@@ -28,11 +28,6 @@ struct IEFavoriteItem
             if ( strTitle.GetLength() > 4 && !StrCmpI( strTitle.Right(4), L".url" ) )
                 strTitle.Delete( strTitle.GetLength() - 4, 4);
 
-            //if ( strTitle.GetLength() > max_fav_title_len )
-            //{
-            //    strTitle.Delete( max_fav_title_len, strTitle.GetLength() - max_fav_title_len );
-            //    strTitle += L"...";
-            //}
         }
 
         if ( pszURL != NULL )

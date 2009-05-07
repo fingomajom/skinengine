@@ -248,7 +248,7 @@ public:
         rcClient.top  -= 2;
         rcClient.left -= 18;
 
-        POINT pt = { 5, 5 };
+        POINT pt = { 3, 3 };
 
         dc.RoundRect(&rcClient, pt);
         m_icon_addr.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
@@ -466,6 +466,10 @@ public:
 
             if ( wParam != NULL || lParam != NULL )
                 Invalidate();
+        }
+        else if ( uMsg == edi_addr_setfocus )
+        {
+            m_address_edit.SetFocus();
         }
 
         return 0;

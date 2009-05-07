@@ -120,7 +120,13 @@ public:
                     ATLASSERT( 0 && L"id changed no.." );
 
                 if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
+                {
                     ShowClient( hCreateWnd );
+                    if ( m_mapUrlWndInfo[hCreateWnd].strURL == BLANK_URL )
+                    {
+                        CDWEventSvr::Instance().OnMessage( edi_addr_setfocus, 0, 0 );
+                    }
+                }
             }
         }
         else // 单击创建 从进程外发来
@@ -129,7 +135,7 @@ public:
 
             psmgt.AddWnd2Process(hCreateWnd);
 
-            m_mapUrlWndInfo[hCreateWnd].strURL   = L"about:blank";
+            m_mapUrlWndInfo[hCreateWnd].strURL   = BLANK_URL;
             m_mapUrlWndInfo[hCreateWnd].strTitle = L"正在打开";            
 
             int nIdx = m_wndTableBar.GetSelectIndex();
@@ -204,12 +210,12 @@ public:
 
                 if ( strTitle.GetLength() <= 0 )
                     strTitle = strURL;
-                if ( nTabIndex >= 0 && strTitle.CollateNoCase(L"about:blank"))
+                if ( nTabIndex >= 0 && strTitle.CollateNoCase(BLANK_URL))
                 {
                     m_wndTableBar.SetItemCaption( nTabIndex, strTitle );
                 }
 
-                if ( strURL.GetLength() > 0 && strURL.CollateNoCase(L"about:blank") )
+                if ( strURL.GetLength() > 0 && strURL.CollateNoCase(BLANK_URL) )
                 {
                     HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( strURL, m_hWnd, wParam );
                     if ( hIcon != NULL )
@@ -277,7 +283,7 @@ public:
         {
             CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
-            m_wndClient.ShowWindow( SW_SHOWDEFAULT );
+            m_wndClient.ShowWindow( SW_SHOWDEFAULT );           
             m_wndClient.SetFocus();
 
             HICON hIcon = m_wndTableBar.GetItemIcon( m_wndTableBar.FindParam((WPARAM)hWndClient) );
@@ -300,6 +306,9 @@ public:
                     eid_addr_changed, 
                     (WPARAM)(LPCTSTR)pFind->m_value.strURL, 
                     (WPARAM)(LPCTSTR)pFind->m_value.strTitle);
+
+                if ( pFind->m_value.strURL == BLANK_URL )
+                    CDWEventSvr::Instance().OnMessage( edi_addr_setfocus, 0, 0 );
             }
         }
     }

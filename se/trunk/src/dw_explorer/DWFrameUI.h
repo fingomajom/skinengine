@@ -90,7 +90,7 @@ public:
 
         rcSysBar   = rcClient;
 
-        rcSysBar.left   = rcClient.right - m_sys_bar.GetToolbarWidth();
+        rcSysBar.left   = rcClient.right - m_sys_bar.GetToolbarWidth() + 3;
         rcSysBar.bottom = rcClient.top + m_sys_bar.GetToolbarHeigth();
 
         if ( ((T*)this)->IsZoomed() )

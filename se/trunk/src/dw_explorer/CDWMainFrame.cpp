@@ -170,7 +170,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     nIdx++;
 
     ATL::CString strCaption;
-    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, L"about:blank") )
+    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, BLANK_URL) )
         strCaption = L"¿Õ°×Ò³";
     else
         strCaption = pszURL;
@@ -178,7 +178,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
     m_wndTableBar.InsertTableItem( nIdx, 
         strCaption, uId, uId );
 
-    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? BLANK_URL : pszURL;
 
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
@@ -203,12 +203,12 @@ void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
         return;
 
     ATL::CString strCaption;
-    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, L"about:blank") )
+    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, BLANK_URL) )
         strCaption = L"¿Õ°×Ò³";
     else
         strCaption = pszURL;
 
-    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? L"about:blank" : pszURL;
+    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? BLANK_URL : pszURL;
 
     HWND hWnd = (HWND)m_wndTableBar.GetItemParam(nIdx);
     ATLASSERT(::IsWindow(hWnd));
@@ -281,7 +281,7 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
 #ifndef __TEST_WEB_WND__
 
             if ( m_wndClient.m_wndClient.IsWindow() && 
-                 m_wndClient.m_mapUrlWndInfo[m_wndClient.m_wndClient].strURL == L"about:blank" )
+                 m_wndClient.m_mapUrlWndInfo[m_wndClient.m_wndClient].strURL == BLANK_URL )
             {
                 OnOpenURL( (LPCTSTR) wParam );
             }

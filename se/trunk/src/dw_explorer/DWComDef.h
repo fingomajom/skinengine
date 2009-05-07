@@ -37,3 +37,4 @@
 
 
 #define CLASS_NAME_IE_SERVER            _T("Internet Explorer_Server")
+#define BLANK_URL                       L"about:blank"

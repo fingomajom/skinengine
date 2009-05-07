@@ -281,7 +281,7 @@ public:
     {
         if ( URL == NULL || 
              URL->bstrVal == NULL ||
-            !StrCmpI(URL->bstrVal, L"about:blank") )
+            !StrCmpI(URL->bstrVal, BLANK_URL ) )
             return;
 
         //::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
@@ -295,7 +295,7 @@ public:
     {
         if ( URL == NULL || 
              URL->bstrVal == NULL ||
-             !StrCmpI(URL->bstrVal, L"about:blank") )
+             !StrCmpI(URL->bstrVal, BLANK_URL ) )
              return;
 
         CComPtr<IUnknown> spIUnBrowser;
