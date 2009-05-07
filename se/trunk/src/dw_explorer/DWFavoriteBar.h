@@ -19,8 +19,8 @@
 static HHOOK g_hFavPopupMenuHook = NULL;
 static HWND  g_wndFav = NULL;
 
+
 class CDWFavoriteBar : 
-    public CDWMenuImpl<CDWFavoriteBar>,
     public CDWToolbar
 {
     enum {
@@ -53,7 +53,6 @@ public:
         MESSAGE_HANDLER(WM_TIMER       , OnTimer )
 
         CHAIN_MSG_MAP(CDWToolbar)
-        CHAIN_MSG_MAP(CDWMenuImpl<CDWFavoriteBar>)
 
     END_MSG_MAP()
         
@@ -254,9 +253,51 @@ public:
         return 1L;
     }
 
+    template <bool t_bManaged>
+    class CDWFavMenuT : public CDWMenuT<t_bManaged>
+    {
+    public:
+        CDWFavMenuT(HMENU hMenu = NULL) : CDWMenuT(hMenu)
+        { }
+
+        virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
+        {
+            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+            CIconHandle icon = skin.iconNull;
+
+            if ( ::IsMenu((HMENU)lpDrawItem->itemID) )
+            {
+                icon = skin.iconFavDir;
+            }
+            else
+            {
+                IEFavoriteItem* pitem = (IEFavoriteItem*)lpDrawItem->itemID;
+                ATLASSERT(pitem);
+
+                if ( pitem->strURL.GetLength() <= 0 )
+                    icon.m_hIcon = NULL;
+                else
+                {
+                    HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
+                        pitem->strURL, NULL, NULL );
+                    if ( hIcon != NULL )
+                        icon = hIcon;
+                }
+            }
+
+            if ( icon.m_hIcon != NULL )
+                icon.DrawIconEx( dc,
+                    lpDrawItem->rcItem.left + 5,
+                    lpDrawItem->rcItem.top  + 2,
+                    16, 16);
+        }
+    };
+
     void PopupFavMenu()
     {
-        CMenuHandle menu = CreateFavoriteMenu();
+
+        CDWFavMenuT<FALSE> menu = CreateFavoriteMenu();
         if ( !menu.IsMenu() )
             return;
 
@@ -279,7 +320,7 @@ public:
         ClientToScreen(&pt);
 
         m_bPopMenu = TRUE;
-        int nCmdId = TrackPopupMenu( menu,
+        int nCmdId = menu.DWTrackPopupMenu( 
             TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD, 
             pt.x, pt.y,
             m_hWnd, &tpmParams);

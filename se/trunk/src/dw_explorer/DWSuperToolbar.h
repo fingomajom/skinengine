@@ -2,18 +2,28 @@
 #pragma once
 
 //#include <atlutil.h>
+#include "DWComDef.h"
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
-
+#include "DWSearchMgt.h"
+#include "DWFavIconMgt.h"
+#include "DWMenu.h"
 
 class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
 {
 public:
+
+    CDWEdit()
+    {
+    }
+    
     BEGIN_MSG_MAP(CDWMainFrame)
 
         MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
         MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
+
+        MESSAGE_HANDLER( WM_PAINT      , OnPaint    )
 
     END_MSG_MAP()
 
@@ -32,6 +42,7 @@ public:
         LRESULT lResult = DefWindowProc();
 
         SetSelAll();
+        CWindow::Invalidate();
 
         return lResult;
     }
@@ -51,6 +62,41 @@ public:
         return lResult;
     }
 
+    LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        if ( GetWindowTextLength() > 0 ||
+             ( m_strBkText.GetLength() <= 0 || GetFocus() == m_hWnd ) )
+        {
+            return DefWindowProc();
+        }
+        
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+        CPaintDC dc(m_hWnd);
+
+
+        COLORREF clrText = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
+
+        RECT rcClient;
+        GetClientRect(&rcClient);
+
+        dc.FillRect(&rcClient, 
+            (HBRUSH)::SendMessage(GetParent(), WM_CTLCOLOREDIT, (WPARAM)dc.m_hDC, 0 ) );
+        
+        HFONT hOldFont = dc.SelectFont( GetFont() );
+        
+        rcClient.left  += 2;
+        rcClient.right -= 2;
+        dc.SetTextColor(clrText);
+        dc.DrawText( m_strBkText, -1, &rcClient, DT_VCENTER | DT_SINGLELINE | DT_LEFT);
+        
+        dc.SelectFont( hOldFont );
+
+
+        return 0L;
+    }
+
+    ATL::CString m_strBkText;
 };
 
 class CDWSuperToolbar : 
@@ -58,33 +104,6 @@ class CDWSuperToolbar :
     public CDWEventCallback
 {
 public:
-
-    static CString EscapeUrl( LPCTSTR pszURL )
-    {
-        ATL::CString strResult;
-        ATL::CString strTemp;
-
-        CW2AEX<> URL(pszURL, CP_ACP);
-
-        for ( LPSTR pch = URL.m_psz; *pch ; pch++ )
-        {
-            if ( (*pch >= '0' && *pch <= '9') ||
-                 (*pch >= 'A' && *pch <= 'Z') ||
-                 (*pch >= 'a' && *pch <= 'z') )
-            {
-                strResult += *pch;
-            }
-            else
-            {
-                strTemp.Format(L"%%%02x", BYTE(*pch) );
-                strResult += strTemp;
-            }
-        }
-
-
-        return strResult;
-    }
-
 
     void OpenURL( LPCTSTR URL )
     {
@@ -101,12 +120,38 @@ public:
 
     void OpenSerach( LPCTSTR pszKeyWord )
     {
-        ATL::CString strURL;
-        ATL::CString strKeyword = EscapeUrl(pszKeyWord);
-
-        strURL.Format(L"http://www.baidu.com/s?wd=%s", strKeyword);
+        ATL::CString strURL = CDWSearchMgt::Instace().GetSearchURL( pszKeyWord );
 
         CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)(LPCTSTR)strURL, FALSE);
+    }
+
+    void GoOpenURL()
+    {
+        int nTextLen = m_address_edit.GetWindowTextLength();
+        if ( nTextLen <= 0)
+            return;
+
+        WCHAR* URL = new WCHAR[ nTextLen + 1];
+        m_address_edit.GetWindowText( URL, nTextLen + 1);
+
+        OpenURL( URL );
+
+        delete []URL;
+    }
+
+    void GoSerach()
+    {
+        int nTextLen = m_search_edit.GetWindowTextLength();
+        if ( nTextLen <= 0)
+            return;
+
+        WCHAR* URL = new WCHAR[ nTextLen + 1];
+        m_search_edit.GetWindowText( URL, nTextLen + 1);
+
+        OpenSerach( URL );
+
+        delete []URL;
+
     }
 
     BOOL PreTranslateMessage(MSG* pMsg)
@@ -115,29 +160,11 @@ public:
         {
             if ( pMsg->hwnd == m_address_edit )
             {
-                int nTextLen = m_address_edit.GetWindowTextLength();
-                if ( nTextLen <= 0)
-                    return FALSE;
-
-                WCHAR* URL = new WCHAR[ nTextLen + 1];
-                m_address_edit.GetWindowText( URL, nTextLen + 1);
-
-                OpenURL( URL );
-
-                delete []URL;
+                GoOpenURL();
             }
-            else if ( pMsg->hwnd == m_serach_edit )
+            else if ( pMsg->hwnd == m_search_edit )
             {
-                int nTextLen = m_serach_edit.GetWindowTextLength();
-                if ( nTextLen <= 0)
-                    return FALSE;
-
-                WCHAR* URL = new WCHAR[ nTextLen + 1];
-                m_serach_edit.GetWindowText( URL, nTextLen + 1);
-
-                OpenSerach( URL );
-
-                delete []URL;
+                GoSerach();
             }
         }
 
@@ -156,6 +183,9 @@ public:
         MESSAGE_HANDLER( WM_CTLCOLOREDIT, OnCtlColor )
         MESSAGE_HANDLER( WM_CTLCOLORDLG , OnCtlColor )
 
+        MESSAGE_HANDLER(WM_LBUTTONDOWN      , OnLButtonDown)
+        MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
+
         CHAIN_MSG_MAP(CDWToolbar)
 
     END_MSG_MAP()
@@ -166,11 +196,18 @@ public:
 
         m_address_edit.Create(m_hWnd, &rcDefault, NULL, 
             WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
-        m_serach_edit .Create(m_hWnd, &rcDefault, NULL, 
+        m_search_edit .Create(m_hWnd, &rcDefault, NULL, 
             WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
 
         m_address_edit.SetFont( skin.fontDefault );
-        m_serach_edit.SetFont( skin.fontDefault );
+        m_search_edit.SetFont( skin.fontDefault );
+
+        m_address_edit.m_strBkText = L"请在这里输入网址";
+        m_search_edit.m_strBkText  = CDWSearchMgt::Instace().GetSearchName();
+
+        m_icon_search = CDWFavIconMgt::Instance().GetFavIcon( 
+            CDWSearchMgt::Instace().GetSearchURL(), m_hWnd, NULL );
+
 
         CDWEventSvr::Instance().AddCallback( this );
 
@@ -215,17 +252,23 @@ public:
 
         dc.RoundRect(&rcClient, pt);
         m_icon_addr.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+
         InflateRect(&rcClient, 1, 1);
 
         dc.SelectBrush( m_bkBrush );
-        m_serach_edit.GetWindowRect(&rcClient);
+        m_search_edit.GetWindowRect(&rcClient);
         ScreenToClient(&rcClient);
         InflateRect(&rcClient, 2, 2);
         rcClient.top  -= 2;
-        rcClient.left -= 18;
+        rcClient.left -= 23;
 
         dc.RoundRect(&rcClient, pt);
         m_icon_search.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+
+        RECT rcImage = { 0, 0, 0, 0 };
+        rcImage.right  = skin.png_dropdown.GetWidth() / 4;
+        rcImage.bottom = skin.png_dropdown.GetHeight();
+        skin.png_dropdown.AlphaDraw( dc, rcClient.left + 18, rcClient.top + 10, &rcImage, 1, 1.2f );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -234,6 +277,87 @@ public:
 
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        return 1L;
+    }
+
+    LRESULT OnFavIconReflash(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        m_icon_search = (HICON)wParam;
+        Invalidate();
+
+        return 1L;
+    }
+
+    template <bool t_bManaged>
+    class CDWSprMenuT : public CDWMenuT<t_bManaged>
+    {
+    public:
+        CDWSprMenuT(HMENU hMenu = NULL) : CDWMenuT(hMenu)
+        { }
+
+        virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
+        {
+            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+            CIconHandle icon;
+            
+            icon.m_hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
+                CDWSearchMgt::Instace().GetSearchURL( lpDrawItem->itemID - 10 ), NULL, NULL );
+
+            if ( icon.m_hIcon == NULL )
+                icon.m_hIcon = skin.iconNull;
+
+            icon.DrawIconEx( dc,
+                lpDrawItem->rcItem.left + 5,
+                lpDrawItem->rcItem.top  + 2,
+                16, 16);
+        }
+    };
+
+    LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CDWToolbar::OnLButtonDown(uMsg, wParam, lParam, bHandled);
+        bHandled = TRUE;
+
+        RECT rcSearchIcon = { 0 };
+
+        m_search_edit.GetWindowRect(&rcSearchIcon);
+        ScreenToClient(&rcSearchIcon);
+        rcSearchIcon.top  -= 2;
+        rcSearchIcon.left -= 22;
+        rcSearchIcon.right = rcSearchIcon.left + 26;
+        
+       
+        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+        if ( ::PtInRect(&rcSearchIcon, pt ) )
+        {
+            CDWSearchMgt& smgt = CDWSearchMgt::Instace();
+            
+            CDWSprMenuT<TRUE> menu;
+            
+            menu.Attach( smgt.CreatePopueMenu() );
+
+            ClientToScreen(&pt);
+
+            int nCmdId = menu.DWTrackPopupMenu(TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD,
+                pt.x, pt.y,
+                m_hWnd);
+            if ( nCmdId >= 10 )
+            {
+                smgt.m_nSelIndex = nCmdId - 10;
+                m_search_edit.m_strBkText  = smgt.GetSearchName();
+
+                m_icon_search = CDWFavIconMgt::Instance().GetFavIcon( smgt.GetSearchURL(), m_hWnd, NULL );
+                m_search_edit.Invalidate();
+                Invalidate();
+
+                if ( m_search_edit.GetWindowTextLength() > 0 )
+                {
+                    GoSerach();
+                }
+            }
+        }
 
         return 1L;
     }
@@ -300,8 +424,8 @@ public:
         RECT rcSerach = rcClient;
 
         rcSerach.left = ( rcClient.right / 4 );
-        if ( rcSerach.left > 250 )
-            rcSerach.left = 250;
+        if ( rcSerach.left > 220 )
+            rcSerach.left = 220;
         else if ( rcSerach.left < 100 )
             rcSerach.left = 100;
         
@@ -314,7 +438,7 @@ public:
 
         
         m_address_edit.MoveWindow(&rcAddr);
-        m_serach_edit .MoveWindow(&rcSerach);
+        m_search_edit .MoveWindow(&rcSerach);
 
         return 1L;
     }
@@ -353,7 +477,7 @@ public:
     WTL::CBrush m_bkSBrush;
 
     CDWEdit m_address_edit;
-    CDWEdit m_serach_edit;
+    CDWEdit m_search_edit;
 
     CIconHandle m_icon_addr;
     CIconHandle m_icon_search;

@@ -305,6 +305,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWSearchMgt.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWSkinUIMgt.h"
 						>
 					</File>
@@ -667,6 +671,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\res\dropdown.png"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

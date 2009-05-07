@@ -4,13 +4,20 @@
 #include "DWIEFavoritesMgt.h"
 
 
-static HHOOK s_hMenuCreateHook = NULL;
+template <bool t_bManaged> class CDWMenuT;
+typedef CDWMenuT<false>   CDWMenuHandle;
+typedef CDWMenuT<true>    CDWMenu;
 
-template<class T>
-class CDWMenuImpl
+
+template <bool t_bManaged>
+class CDWMenuT : public CMenuT<t_bManaged>
 {
-
-public:
+    static HHOOK   s_hMenuCreateHook;
+    static WNDPROC s_pOldWindowProc;
+    static HWND    s_hWndTrackMenu;
+    static CDWMenuT<t_bManaged>* s_pThis;
+    
+    static ATL::CSimpleArray<ATL::CString> s_MenuItemString;
 
     enum{
         menu_max_wdith  = 250,
@@ -18,8 +25,23 @@ public:
         menu_text_space = 4
     };
 
-    BOOL TrackPopupMenu( CMenuHandle menu, UINT uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm = NULL)
+public:
+
+    CDWMenuT(HMENU hMenu = NULL) : CMenuT(hMenu)
+    { }
+
+    BOOL DWTrackPopupMenu( UINT uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm = NULL)
     {
+        ATLASSERT ( s_hMenuCreateHook == NULL );
+        ATLASSERT ( s_pOldWindowProc  == NULL );
+        ATLASSERT ( s_hWndTrackMenu   == NULL );
+        ATLASSERT ( s_pThis           == NULL );
+
+        s_hWndTrackMenu = hWnd;
+        s_pThis         = this;
+
+        s_pOldWindowProc = (WNDPROC)SetWindowLong( hWnd, GWL_WNDPROC, (LONG)NewMenuProc);
+
         s_hMenuCreateHook = ::SetWindowsHookEx(WH_CBT, 
             DWMenuCreateHookProc, 
             _Module.GetModuleInstance(), 
@@ -27,35 +49,77 @@ public:
 
         ATLASSERT(s_hMenuCreateHook);
 
-        BOOL bRet = menu.TrackPopupMenuEx( uFlags, x, y, hWnd, lptpm);
+        BOOL bRet = TrackPopupMenuEx( uFlags, x, y, hWnd, lptpm );
+        s_MenuItemString.RemoveAll();
 
         UnhookWindowsHookEx(s_hMenuCreateHook);
+        SetWindowLong( hWnd, GWL_WNDPROC, (LONG)s_pOldWindowProc);
+        s_hMenuCreateHook = NULL;
+        s_pOldWindowProc = NULL;
+        s_hWndTrackMenu = NULL;
+        s_pThis = NULL;
         
         return bRet;
     }
 
-    BEGIN_MSG_MAP(CDWMenuImpl)
+    static LRESULT WINAPI NewMenuProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+    {
+        ATLASSERT ( hWnd == s_hWndTrackMenu  );
+        ATLASSERT ( NULL != s_pOldWindowProc );
+        ATLASSERT ( NULL != s_pThis );
 
-        MESSAGE_HANDLER(WM_INITMENU    , OnInitMenu    )
-        MESSAGE_HANDLER(WM_MEASUREITEM , OnMeasureItem )
-        MESSAGE_HANDLER(WM_DRAWITEM    , OnDrawItem    )
+        LRESULT lResult  = 0L;
+        BOOL    bHandled = FALSE;
 
-    END_MSG_MAP();
+        switch ( uMsg )
+        {
+        case WM_INITMENU:
+            bHandled = TRUE;
+            lResult = s_pThis->OnInitMenu(uMsg, wParam, lParam, bHandled);
+            break;
+        case WM_MEASUREITEM:
+            bHandled = TRUE;
+            lResult = s_pThis->OnMeasureItem(uMsg, wParam, lParam, bHandled);
+            break;
+        case WM_DRAWITEM:
+            bHandled = TRUE;
+            lResult = s_pThis->OnDrawItem(uMsg, wParam, lParam, bHandled);
+            break;
+        }
+        
+        if ( bHandled )
+            return lResult;
 
-    LRESULT OnInitMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+        return CallWindowProc(s_pOldWindowProc, hWnd, uMsg, wParam, lParam );
+    }
+
+    virtual LRESULT OnInitMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
     {
         CMenuHandle menu = (HMENU)wParam;
         
         _InitMenu(menu);
 
-
         return 0L;    
     }
 
-    LRESULT OnMeasureItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+    virtual void _MeasureItemText( LPMEASUREITEMSTRUCT lpMeasureItem )
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
+        CClientDC dc(s_hWndTrackMenu);
+
+        SIZE sizeText = { 0 };
+        HFONT hOld = dc.SelectFont(skin.fontDefault);
+
+        dc.GetTextExtent( (LPCTSTR)lpMeasureItem->itemData, -1, &sizeText);
+
+        dc.SelectFont(hOld);
+
+        lpMeasureItem->itemWidth = sizeText.cx;
+    }
+
+    virtual LRESULT OnMeasureItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
         LPMEASUREITEMSTRUCT lpMeasureItem = (LPMEASUREITEMSTRUCT) lParam;
 
         if(lpMeasureItem->CtlType == ODT_MENU)
@@ -64,35 +128,24 @@ public:
             {
                 lpMeasureItem->itemHeight = 21;
 
-                CClientDC dc(*(T*)this);
-                SIZE sizeText = { 0 };
-                HFONT hOld = dc.SelectFont(skin.fontDefault);
+                _MeasureItemText(lpMeasureItem);
 
-                ATL::CString strTitle;
-
-                IEFavoriteItem* pitem = (IEFavoriteItem*)lpMeasureItem->itemID;
-                if ( !::IsMenu( (HMENU)pitem ) )
-                    strTitle = pitem->strTitle;
-
-                dc.GetTextExtent( strTitle, -1, &sizeText);
-                
-                dc.SelectFont(hOld);
-
-                lpMeasureItem->itemWidth  = sizeText.cx > menu_max_wdith ? menu_max_wdith :  sizeText.cx;
+                lpMeasureItem->itemWidth  = lpMeasureItem->itemWidth > menu_max_wdith ? 
+                                            menu_max_wdith :  lpMeasureItem->itemWidth;
                 lpMeasureItem->itemWidth += menu_icon_width;
                 lpMeasureItem->itemWidth += menu_text_space;
             }	
             else	
             {		
                 lpMeasureItem->itemHeight = 8;     
-                lpMeasureItem->itemWidth  = 150;	
+                lpMeasureItem->itemWidth  = 100;	
             }
         }
 
         return 1L;
     }
 
-    virtual void OnDrawMenuBkGnd( CDCHandle& dc, const RECT& rcBox, int nSelected )
+    virtual void _OnDrawMenuBkGnd( CDCHandle& dc, const RECT& rcBox, int nSelected )
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
@@ -102,7 +155,12 @@ public:
             dc.FillSolidRect( &rcBox, HLS_TRANSFORM(skin.clrFrameWindow, 80, 0));
     }
 
-    LRESULT OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+    virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
+    {
+    }
+
+
+    virtual LRESULT OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
@@ -117,7 +175,7 @@ public:
 
         if ( lpDrawItem->itemID != ID_SEPARATOR )
         {
-            OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, 
+            _OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, 
                 ((lpDrawItem->itemAction & ODA_SELECT) && (lpDrawItem->itemState & ODS_SELECTED)));  
 
             int nBkMode = dc.SetBkMode(TRANSPARENT);
@@ -127,14 +185,7 @@ public:
 
             menu.GetMenuString( lpDrawItem->itemID, szBuffer, MAX_PATH, MF_BYCOMMAND);
 
-            CIconHandle icon = skin.iconNull;
-            if ( ::IsMenu((HMENU)lpDrawItem->itemID) )
-                icon = skin.iconFavDir;
-
-            icon.DrawIconEx( dc,
-                lpDrawItem->rcItem.left + 5,
-                lpDrawItem->rcItem.top  + 2,
-                16, 16);
+            _OnDrawMenuIcon( dc, lpDrawItem, FALSE );
 
             RECT rcText   = lpDrawItem->rcItem;
             rcText.left  += menu_icon_width;
@@ -150,7 +201,7 @@ public:
         }
         else
         {
-            OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, FALSE);  
+            _OnDrawMenuBkGnd(dc, lpDrawItem->rcItem, FALSE);  
             
             RECT rcSeparator = lpDrawItem->rcItem;
             rcSeparator.top = rcSeparator.bottom = ( rcSeparator.top + rcSeparator.bottom ) / 2;
@@ -171,10 +222,9 @@ public:
         return 0L;    
     }
 
-
-    void _InitMenu( CMenuHandle menu ) 
+    virtual void _InitMenu( CMenuHandle menu ) 
     {
-        TCHAR szBuffer[MAX_PATH] = { 0 };
+        static TCHAR szBuffer[MAX_PATH] = { 0 };
 
         int nCount = menu.GetMenuItemCount();
 
@@ -183,16 +233,20 @@ public:
             CMenuHandle sub = menu.GetSubMenu( i );
 
             UINT id = menu.GetMenuItemID(i);
+            
             menu.GetMenuString( i, szBuffer, MAX_PATH, MF_BYPOSITION);
+            s_MenuItemString.Add(szBuffer);
+
+            LPCTSTR lpszNewItem = (LPCTSTR)s_MenuItemString[s_MenuItemString.GetSize()-1];
             
             if ( sub.IsMenu() )
             {
                 _InitMenu( sub );
-                menu.ModifyMenu( i, MF_BYPOSITION | MF_OWNERDRAW | MF_STRING, sub, szBuffer);
+                menu.ModifyMenu( i, MF_BYPOSITION | MF_OWNERDRAW , sub,  lpszNewItem);
             }
             else
             {
-                menu.ModifyMenu( i, MF_BYPOSITION | MF_OWNERDRAW| MF_STRING, id, szBuffer );
+                menu.ModifyMenu( i, MF_BYPOSITION | MF_OWNERDRAW, id, lpszNewItem );
             }	
         }
     }
@@ -217,25 +271,8 @@ public:
 
             MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint    )
             MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize )
-
-            //MESSAGE_HANDLER(WM_SIZE, OnSize  )
         
         END_MSG_MAP();
-
-        LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-        {
-            RECT rcClient = { 0 };
-            RECT rcWindow = { 0 };
-
-            GetClientRect(&rcClient);
-            GetWindowRect(&rcWindow);
-
-            if ( ( rcWindow.right - rcWindow.left - ( rcClient.right - rcWindow.left )) > 2 )
-                RepareMenuWindowSize();
-
-
-            return DefWindowProc();
-        }
 
         LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
         {
@@ -335,3 +372,8 @@ public:
 
 };
 
+template <bool t_bManaged> __declspec(selectany) HHOOK   CDWMenuT<t_bManaged>::s_hMenuCreateHook = NULL;
+template <bool t_bManaged> __declspec(selectany) WNDPROC CDWMenuT<t_bManaged>::s_pOldWindowProc  = NULL;
+template <bool t_bManaged> __declspec(selectany) HWND    CDWMenuT<t_bManaged>::s_hWndTrackMenu   = NULL;
+template <bool t_bManaged> __declspec(selectany) CDWMenuT<t_bManaged>* CDWMenuT<t_bManaged>::s_pThis = NULL;
+template <bool t_bManaged> __declspec(selectany) ATL::CSimpleArray<ATL::CString> CDWMenuT<t_bManaged>::s_MenuItemString;

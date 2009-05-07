@@ -39,8 +39,8 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
         HWND hFWnd = GetFocus();
 
         if ( m_wndSuperbar.m_address_edit == hFWnd )
-            m_wndSuperbar.m_serach_edit.SetFocus();
-        else if ( m_wndSuperbar.m_serach_edit == hFWnd )
+            m_wndSuperbar.m_search_edit.SetFocus();
+        else if ( m_wndSuperbar.m_search_edit == hFWnd )
             m_wndClient.SetFocus();        
     }
     

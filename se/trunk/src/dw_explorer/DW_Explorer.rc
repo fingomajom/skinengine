@@ -36,6 +36,7 @@ IDR_PNG_TABLE_ITEM      PNG                     "res\\tab_item.png"
 IDR_PNG_TABLE_NEW       PNG                     "res\\tab_new.png"
 IDR_PNG_TABLE_PROGRESS  PNG                     "res\\tab_progress.png"
 IDI_ICON_FAV_NULL_URL   PNG                     "res\\fav_null_url.ico"
+IDR_PNG_DROPDOWN        PNG                     "res\\dropdown.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -72,6 +73,23 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG  0, 0, 187, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
+    CTEXT           "DW_Explorer Application v1.0\n\n(c) Copyright 2009",IDC_STATIC,25,57,78,32
+    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
+    GROUPBOX        "",IDC_STATIC,7,7,115,88
+END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -135,23 +153,6 @@ BEGIN
     BEGIN
         MENUITEM "&About DW_Explorer...",       ID_APP_ABOUT
     END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_ABOUTBOX DIALOG  0, 0, 187, 102
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
-    CTEXT           "DW_Explorer Application v1.0\n\n(c) Copyright 2009",IDC_STATIC,25,57,78,32
-    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
-    GROUPBOX        "",IDC_STATIC,7,7,115,88
 END
 
 

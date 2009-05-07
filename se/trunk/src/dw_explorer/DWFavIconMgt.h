@@ -18,7 +18,7 @@ public:
 public:
 
     static void GetIconFileName(LPCTSTR URL, ATL::CString & strFavFile);
-    static void GetFavIconURL(LPCTSTR URL, ATL::CString & strFavURL);
+    static void GetFavIconURL(LPCTSTR URL, ATL::CString & strFavURL, LPCTSTR pszSp = L"");
 
     static HICON LoadFavIconFile( LPCTSTR pszFile );
 
@@ -151,11 +151,19 @@ inline DWORD WINAPI CDWFavIconMgt::FavDownloadThread( LPVOID p )
             strFavPathFile += strFavFile;
 
             HICON hIcon = LoadFavIconFile( strFavPathFile );
-            if ( hIcon == NULL )
+            DWORD dwLoop = 0;
+            while ( hIcon == NULL )
             {
                 DWORD dwRet = 0;
 
-                GetFavIconURL(strURL, strFavURL);
+                if ( dwLoop == 0 )
+                    GetFavIconURL(strURL, strFavURL);
+                else if ( dwLoop == 1)
+                    GetFavIconURL(strURL, strFavURL, L"images/");
+                else 
+                    break;                
+                dwLoop++;
+
                 if ( strFavURL.GetLength() <= 0 )
                     continue;
 
@@ -164,6 +172,12 @@ inline DWORD WINAPI CDWFavIconMgt::FavDownloadThread( LPVOID p )
                     NULL, NULL, 0);
                 if ( hSession != NULL )
                 {
+                    DWORD dwTimeOut = 8;
+
+                    InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeOut, sizeof(dwTimeOut) );
+                    InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeOut, sizeof(dwTimeOut) );
+                    InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT   , &dwTimeOut, sizeof(dwTimeOut) );
+
                     HINTERNET hRequest = ::InternetOpenUrl(hSession, strFavURL, 
                         NULL, 0, INTERNET_FLAG_RELOAD, NULL);
 
@@ -242,7 +256,7 @@ inline void CDWFavIconMgt::GetIconFileName(LPCTSTR URL, ATL::CString & strFavFil
     strFavFile.MakeLower();
 }
 
-inline void CDWFavIconMgt::GetFavIconURL(LPCTSTR URL, ATL::CString & strFavURL)
+inline void CDWFavIconMgt::GetFavIconURL(LPCTSTR URL, ATL::CString & strFavURL, LPCTSTR pszSp)
 {
     TCHAR szHost[512] = { 0 };
     TCHAR szScheme[32] = { 0 };
@@ -259,7 +273,7 @@ inline void CDWFavIconMgt::GetFavIconURL(LPCTSTR URL, ATL::CString & strFavURL)
         return;
     }
 
-    strFavURL.Format(_T("%s://%s:%d/favicon.ico"), szScheme, szHost, urlComponents.nPort);
+    strFavURL.Format(_T("%s://%s:%d/%sfavicon.ico"), szScheme, szHost, urlComponents.nPort, pszSp);
     strFavURL.MakeLower();
 }
 
