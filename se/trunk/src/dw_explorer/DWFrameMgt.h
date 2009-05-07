@@ -32,7 +32,7 @@ public:
     BOOL CreateNewFrame( LPVOID p );
 
 
-protected:
+public:
 
     static DWORD WINAPI FrameMsgLoopThread( LPVOID p );
 

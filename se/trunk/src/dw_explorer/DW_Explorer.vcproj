@@ -454,6 +454,18 @@
 					</FileConfiguration>
 				</File>
 			</Filter>
+			<Filter
+				Name="Common"
+				>
+				<File
+					RelativePath=".\DWCrashMgt.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\DWCrashMgt.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="RPC"
@@ -658,10 +670,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\MainFrm.h"
-					>
-				</File>
-				<File
 					RelativePath=".\resource.h"
 					>
 				</File>
@@ -671,10 +679,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath=".\res\dropdown.png"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

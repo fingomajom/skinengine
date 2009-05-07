@@ -2,6 +2,7 @@
 #include "DWClientMgt.h"
 #include "DWWebWnd.h"
 #include "CookieMgt.h"
+#include "DWCrashMgt.h"
 
 DWORD CDWClientMgt::m_dwMainThreadId = NULL;
 
@@ -206,8 +207,9 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     CDWMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
-    CDWClientMgt& cltmgt = CDWClientMgt::Instance();
-    CCookieMgt&   ckemgt = CCookieMgt::Instance();
+    CDWClientMgt& cltmgt   = CDWClientMgt::Instance();
+    CCookieMgt&   ckemgt   = CCookieMgt::Instance();
+    CDWCrashMgt&  crashmgt = CDWCrashMgt::Instance();
 
     cltmgt.m_rpcSvr.SetReceiveFunc(DWCltReceiveRpcMsg);
     if ( !cltmgt.m_rpcSvr.InitRpcServer(lpstrCmdLine+6) )
@@ -227,6 +229,7 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     delete &cltmgt;
     delete &ckemgt;
+    delete &crashmgt;
 
     return nRet;
 }
@@ -320,9 +323,9 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     CDWWebWnd wndWeb;
 
     //*pWndRet
-
+    
     wndWeb.m_hNotifyWnd = *pWndRet;
-    if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault ) == NULL )
+    if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault, NULL) == NULL )
     {
         clt.m_piWebBrowser = NULL;
         ::SetEvent(clt.m_hCreateWebWndEvent);

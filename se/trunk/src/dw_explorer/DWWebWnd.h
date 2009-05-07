@@ -100,11 +100,22 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        CComObject<CDWAxHost>* pAxHost = new CComObject<CDWAxHost>;
+#if 1
+
+        CComObject<DWAxHost::CDWAxHost>* pAxHost = new CComObject<DWAxHost::CDWAxHost>;
         ATLASSERT(pAxHost != NULL);
 
         HRESULT hr = pAxHost->CreateControl(m_hWnd);
         ATLASSERT( SUCCEEDED(hr) );
+#else
+        CComObject<CAxHostWindow>* pAxHost = new CComObject<CAxHostWindow>;
+        ATLASSERT(pAxHost != NULL);
+
+        HRESULT hr = pAxHost->CreateControl(L"http://baidu.com", m_hWnd, NULL);
+        ATLASSERT( SUCCEEDED(hr) );
+
+#endif
+
         
         pAxHost->QueryControl( IID_IWebBrowser2, (void**)&m_spWebBrowser );
         
@@ -113,7 +124,7 @@ public:
         m_spWebBrowser->put_Silent(VARIANT_TRUE);
 
         DispEventAdvise( m_spWebBrowser );
-        
+       
         return 0;
     }
 
@@ -153,7 +164,7 @@ public:
         else if ( wParam == 10 && lParam == 101)
             return ShowWindow(SW_HIDE);
 
-        return DefWindowProc();
+        return ::DefWindowProc( m_hWnd, uMsg, wParam, lParam );
     }
 
     LRESULT OnGetMarshalWebBrowser2CrossThread(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -201,65 +212,63 @@ public:
     }
 
 
-    bool IsTabedObject(IHTMLElement * pHtmlElem)
-    {
-        CComQIPtr<IHTMLElement> spHtmlElem = pHtmlElem;
-        if (spHtmlElem)
-        {
-            CComBSTR bstrTagName;
-            if (SUCCEEDED(spHtmlElem->get_tagName(&bstrTagName)) && bstrTagName)
-            {
-                if (StrCmpI(bstrTagName, L"a") == 0 || 
-                    StrCmpI(bstrTagName, L"input") == 0 || 
-                    StrCmpI(bstrTagName, L"button") == 0 || 
-                    StrCmpI(bstrTagName, L"textarea") == 0 || 
-                    StrCmpI(bstrTagName, L"select") == 0 || 
-                    StrCmpI(bstrTagName, L"object") == 0)
-                    return true;
-            }
-        }
-        return false;
-    }
+    //bool IsTabedObject(IHTMLElement * pHtmlElem)
+    //{
+    //    CComQIPtr<IHTMLElement> spHtmlElem = pHtmlElem;
+    //    if (spHtmlElem)
+    //    {
+    //        CComBSTR bstrTagName;
+    //        if (SUCCEEDED(spHtmlElem->get_tagName(&bstrTagName)) && bstrTagName)
+    //        {
+    //            if (StrCmpI(bstrTagName, L"a") == 0 || 
+    //                StrCmpI(bstrTagName, L"input") == 0 || 
+    //                StrCmpI(bstrTagName, L"button") == 0 || 
+    //                StrCmpI(bstrTagName, L"textarea") == 0 || 
+    //                StrCmpI(bstrTagName, L"select") == 0 || 
+    //                StrCmpI(bstrTagName, L"object") == 0)
+    //                return true;
+    //        }
+    //    }
+    //    return false;
+    //}
 
 
-    void MoveFocusToIe(bool bShiftDown1)
-    {
-        CComPtr<IDispatch> spDisp;
+    //void MoveFocusToIe(bool bShiftDown1)
+    //{
+    //    CComPtr<IDispatch> spDisp;
 
-        if ( SUCCEEDED(m_spWebBrowser->get_Document(&spDisp)) && spDisp )
-        {
-            CComQIPtr<IHTMLDocument2> spDoc2 = spDisp;
-            if (spDoc2)
-            {
-                CComPtr<IHTMLElementCollection> spColl;
-                if (SUCCEEDED(spDoc2->get_all(&spColl)) && spColl)
-                {
-                    long nCnt = 0;
-                    spColl->get_length(&nCnt);
+    //    if ( SUCCEEDED(m_spWebBrowser->get_Document(&spDisp)) && spDisp )
+    //    {
+    //        CComQIPtr<IHTMLDocument2> spDoc2 = spDisp;
+    //        if (spDoc2)
+    //        {
+    //            CComPtr<IHTMLElementCollection> spColl;
+    //            if (SUCCEEDED(spDoc2->get_all(&spColl)) && spColl)
+    //            {
+    //                long nCnt = 0;
+    //                spColl->get_length(&nCnt);
 
-                    for (long i = 0; i < nCnt; i++)
-                    {
-                        CComVariant varIdx = i;
-                        CComPtr<IDispatch> spTagDisp;
-                        if (SUCCEEDED(spColl->item(varIdx, varIdx, &spTagDisp)) && spTagDisp)
-                        {
-                            CComQIPtr<IHTMLElement> spHtmlElem(spTagDisp);
-                            if (IsTabedObject(spHtmlElem))
-                            {
-                                CComQIPtr<IHTMLElement2> spHtmlElem2 = spHtmlElem;
-                                spHtmlElem2->focus();
-                                break;
-                            }
-                        }
-                    }
+    //                for (long i = 0; i < nCnt; i++)
+    //                {
+    //                    CComVariant varIdx = i;
+    //                    CComPtr<IDispatch> spTagDisp;
+    //                    if (SUCCEEDED(spColl->item(varIdx, varIdx, &spTagDisp)) && spTagDisp)
+    //                    {
+    //                        CComQIPtr<IHTMLElement> spHtmlElem(spTagDisp);
+    //                        if (IsTabedObject(spHtmlElem))
+    //                        {
+    //                            CComQIPtr<IHTMLElement2> spHtmlElem2 = spHtmlElem;
+    //                            spHtmlElem2->focus();
+    //                            break;
+    //                        }
+    //                    }
+    //                }
 
-                    spColl.Release();
-                }
-            }
-        }
-    }
-
-
+    //                spColl.Release();
+    //            }
+    //        }
+    //    }
+    //}
 
     BEGIN_SINK_MAP(CDWWebWnd)
         SINK_ENTRY_INFO(SKIN_HTMLCTRL_SINK_MAP_ID, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBeforeNavigate, &BeforeNavigateFuncInfo)

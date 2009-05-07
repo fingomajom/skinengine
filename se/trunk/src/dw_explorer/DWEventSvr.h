@@ -33,6 +33,8 @@ public:
 
 class CDWEventSvr
 {
+    CDWEventSvr( const CDWEventSvr& );
+
     CDWEventSvr()
     {
     }

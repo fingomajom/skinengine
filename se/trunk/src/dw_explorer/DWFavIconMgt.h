@@ -7,13 +7,15 @@
 
 class CDWFavIconMgt
 {
+    CDWFavIconMgt( const CDWFavIconMgt& );
+
     CDWFavIconMgt();
 public:
     ~CDWFavIconMgt();
 
     static CDWFavIconMgt& Instance();
 
-    HICON GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam );
+    HICON GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam, BOOL bDownload = TRUE );
 
 public:
 
@@ -61,7 +63,7 @@ inline CDWFavIconMgt& CDWFavIconMgt::Instance()
 }
 
 
-inline  HICON CDWFavIconMgt::GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam )
+inline  HICON CDWFavIconMgt::GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam, BOOL bDownload )
 {
     HICON hRet = NULL;
     
@@ -83,19 +85,44 @@ inline  HICON CDWFavIconMgt::GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam )
 
     m_cs.Unlock();
 
-    if ( hRet == NULL )
+    if ( hRet == NULL && bDownload )
     {
-        LPARAM * p = new LPARAM[2];
+        LPARAM * p = new LPARAM[3];
         if ( p == NULL )
             return NULL;
 
         p[0] = (LPARAM)hWnd;
         p[1] = lParam;
+        p[2] = bDownload;
 
         ::PostThreadMessage(m_dwThreadId, 
             WM_DOWNLOAD_FAV_ICON, 
             (WPARAM)SysAllocStringLen(URL, lstrlenW(URL)), 
             (LPARAM)p);
+    }
+    else if ( hRet == NULL && !bDownload )
+    {
+        ATL::CString strFavPathFile;
+        ATL::CString strFavPath;
+
+        strFavPath = GetFavPath();
+
+        GetIconFileName( URL, strFavFile );
+        if ( strFavFile.GetLength() <= 0 )
+            return NULL;
+
+        strFavPathFile = strFavPath;
+        strFavPathFile += L"\\";
+        strFavPathFile += strFavFile;
+
+        hRet = LoadFavIconFile( strFavPathFile );
+        
+        if ( hRet )
+        {
+            m_cs.Lock();
+            m_mapFavIcon[strFavFile] = hRet;
+            m_cs.Unlock();
+        }
     }
     
     return hRet;
@@ -131,8 +158,9 @@ inline DWORD WINAPI CDWFavIconMgt::FavDownloadThread( LPVOID p )
                 continue;
             }
 
-            HWND   hWnd   = (HWND)p[0];
-            LPARAM lParam = p[1];
+            HWND   hWnd      = (HWND)p[0];
+            LPARAM lParam    = p[1];
+            BOOL   bDownload = p[2];
 
             ATL::CString strURL = URL;          
             ATL::CString strFavFile;
@@ -152,7 +180,7 @@ inline DWORD WINAPI CDWFavIconMgt::FavDownloadThread( LPVOID p )
 
             HICON hIcon = LoadFavIconFile( strFavPathFile );
             DWORD dwLoop = 0;
-            while ( hIcon == NULL )
+            while ( hIcon == NULL && bDownload )
             {
                 DWORD dwRet = 0;
 
@@ -172,7 +200,7 @@ inline DWORD WINAPI CDWFavIconMgt::FavDownloadThread( LPVOID p )
                     NULL, NULL, 0);
                 if ( hSession != NULL )
                 {
-                    DWORD dwTimeOut = 8;
+                    DWORD dwTimeOut = 500;
 
                     InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeOut, sizeof(dwTimeOut) );
                     InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeOut, sizeof(dwTimeOut) );

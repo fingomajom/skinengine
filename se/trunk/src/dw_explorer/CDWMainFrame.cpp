@@ -28,25 +28,42 @@ HWND CDWMainFrame::CreateEx()
 
     return Create( NULL, &rcClient, _T("空白页 - 精灵浏览器"), 
          WS_POPUPWINDOW | WS_SIZEBOX | 
-         //WS_CAPTION |
          WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
 }
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-    if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB )
-    {
-        HWND hFWnd = GetFocus();
+    //if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB )
+    //{
+    //    HWND hFWnd = GetFocus();
 
-        if ( m_wndSuperbar.m_address_edit == hFWnd )
-            m_wndSuperbar.m_search_edit.SetFocus();
-        else if ( m_wndSuperbar.m_search_edit == hFWnd )
-            m_wndClient.SetFocus();        
-    }
+    //    if ( m_wndSuperbar.m_address_edit == hFWnd )
+    //        m_wndSuperbar.m_search_edit.SetFocus();
+    //    else if ( m_wndSuperbar.m_search_edit == hFWnd )
+    //        m_wndClient.SetFocus();        
+    //}
     
-    m_wndSuperbar.PreTranslateMessage(pMsg);
+#ifndef __TEST_WEB_WND__
 
-    return m_wndClient.PreTranslateMessage(pMsg);
+    if ( m_wndSuperbar.PreTranslateMessage(pMsg) )
+        return TRUE;
+
+    return FALSE;
+
+#else
+
+    //return m_wndClient.PreTranslateMessage(pMsg);
+
+    if((pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
+        (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST))
+        return FALSE;
+
+    // give HTML page a chance to translate this message
+    return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
+
+    return FALSE;
+#endif
+
 }
 
 LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -64,13 +81,13 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     SetIcon(hIconSmall, FALSE);
 
 
-    m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
-    m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    //m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
+    //m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
+    m_wndClient.Create( m_hWnd, &rcDefault, L"http://www.sogou.com", WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
 #ifdef __TEST_WEB_WND__
-    m_wndClient.OpenURL(L"www.cnbeta.com");
+    m_wndClient.OpenURL(L"http://www.sogou.com");
 #endif
 
     m_wndClient.SetFocus();
@@ -113,24 +130,24 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     }
 
     rcToolBar.bottom += 2;
-    if ( ::IsWindow(m_wndTableBar) )
+    if ( m_wndSuperbar.IsWindow() )
         m_wndSuperbar.MoveWindow( &rcToolBar );
 
     rcToolBar.top    = rcToolBar.bottom; 
     rcToolBar.bottom = rcToolBar.top + nspace + 2;
 
-    if ( ::IsWindow(m_wndFavoriteBar) )
+    if ( m_wndFavoriteBar.IsWindow() )
         m_wndFavoriteBar.MoveWindow( &rcToolBar );
 
     rcToolBar.top = rcToolBar.bottom; 
     rcToolBar.bottom = rcToolBar.top + 28;
-    if ( ::IsWindow(m_wndTableBar) )
+    if ( m_wndTableBar.IsWindow() )
         m_wndTableBar.MoveWindow( &rcToolBar );
 
     rcToolBar.top    = rcToolBar.bottom;
     rcToolBar.bottom = rcClient.bottom;
 
-    if ( ::IsWindow(m_wndClient) )
+    if ( m_wndClient.IsWindow() )
     {
         m_wndClient.MoveWindow( &rcToolBar );
     }
@@ -218,8 +235,10 @@ void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
     m_wndTableBar.SetItemCaption( nIdx, strCaption );
     m_wndTableBar.SetItemIcon( nIdx, NULL );
 
+#ifndef __TEST_WEB_WND__
     m_wndClient.m_mapUrlWndInfo[hWnd].strURL   = pszURL;
     m_wndClient.m_mapUrlWndInfo[hWnd].strTitle = strCaption;
+#endif
     
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
@@ -235,10 +254,15 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 
     if ( m_wndTableBar.GetItemCount() == 1) // 最后一页 不关闭 
     {   
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
         OnOpenURL(NULL);
 
         m_wndSuperbar.m_address_edit.SetSel(0,-1);
         m_wndSuperbar.m_address_edit.SetFocus();
+
+        CDWEventSvr::Instance().OnMessage( 
+            edi_spr_icon_changed, (WPARAM)skin.iconNull.m_hIcon, 0 );
 
         return ;
     }

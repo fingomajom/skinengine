@@ -14,6 +14,8 @@ struct SearchItem
 
 class CDWSearchMgt
 {
+    CDWSearchMgt( const CDWSearchMgt& );
+
     CDWSearchMgt()
     {
         AddSearchItem(

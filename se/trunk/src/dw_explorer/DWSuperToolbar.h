@@ -22,6 +22,7 @@ public:
         MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
         MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
+        MESSAGE_HANDLER( WM_COMMAND    , OnCommand  )
 
         MESSAGE_HANDLER( WM_PAINT      , OnPaint    )
 
@@ -31,8 +32,8 @@ public:
     {
         LRESULT lResult = DefWindowProc();
         
-        CWindow::Invalidate();
-        CWindow(GetParent()).Invalidate();
+        //CWindow::Invalidate();
+        //CWindow(GetParent()).Invalidate();
 
         return lResult;
     }
@@ -43,6 +44,13 @@ public:
 
         SetSelAll();
         CWindow::Invalidate();
+
+        return lResult;
+    }
+
+    LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
 
         return lResult;
     }
@@ -186,6 +194,8 @@ public:
         MESSAGE_HANDLER(WM_LBUTTONDOWN      , OnLButtonDown)
         MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
 
+        COMMAND_CODE_HANDLER(EN_CHANGE, OnEnChange )
+
         CHAIN_MSG_MAP(CDWToolbar)
 
     END_MSG_MAP()
@@ -213,6 +223,15 @@ public:
 
         bHandled = FALSE;
         return 0L;
+    }
+
+    LRESULT OnEnChange(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+    {
+        Invalidate();
+
+        ::InvalidateRect(hWndCtl, NULL, TRUE);
+        
+        return 0;
     }
 
     virtual void DoAfterPaint ( HDC hDC )
@@ -448,7 +467,6 @@ public:
         if ( uMsg == eid_addr_changed )
         {
             m_address_edit.SetWindowText((LPCTSTR)wParam);
-            CWindow::Invalidate();
         }
         else if ( uMsg == edi_skin_changed )
         {

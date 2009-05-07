@@ -217,7 +217,7 @@ CCookieMgt::CCookieMgt(void)
 
     //OldInternetSetCookieA("http://urlspirit.spiritsoft.cn/urlcore/admin/index.php", "", "logpwd=lichenglin%^**;domain=spiritsoft.cn;path=/;");
 
-    DetourTransactionCommit();
+    //DetourTransactionCommit();
 }
 
 CCookieMgt::~CCookieMgt(void)

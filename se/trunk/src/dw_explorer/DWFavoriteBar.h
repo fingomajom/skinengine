@@ -138,7 +138,15 @@ public:
 
         CIconHandle icon = skin.iconFavDir;
         if ( ((IEFavoriteItem*)info.lParam)->pChildList == NULL )
+        {
             icon = skin.iconNull;
+
+            HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
+                ((IEFavoriteItem*)info.lParam)->strURL, NULL, NULL, FALSE);
+            
+            if ( hIcon != NULL )
+                icon = hIcon;
+        }
         
         icon.DrawIconEx( dc, info.rcBtn.left + 4, rcText.top + 2, 16, 16 );
 
@@ -280,7 +288,7 @@ public:
                 else
                 {
                     HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
-                        pitem->strURL, NULL, NULL );
+                        pitem->strURL, NULL, NULL, FALSE);
                     if ( hIcon != NULL )
                         icon = hIcon;
                 }

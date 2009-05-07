@@ -3,16 +3,10 @@
 #pragma once
 
 
-struct CDWSkinUIMgt
+class CDWSkinUIMgt
 {
-public:
+    CDWSkinUIMgt( const CDWSkinUIMgt& );
 
-    static CDWSkinUIMgt& Instace()
-    {
-        static CDWSkinUIMgt __CDWSkinUIMgt_Instance__;
-        return __CDWSkinUIMgt_Instance__;
-    }
-        
     CDWSkinUIMgt()
     {
         clrFrameNcBorder = RGB( 90 , 90, 90);
@@ -26,6 +20,14 @@ public:
 
         png_dropdown.LoadFromResource( IDR_PNG_DROPDOWN );
     }
+public:
+
+    static CDWSkinUIMgt& Instace()
+    {
+        static CDWSkinUIMgt __CDWSkinUIMgt_Instance__;
+        return __CDWSkinUIMgt_Instance__;
+    }
+        
 
     COLORREF clrFrameNcBorder;
     COLORREF clrFrameWindow;

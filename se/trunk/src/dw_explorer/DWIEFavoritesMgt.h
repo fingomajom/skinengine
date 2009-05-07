@@ -47,6 +47,8 @@ struct IEFavoriteItem
 
 class CDWIEFavoritesMgt
 {
+    CDWIEFavoritesMgt( const CDWIEFavoritesMgt& );
+
     CDWIEFavoritesMgt() {}
 public:
     

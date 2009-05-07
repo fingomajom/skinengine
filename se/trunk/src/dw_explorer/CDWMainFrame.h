@@ -17,7 +17,7 @@
 #include "DWFavoriteBar.h"
 #include "DWFrameClient.h"
 
-//#define __TEST_WEB_WND__
+#define __TEST_WEB_WND__
 #ifdef __TEST_WEB_WND__
 #include "DWWebWnd.h"
 #endif

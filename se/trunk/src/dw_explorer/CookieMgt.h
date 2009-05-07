@@ -13,6 +13,8 @@
 
 class CCookieMgt
 {
+    CCookieMgt( const CCookieMgt& );
+
     CCookieMgt(void);
 public:
     ~CCookieMgt(void);
