@@ -4,10 +4,10 @@
 
 class CDWCrashMgt
 {
-    CDWCrashMgt( const CDWCrashMgt& );
+    //CDWCrashMgt( const CDWCrashMgt& );
 
-    CDWCrashMgt(void);
 public:
+    CDWCrashMgt(void);
     ~CDWCrashMgt(void);
 
     static CDWCrashMgt& Instance();

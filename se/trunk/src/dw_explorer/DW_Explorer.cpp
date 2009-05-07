@@ -2,19 +2,16 @@
 //
 
 #include "stdafx.h"
-
-
 #include "resource.h"
 
 #include "DW_ExplorerView.h"
 #include "aboutdlg.h"
 #include "DWFrameMgt.h"
 #include "DWClientMgt.h"
-
 #include "RpcMsg.h"
+#include "DWCrashMgt.h"
 
-CAppModule _Module;
-
+CAppModule  _Module;
 
 
 int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
@@ -35,8 +32,9 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-	HRESULT hRes = ::CoInitialize(NULL);
+    CDWCrashMgt _CrashMgt;
 
+    HRESULT hRes = ::CoInitialize(NULL);
     ATLASSERT(SUCCEEDED(hRes));
 
 	::DefWindowProc(NULL, 0, 0, 0L);

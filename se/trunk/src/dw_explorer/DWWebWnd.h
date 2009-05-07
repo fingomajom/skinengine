@@ -100,23 +100,15 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-#if 1
 
         CComObject<DWAxHost::CDWAxHost>* pAxHost = new CComObject<DWAxHost::CDWAxHost>;
         ATLASSERT(pAxHost != NULL);
+        if ( pAxHost == NULL )
+            return -1;
 
         HRESULT hr = pAxHost->CreateControl(m_hWnd);
         ATLASSERT( SUCCEEDED(hr) );
-#else
-        CComObject<CAxHostWindow>* pAxHost = new CComObject<CAxHostWindow>;
-        ATLASSERT(pAxHost != NULL);
 
-        HRESULT hr = pAxHost->CreateControl(L"http://baidu.com", m_hWnd, NULL);
-        ATLASSERT( SUCCEEDED(hr) );
-
-#endif
-
-        
         pAxHost->QueryControl( IID_IWebBrowser2, (void**)&m_spWebBrowser );
         
         m_spWebBrowser->put_RegisterAsBrowser(VARIANT_TRUE);
@@ -125,8 +117,85 @@ public:
 
         DispEventAdvise( m_spWebBrowser );
        
-        return 0;
+        return 0L;
     }
+
+    HRESULT QueryHost(REFIID iid, void** ppUnk)
+    {
+        ATLASSERT(ppUnk != NULL);
+        if (ppUnk == NULL)
+            return E_POINTER;
+        HRESULT hr;
+        *ppUnk = NULL;
+        CComPtr<IUnknown> spUnk;
+        hr = AtlAxGetHost(m_hWnd, &spUnk);
+        if (SUCCEEDED(hr))
+            hr = spUnk->QueryInterface(iid, ppUnk);
+        return hr;
+    }
+    template <class Q>
+    HRESULT QueryHost(Q** ppUnk)
+    {
+        return QueryHost(__uuidof(Q), (void**)ppUnk);
+    }
+
+    HRESULT QueryControl(REFIID iid, void** ppUnk)
+    {
+        ATLASSERT(ppUnk != NULL);
+        if (ppUnk == NULL)
+            return E_POINTER;
+        HRESULT hr;
+        *ppUnk = NULL;
+        CComPtr<IUnknown> spUnk;
+        hr = AtlAxGetControl(m_hWnd, &spUnk);
+        if (SUCCEEDED(hr))
+            hr = spUnk->QueryInterface(iid, ppUnk);
+        return hr;
+    }
+    template <class Q>
+    HRESULT QueryControl(Q** ppUnk)
+    {
+        return QueryControl(__uuidof(Q), (void**)ppUnk);
+    }
+
+    HRESULT CreateControlEx(LPCOLESTR lpszName, IStream* pStream = NULL, 
+        IUnknown** ppUnkContainer = NULL, IUnknown** ppUnkControl = NULL,
+        REFIID iidSink = IID_NULL, IUnknown* punkSink = NULL)
+    {
+        ATLASSERT(::IsWindow(m_hWnd));
+        // We must have a valid window!
+
+        // Get a pointer to the container object connected to this window
+        CComPtr<IAxWinHostWindow> spWinHost;
+        HRESULT hr = QueryHost(&spWinHost);
+
+        // If QueryHost failed, there is no host attached to this window
+        // We assume that the user wants to create a new host and subclass the current window
+        if (FAILED(hr))
+            return AtlAxCreateControlEx(lpszName, m_hWnd, pStream, ppUnkContainer, ppUnkControl, iidSink, punkSink);
+
+        // Create the control requested by the caller
+        CComPtr<IUnknown> pControl;
+        if (SUCCEEDED(hr))
+            hr = spWinHost->CreateControlEx(lpszName, m_hWnd, pStream, &pControl, iidSink, punkSink);
+
+        // Send back the necessary interface pointers
+        if (SUCCEEDED(hr))
+        {
+            if (ppUnkControl)
+                *ppUnkControl = pControl.Detach();
+
+            if (ppUnkContainer)
+            {
+                hr = spWinHost.QueryInterface(ppUnkContainer);
+                ATLASSERT(SUCCEEDED(hr)); // This should not fail!
+            }
+        }
+
+        return hr;
+    }
+
+
 
     LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {

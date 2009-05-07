@@ -33,15 +33,15 @@ HWND CDWMainFrame::CreateEx()
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-    //if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB )
-    //{
-    //    HWND hFWnd = GetFocus();
+    if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_TAB )
+    {
+        HWND hFWnd = GetFocus();
 
-    //    if ( m_wndSuperbar.m_address_edit == hFWnd )
-    //        m_wndSuperbar.m_search_edit.SetFocus();
-    //    else if ( m_wndSuperbar.m_search_edit == hFWnd )
-    //        m_wndClient.SetFocus();        
-    //}
+        if ( m_wndSuperbar.m_address_edit == hFWnd )
+            m_wndSuperbar.m_search_edit.SetFocus();
+        else if ( m_wndSuperbar.m_search_edit == hFWnd )
+            m_wndClient.SetFocus();        
+    }
     
 #ifndef __TEST_WEB_WND__
 
@@ -61,7 +61,6 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
     // give HTML page a chance to translate this message
     return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
 
-    return FALSE;
 #endif
 
 }
@@ -81,11 +80,11 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     SetIcon(hIconSmall, FALSE);
 
 
-    //m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
-    //m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
+    m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    m_wndClient.Create( m_hWnd, &rcDefault, L"http://www.sogou.com", WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
+    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
 #ifdef __TEST_WEB_WND__
     m_wndClient.OpenURL(L"http://www.sogou.com");
 #endif
