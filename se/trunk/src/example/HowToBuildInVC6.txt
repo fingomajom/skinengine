@@ -1,0 +1,46 @@
+=============
+For your information:
+
+I build my iTreeSurf with 
+	Windows2000Professional + sp2, 
+	VC6.0 + sp5 + new "tlogstg.h" + new "exdisp.h".
+
+Directories in VC options
+	Include files: ( ! follow this order ! )
+		C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE
+		C:\Program Files\Microsoft Visual Studio\VC98\MFC\INCLUDE
+		C:\Program Files\Microsoft Visual Studio\VC98\ATL\INCLUDE
+		...[other directories if useful]
+
+=============
+
+
+ Following these steps to build iTreeSurf in VC6.0:
+
+1) Copy "tlogstg.h" and "exdisp.h" to your VC include directory, 
+	like "C:\Program Files\Microsoft Visual Studio\VC98\Include".
+	Please backup and then overwrite any old file.
+
+2) Open iTreeSurf.dsw with VC6.0.
+
+3) Now you can build projects and configurations for:
+
+	iTreeSurf - Win32 Release - for static link version
+	iTreeSurf - Win32 Dynamic Link Release - for dynamic link version
+	TreeCN - Win32 Release - for Simplified Chinese language pack
+	TreeENG - Win32 Release - for English language pack
+
+4) You can get all of your release results in "iTreeSurfResult" directory.
+	Final executables are in "iTreeSurfResult\iTreeSurf\".
+
+
+=============
+ANY changes and/or patches are welcome!
+
+
+=============
+Good luck.
+:)
+
+iTree :: I love tree
+

@@ -1,0 +1,21 @@
+iTreeSurf
+
+Language resource files for English:
+
+TreeENG.dll
+
+About_iTreeSurf.txt
+AboutThisLanguage.txt
+help.htm
+resource.htm
+search.htm
+urllist.htm
+what's new.txt
+
+
+If any bug, please go to http://iTreeSurf.yeah.net/
+
+
+::I love tree
+
+

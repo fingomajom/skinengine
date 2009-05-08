@@ -238,10 +238,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\DWFrameClient.h"
-					>
-				</File>
-				<File
 					RelativePath=".\DWFrameUI.h"
 					>
 				</File>

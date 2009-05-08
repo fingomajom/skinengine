@@ -88,6 +88,8 @@ public:
         if ( nIndex >= sys_tbi_count && nIndex < (int)m_vtTableBtn.GetCount() )
         {
             m_vtTableBtn.RemoveAt( nIndex );
+            if ( m_nSelectIndex >= (int)m_vtTableBtn.GetCount() )
+                m_nSelectIndex--;
             RePositionBtns();
             if ( bReflash && ::IsWindow(m_hWnd) )
                 CWindow::Invalidate();
@@ -564,9 +566,6 @@ public:
             CWindow::Invalidate();
 
         return 1L;
-
-
-        return 1L;
     }
 
     
@@ -583,8 +582,9 @@ public:
                     m_nHotIndex - sys_tbi_count);
             }
 
-            m_nSelectIndex = m_nHotIndex;
-            PostMessage(WM_MOUSEMOVE, 0, lParam);
+            if ( m_nHotIndex >= 0 && m_nHotIndex < (int)m_vtTableBtn.GetCount() )
+                m_nSelectIndex = m_nHotIndex;
+            SendMessage(WM_MOUSEMOVE, 0, lParam);
             bReflashWnd = TRUE;
         }
         else if ( m_nHotIndex >= 0 )

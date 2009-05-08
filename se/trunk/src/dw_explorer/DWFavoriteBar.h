@@ -175,7 +175,8 @@ public:
         CWindow::Invalidate();
 
         m_favMenu.DestroyMenu();
-       
+
+
         return 1L;
     }
 

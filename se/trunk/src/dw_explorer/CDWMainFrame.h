@@ -46,6 +46,8 @@ public:
 
         MESSAGE_HANDLER(WM_TABLE_BAR_MSG, OnTableBarMsg)
 
+        MESSAGE_HANDLER(WM_WEBVIEW_CREATE, OnWebViewCreate)
+
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
         COMMAND_ID_HANDLER( ID_APP_ABOUT         , OnAppAbout      )
@@ -77,6 +79,7 @@ protected:
     LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnTableBarMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnWebViewCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 

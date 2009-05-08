@@ -1,0 +1,55 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: TreeCN - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x804 /fo"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/iTreeSurf.res" /d "NDEBUG" "F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\iTreeSurf.rc"" 
+Creating temporary file "C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP137.tmp" with contents
+[
+/nologo /MT /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TREECN_EXPORTS" /Fp"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/TreeCN.pch" /Yu"stdafx.h" /Fo"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/" /Fd"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/" /FD /c 
+"F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\TreeCN.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP137.tmp" 
+Creating temporary file "C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP138.tmp" with contents
+[
+/nologo /MT /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TREECN_EXPORTS" /Fp"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/TreeCN.pch" /Yc"stdafx.h" /Fo"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/" /Fd"..\..\iTreeSurfResult\Intermediate\Release\TreeCN/" /FD /c 
+"F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP138.tmp" 
+Creating temporary file "C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP139.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"..\..\iTreeSurfResult\Release/TreeCN.pdb" /machine:I386 /out:"..\..\iTreeSurfResult\Release/TreeCN.dll" /implib:"..\..\iTreeSurfResult\Release/TreeCN.lib" 
+\MyNet\TreeSoft\iTreeSurf\iTreeSurfResult\Intermediate\Release\TreeCN\StdAfx.obj
+\MyNet\TreeSoft\iTreeSurf\iTreeSurfResult\Intermediate\Release\TreeCN\TreeCN.obj
+\MyNet\TreeSoft\iTreeSurf\iTreeSurfResult\Intermediate\Release\TreeCN\iTreeSurf.res
+]
+Creating command line "link.exe @C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP139.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+TreeCN.cpp
+F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\TreeCN.cpp(9) : warning C4100: 'lpReserved' : unreferenced formal parameter
+F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\TreeCN.cpp(7) : warning C4100: 'ul_reason_for_call' : unreferenced formal parameter
+F:\MyNet\TreeSoft\iTreeSurf\iTreeSurfSource\TreeCN\TreeCN.cpp(6) : warning C4100: 'hModule' : unreferenced formal parameter
+Linking...
+Creating temporary file "C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP13B.bat" with contents
+[
+@echo off
+copy "..\..\iTreeSurfResult\Release\TreeCN.dll" "..\..\iTreeSurfResult\iTreeSurf\languages\cn\"
+]
+Creating command line "C:\DOCUME~1\PengWang\LOCALS~1\Temp\RSP13B.bat"
+
+已复制         1 个文件。
+
+
+
+<h3>Results</h3>
+TreeCN.dll - 0 error(s), 3 warning(s)
+</pre>
+</body>
+</html>

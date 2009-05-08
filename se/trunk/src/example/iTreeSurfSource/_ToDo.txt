@@ -1,0 +1,112 @@
+
+[整理代码的步骤]
+
+1。每个人负责几个类，在类的内部进行代码整理。找出疑点、进行优化等等。
+
+2。为每个类增加接口(最好只有函数,没有公共变量)，尽量把 CMainFrame 的功能合理地在类中实现。
+	注意每个类的功能要明确。
+
+3。依据增加的接口修改程序，达到减小 CMainFrame 的负荷的目的。
+	使得程序的各个部分分工明确、负荷相当，代码不会集中在一个大文件中。
+	为以后的协同开发创造好的条件。
+
+
+
+[功能需求列表]
+
+>>>>>>>00. change email in sourceforge.net
+01. setup cvs,ssl used in sourceforge.net
+>>>>>>>02. setup a new project for itreesurf in sourceforge.net
+>>>>>>>03. gif for languages
+
+1. switch window is not smooth in WinXP
+2. import proxy setting error(into translation menu? when only "web proxy" and "trans")
+3. If a path setting is in the same folder of LT, then use relative path to record.
+	if not, use absolute full path.
+
+
+--------------------------------------------------------------------------------
+建议改进：1、简易收藏面版。参考gosurf的拖动保存，将文字或图像拖动到某处直接保存，并能在已有文件的情况下自动改名。现在的简易收藏面版过于简单，有些图像保存不下来。
+2、标签。目前的标签不太好看，建议参考同类多宣传品浏览器进行改进。
+--------------------------------------------------------------------------------
+建议加入功能 Total 2 responses    
+1,兼容IE打开HTTP/HTTPS协议使用的DDE方式，现在MYIE是用命令行参数的方式来处理HTTP/HTTPS协议，
+这是不正确的。这导至一些程序使用DDE方式打开某个URL时，当IE是DEFAULT，可以正确打开，但若是MYIE是
+DEFAULT时，只是打开多一个MYIE的实例，实际的URL并没有传递给MYIE。
+2，支持其他软件从MYIE取得当前浏览页的IP/URL/DESC,title等信息。很多软件，都可以和IE很好的结合，来取得
+当前页的信息，但不能从MYIE取得。
+
+3,兼容IE的自定义用户TOOLBAR的功能，很多IE的第三方插件，是通过给IE加上TOOLBAR来工作的，但这类软件，无一
+例外，在MYIE失效。所以应加强。
+
+4，集成代理验证功能。MYIE的主要特色是代理调度做得好，并可以维护一个代理列表，若是能加入代理验证的能力，
+这样就不用使用其他PROXYHT的软件了。另外，MYIE还是沿用IE的代理排除机制，也就是那个“以下地址开头的不使用代理服务器”，建议可以设置“以下地址开头才使用代理服务器”，这是因为，大多数的URL还是可以直接访问的，反而不可以直接访问的URL可以枚举出来。
+ 
+  Posted: 6-26-02 10:23 P.M.    By: MYIEer   Reply
+
+ 
+  Responses 
+  From Admin (administrator) To MYIEer 6-26-02 10:53 P.M.  Read It Here 
+  From MYIEer (Guest) To Admin 6-26-02 10:59 P.M.  Read It Here 
+
+
+ To MYIEer:
+1. 应该问题不大，等大问题解决了的差不多了我会着手修改。
+2。如果采用MyIE自己的方式，也应该没有问题，如果要兼容IE(就是让别的软件以为是IE)就不是很容易了。
+3。IE的第三方控件都是通过IE的com接口完成，我希望有此功能，但可能会比较有难度。
+4。这个建议很好，我会加入的（但不一定是马上噢）。 
+   Posted: 6-26-02 10:53 P.M.    By: Admin   Reply   Modify    Back 
+
+HOST/IP: 203.92.84.187 （新加坡）
+--------------------------------------------------------------------------------
+关于假死的问题
+--------------------------------------------------------------------------------
+ 这个问题我想是这样的。因为像myie之类的多窗口浏览器，因为都
+是在一个进程里运行，所以每个窗口之间会互相影响，如果一个窗口因为某种原因
+不响应了，就会使整个程序不响应， 比如你到要你安装activeX的网站去，比如3721，在它下载的过程中就会感到这种假死现象。 这个问题不好解决。 或者你试试其它的多窗口浏览器，看看它们是不是也有同样的现象 
+ 
+zhangjinny
+Unregistered User
+(7/7/02 7:38:09 pm)
+Reply  hehe
+--------------------------------------------------------------------------------
+ 我也觉得可能是这种原因，但在慢速机器上可能还跟flash有关（消耗资源的东西）
+
+建议屏蔽掉3721（有这个activeX的网站太多了），myie已经内置支持3721，就没有必要再去安装这个东西了，甚至没有必要让它检查你的机器是否已经安装!!!!  
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+To Do
+...?? 
+	0. add <lastvisit.ini>
+	0.	Use _configFile.Get...(), not use members directly.
+	1. when changing options, current values are not changed.
+		Use _configFile.Set...(), not use members directly.
+	2. Tool button with text is too wide.
+	5. after save groups, group path not change to the last use dir? should?
+		...
+	6. [BUG001] continue:
+		2) ???...Add "proxy" as default, in IDS_defaultpos ??
+			? set some useful proxy as default?
+		3) If no proxy can be imported into, then stop importing
+
+	7. fav menu item for right button... 
+		Add CMainFrame::WindowProc() for WM_MENURBUTTONUP
+-----------------------------------------------------------------------
+
+	2. change _configFile to a WinThread object
+-----------------------------------------------------------------------
+我找了个能下载flash的IE插件，却只能在IE里边用，如果能在MYIE里边用那不是很好吗？
+其它的如什么在页面标签上加个叉叉什么的没什么意思，我从来没有因为双击误关闭过页面，不知道那些人是怎么搞的。
+希望作者
+1、加强广告过滤，最好能让用户选择过滤程度，如GOSURF。
+2、增强稳定性。
+3、GOSURF“一拖即存”功能不错，可以考虑。
+4、GOSURF的页边栏功能也可以 考虑
+5、GOSURF的静态文字拖动打开功能也可以 
+--------------------------------------------------------------------------------
+51357 里面的SWFSNAP功能不错，能否加入呢？ 
+--------------------------------------------------------------------------------
+Add tools installed in IE bar to external tool bar when start iTreeSurf.

@@ -35,7 +35,7 @@ public:
     BOOL OpenURL( LPCTSTR pszURL )
     {
         m_strTitle.Empty();
-        m_strURL = pszURL;
+        m_strURL.Empty();
 
         Navigate2( pszURL );
 

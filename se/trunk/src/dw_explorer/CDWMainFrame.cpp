@@ -226,11 +226,12 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 
     m_wndTableBar.InsertTableItem( ++nIdx, strTitle, 0, (LPARAM)pNewFrm );
 
+    m_listChildFrm.AddTail(pNewFrm);
+
+    m_wndTableBar.SelectIndex( nIdx, FALSE );
+    OnSelectURL(nIdx);
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
-    m_listChildFrm.AddTail(pNewFrm);
-    m_pNowChildFrm = pNewFrm;
-    m_wndTableBar.SelectIndex(nIdx);
 }
 
 
@@ -266,28 +267,51 @@ void CDWMainFrame::OnCloseURL( int nIndex )
     CDWChildFrm* pCloseFrm = (CDWChildFrm*)m_wndTableBar.GetItemParam(nIndex);   
     m_wndTableBar.RemoveTableItem(nSelIndex);
 
+    ATLASSERT( m_pNowChildFrm == pCloseFrm );
+
     POSITION pos = m_listChildFrm.Find(pCloseFrm);
     ATLASSERT( pos != NULL );
     if ( pos != NULL )
         m_listChildFrm.RemoveAt(pos);
 
-    pCloseFrm->DestroyWindow();
-    delete pCloseFrm;
+    m_pNowChildFrm = NULL;
     
     if ( --nSelIndex < 0 )
         nSelIndex = 0;
     
     m_wndTableBar.SelectIndex( nSelIndex );
     OnSelectURL(nSelIndex);
+
+    pCloseFrm->DestroyWindow();
+
 }
 
 void CDWMainFrame::OnSelectURL( int nIndex )
 {
-    HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
-    //ATLASSERT(::IsWindow(hSelWnd));
+    CDWChildFrm* pNextFrm = (CDWChildFrm*)m_wndTableBar.GetItemParam(nIndex);
+    ATLASSERT( pNextFrm != NULL );
+    ATLASSERT( m_listChildFrm.Find(pNextFrm) != NULL );
+    if ( pNextFrm == NULL )
+        return;
+
 #ifndef __TEST_WEB_WND__
-    //m_wndClient.SetFocus();
-    //m_wndClient.ShowClient( hSelWnd );
+    
+    if ( m_pNowChildFrm != NULL )
+    {
+        ATLASSERT( m_listChildFrm.Find(m_pNowChildFrm) != NULL );
+
+        m_pNowChildFrm->HideClient();
+    }
+
+    m_pNowChildFrm = pNextFrm;
+
+    RECT rcChildFrm;
+    GetChildFrmRect(rcChildFrm);
+
+    m_pNowChildFrm->MoveWindow(&rcChildFrm, FALSE);
+    m_pNowChildFrm->ShowClient();
+    m_pNowChildFrm->SetFocus();
+
 #endif
 }
 
@@ -364,6 +388,17 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
     }
 
     return 1L;
+}
+
+LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    OnNewURL(NULL);
+    ATLASSERT( m_pNowChildFrm != NULL  && m_pNowChildFrm->IsWindow() );
+    
+    if ( m_pNowChildFrm != NULL )
+        return (LRESULT)m_pNowChildFrm->m_hWnd;
+
+    return NULL;
 }
 
 

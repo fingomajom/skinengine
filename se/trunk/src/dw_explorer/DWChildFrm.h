@@ -33,6 +33,8 @@ public:
     ATL::CString m_strURL;
     ATL::CString m_strTitle;
 
+    CIconHandle  m_icon;
+
     static CDWChildFrm* CreateChildFrm(
         HWND hParent,
         RECT rcClient,
@@ -45,16 +47,16 @@ public:
         if ( pNewFrm == NULL )
             return NULL;
 
+        pNewFrm->m_strTitle = pszTitle;
+        pNewFrm->m_strURL   = pszURL;
+
         HWND hRet = pNewFrm->Create( hParent, &rcClient, NULL,  
-            WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN, 0);
+            WS_CHILD | WS_TABSTOP | WS_CLIPCHILDREN, 0);
         if ( hRet == NULL )
         {
             delete pNewFrm;
             pNewFrm = NULL;
         }
-
-        pNewFrm->m_strTitle = pszTitle;
-        pNewFrm->m_strURL   = pszURL;
 
         return pNewFrm;
     }
@@ -64,7 +66,7 @@ public:
         CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
         int nIdx = m_wndTableBar.FindParam((LPARAM)this);
-        ATLASSERT( nIdx >= 0 );
+        ATLASSERT( nIdx >= 0 && m_wndClient.IsWindow() );
         if ( nIdx < 0 )
             return;
 
@@ -84,11 +86,13 @@ public:
 
         CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
-        psmgt.WebWndOpenURL( m_hWnd, pszURL );
+        psmgt.WebWndOpenURL( m_wndClient, pszURL );
+
+        SetFocus();
     }
 
 
-    BEGIN_MSG_MAP(CDWFrameClient)
+    BEGIN_MSG_MAP(CDWChildFrm)
 
         MESSAGE_HANDLER(WM_COPYDATA, OnCopyData)
 
@@ -107,10 +111,16 @@ public:
 
         MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd   )
         MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
-
-        MESSAGE_HANDLER(WM_WEBWND_INFO_CHANGED , OnWebWndInfoChanged )
+        
+        MESSAGE_HANDLER(WM_WEBVIEW_CREATE   , OnWebViewCreate)
 
     END_MSG_MAP()
+
+
+    virtual void OnFinalMessage(HWND /*hWnd*/)
+    {
+        delete this;
+    }
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {   
@@ -132,6 +142,15 @@ public:
 
         return 1;
     }
+
+    LRESULT OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( wParam )
+            return (LRESULT)m_wndClient.m_hWnd;
+
+        return ::SendMessage(GetParent(), WM_WEBVIEW_CREATE, NULL, NULL);
+    }
+
 
     LRESULT OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -175,6 +194,13 @@ public:
         if ( StrCmpI( pszTitle, m_strTitle ) )
         {
             m_strTitle = pszTitle;
+
+            int nTabIndex = m_wndTableBar.FindParam( (LPARAM)this );
+            ATLASSERT( nTabIndex >= 0 );
+            if ( nTabIndex < 0 )
+                return 0L;
+            
+            m_wndTableBar.SetItemCaption(nTabIndex, pszTitle);
         }
 
         return 0;
@@ -184,9 +210,29 @@ public:
     {
         LPCTSTR pszUrl = (LPCTSTR)wParam;
 
-        if ( StrCmpI( pszUrl, m_strURL ) )
+        if ( 1 || StrCmpI( pszUrl, m_strURL ) )
         {
             m_strURL = pszUrl;
+
+            int nTabIndex = m_wndTableBar.FindParam( (LPARAM)this );
+            ATLASSERT( nTabIndex >= 0 );
+            if ( nTabIndex < 0 )
+                return 0L;
+
+            m_icon = CDWFavIconMgt::Instance().GetFavIcon( m_strURL, m_hWnd, 0 );
+            if ( m_icon != NULL )
+                m_wndTableBar.SetItemIcon( nTabIndex, m_icon );
+            
+            if ( IsWindowVisible() )
+            {
+                CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
+                    (WPARAM)(LPCTSTR)m_strURL, 
+                    (WPARAM)(LPCTSTR)m_strTitle);
+
+                CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+                    (WPARAM)m_icon.m_hIcon, 0 );
+            }
+
         }
 
         return 0;
@@ -232,7 +278,9 @@ public:
         int nTabIndex = m_wndTableBar.FindParam( (LPARAM)this );
         ATLASSERT( nTabIndex >= 0 );
 
-        if ( nTabIndex >= 0 && wParam != NULL )
+        m_icon.m_hIcon = (HICON)wParam;
+
+        if ( nTabIndex >= 0 && m_icon.m_hIcon != NULL )
         {
             m_wndTableBar.SetItemIcon( nTabIndex, (HICON)wParam );
 
@@ -240,18 +288,6 @@ public:
                 CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
                 wParam, 0 );
 
-        }
-
-        return 0L;
-    }
-
-    LRESULT OnWebWndInfoChanged(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-    {
-        if ( lParam == NULL )
-        {
-            CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
-
-            psmgt.GetWebWndInfo( m_hWnd, (HWND)wParam);
         }
 
         return 0L;
@@ -313,6 +349,18 @@ public:
 
         if ( ::IsWindow(m_wndClient) )
         {
+            CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
+                (WPARAM)(LPCTSTR)m_strURL, 
+                (WPARAM)(LPCTSTR)m_strTitle);
+
+            CIconHandle icon = m_icon.m_hIcon;
+            if ( icon.m_hIcon == NULL )
+                icon = CDWSkinUIMgt::Instace().iconNull;
+
+            CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+                (WPARAM)icon.m_hIcon, 0 );
+
+
             m_wndClient.ShowWindow( SW_SHOWDEFAULT );           
             m_wndClient.SetFocus();
         }

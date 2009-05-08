@@ -92,7 +92,7 @@ public:
     virtual void OnStatusTextChange(LPCTSTR lpszText)
     {
         ::SendCopyData(m_hNotifyWnd, 
-            WM_SETTEXT, 
+            WM_WEBVIEW_SETSTATUS, 
             lpszText,
             (lstrlenW(lpszText) + 1) * sizeof(TCHAR) );
     }
@@ -120,7 +120,10 @@ public:
         {
             m_strTitle = lpszText;
 
-            ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
+            ::SendCopyData(m_hNotifyWnd, 
+                WM_WEBVIEW_SETTITLE, 
+                lpszText,
+                (lstrlenW(lpszText) + 1) * sizeof(TCHAR) );
         }
     }
 
@@ -129,22 +132,26 @@ public:
     }
     virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel)
     {
-        IWebBrowser2* pWebBrowser = NULL;
-
-        HWND hWnd = CreateWebWnd( GetParent(), L"", &pWebBrowser);
-        if ( hWnd == NULL )
+        HWND hWndChildFrm = (HWND)::SendMessage( m_hNotifyWnd, WM_WEBVIEW_CREATE, 0, 0 ); 
+        if ( hWndChildFrm == NULL || !::IsWindow(hWndChildFrm) )
         {
             *bCancel = TRUE;
             return;
+        }
+
+        HWND hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_CREATE, TRUE, 0 );
+        while ( hWnd == NULL )
+        {
+            Sleep(30);
+            hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_CREATE, TRUE, 0 );
         }
 
         DWORD dwPID = 0 ;
         GetWindowThreadProcessId(hWnd, &dwPID);
 
         ATLASSERT ( dwPID == GetCurrentProcessId() );
-        if ( pWebBrowser != NULL && dwPID == GetCurrentProcessId() )
-        {	
-
+        if ( dwPID == GetCurrentProcessId() )
+        {
             IStream* pStream = (IStream*)::SendMessage(hWnd, WM_USER_GET_WEBBROWSER2_CROSS_THREAD, 0, 0) ;
             ATLASSERT(pStream);
             if (!pStream)
@@ -158,7 +165,7 @@ public:
                 spWebBrowser2->get_Application(ppDisp);
             }
 
-            ::PostMessage( GetParent(), WM_CREATE_WEB_WND, (WPARAM)hWnd, 0 );
+            ::SetFocus(hWnd);
         }
     }
 
@@ -242,7 +249,7 @@ public:
         //    return TRUE ;
         //}
 
-        return FALSE ;
+        return TRUE ;
     }
 
     virtual void NavigateComplete2(LPDISPATCH pDisp, VARIANT* URL)
@@ -266,7 +273,10 @@ public:
 
         m_strURL = strURL;
 
-        ::PostMessage( m_hNotifyWnd, WM_WEBWND_INFO_CHANGED, (WPARAM)m_hWnd, 0  );
+        ::SendCopyData(m_hNotifyWnd, 
+            WM_WEBVIEW_SETURL, 
+            (LPCTSTR)m_strURL,
+            (lstrlenW(m_strURL) + 1) * sizeof(TCHAR) );
     }
 
     virtual void OnQuit()

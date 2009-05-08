@@ -1,0 +1,27 @@
+程序结构和类大略设计
+
+只是 iTree 的初步设想，而且并没有完成，希望大家共同参与设计。
+使得程序结构明了、有法可依。
+
+
+[类]
+
+CConfigTable
+	负责所有关于选项配置的操作: 所有INI文件的读写、注册表的读写。
+	在 iTreeSurf App 中有唯一的一个对象，可以通过 ((CiTreeSurfApp*)AfxGetApp())->_configFile 全局引用。
+	包括 CProxyCategory, CLanguageTable ...
+
+
+CFavorTree
+	负责所有关于收藏夹的操作: 排序、属性...
+
+
+CCustomBar
+	负责所有关于工具栏的操作: 图片、位置、自定义、右键菜单...
+
+
+CAdvTabCtrl
+	负责所有关于 TabControl 的操作: 按钮、位置、大小、切换MDI、右键菜单...
+
+
+

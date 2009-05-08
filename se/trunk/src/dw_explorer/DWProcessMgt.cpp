@@ -259,7 +259,7 @@ BOOL CDWProcessMgt::_GetWebWndInfo( HWND hParent, HWND hWnd )
 
     if ( nRet == 0 && spResult.p )
     {
-        nRet = ::PostMessage(hParent, WM_WEBWND_INFO_CHANGED, (WPARAM)hWnd, (LPARAM)spResult.p);
+        //nRet = ::PostMessage(hParent, WM_WEBWND_INFO_CHANGED, (WPARAM)hWnd, (LPARAM)spResult.p);
         if ( nRet )
             spResult.p = NULL;
         else

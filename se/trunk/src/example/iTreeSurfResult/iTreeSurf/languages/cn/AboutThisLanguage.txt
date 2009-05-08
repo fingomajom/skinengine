@@ -1,0 +1,22 @@
+小树(iTreeSurf)
+
+简体中文版资源文件
+
+
+TreeCN.dll
+
+About_iTreeSurf.txt
+AboutThisLanguage.txt
+help.htm
+resource.htm
+search.htm
+urllist.htm
+what's new.txt
+
+
+关于这个目录中的所有文件，如果有任何问题，请联系 http://iTreeSurf.yeah.net/
+
+
+小树::I love tree
+
+

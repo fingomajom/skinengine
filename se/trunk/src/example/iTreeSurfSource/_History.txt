@@ -1,0 +1,348 @@
+NOTE:
+//? in source means something there.
+//debug in source means for debug.
+
+
+-----------------
+[Version number]
+-----------------
+Ver   : iTreeSurf 3.6.1
+Build : 056
+
+
+-----------------
+[History]
+-----------------------------------------------------------------------
+Date  : 2002-05-22
+Owner : I love tree
+Ver   : 3.5
+Build : 0012
+Fixed : 
+	1. Merge three language projects into 1
+-----------------------------------------------------------------------
+Date  : 2002-05-30
+Owner : I love tree
+Ver   : 3.5
+Build : 0013
+Fixed : 
+	1. If close to right border, right-button menu can not show properly.
+		In <CChevBar::OnParentNotify>
+-----------------------------------------------------------------------
+Date  : 2002-06-07
+Owner : I love tree
+Ver   : 3.6
+Build : 0017
+Fixed : 
+	1. Define some new macros in <iTreeSurfDefinition.h>.
+	2. Reconstruct files to make multi-language easier.
+-----------------------------------------------------------------------
+Date  : 2002-06-07
+Owner : I love tree
+Ver   : 3.6
+Build : 0018
+Fixed : 
+	1. Autoselect language when no language set.
+-----------------------------------------------------------------------
+Date  : 2002-06-07
+Owner : I love tree
+Ver   : 3.6
+Build : 0019
+-----------------------------------------------------------------------
+=== RELEASE LovelyTree 3.6 (Build 0019) at this point ===
+=== executable and source ===
+-----------------------------------------------------------------------
+Date  : 2002-06-10
+Owner : I love tree
+Ver   : 3.6
+Build : 0020
+Fixed : 
+	1. Add Russian auto select.
+	2. Change the icon, when in system tray, to itreesurf.
+	3. Add spanish auto select.
+	4. Can not set as default browser.
+		In <CMainFrame::SetDefault(>.
+	5. Some Chinese strings are partly hidden in dialogs.
+		IDD_EXTERN_UTIL
+	6. [BUG001]:Import proxy settings errorly to "translation"
+		Add "proxy" as default, in INI file.
+-----------------------------------------------------------------------
+Date  : 2002-06-14
+Owner : I love tree
+Ver   : 3.6
+Build : 0021
+Fixed : 
+	1. If not exit app then exit windows, next time start app, will show "abnormal exit last time".
+		Add <bool CMainFrame::CloseApp(bool bAsk)>
+	2. If select "NO" when show "show last visit pages?", still show them.
+		In <CiTreeSurfApp::InitInstance()>, add bOpenLast.
+-----------------------------------------------------------------------
+Date  : 2002-06-15
+Owner : I love tree
+Ver   : 3.6
+Build : 0022
+Change : 
+	1. Add CConfigFile
+	2. delete CiTreeSurf::m_strGroupPath, use _configFile._csGroupPath
+	3. modify animation bitmap11
+-----------------------------------------------------------------------
+Date  : 2002-06-16
+Owner : I love tree
+Ver   : 3.6
+Build : 0023
+Change : 
+	1. delete CiTreeSurf::m_strBitmapPath, use _configFile._csSkinPath
+-----------------------------------------------------------------------
+Date  : 2002-06-16
+Owner : I love tree
+Ver   : 3.6
+Build : 0024
+Change : 
+	1. delete CiTreeSurf::m_strBitmapPath, m_bNeedCreateDir,
+	   use _configFile._csToolbarPath
+-----------------------------------------------------------------------
+Date  : 2002-06-17
+Owner : I love tree
+Ver   : 3.6
+Build : 0025
+Change : 
+	1. delete CMainFrm::m_strStartFavFolder;
+		, use _configFile._csFavoritePath
+-----------------------------------------------------------------------
+Date  : 2002-06-17
+Owner : I love tree
+Ver   : 3.6
+Build : 0026
+Change : 
+	1. delete CiTreeSurf::m_strDefaultDir;
+		, use _configFile._csSavePath
+-----------------------------------------------------------------------
+Date  : 2002-06-17
+Owner : I love tree
+Ver   : 3.6
+Build : 0027
+Change : 
+	1. CONTINUE: m_strStartFavFolder, use _configFile._csFavoritePath
+	OK now
+-----------------------------------------------------------------------
+Date  : 2002-06-17
+Owner : I love tree
+Ver   : 3.6
+Build : 0028
+Change : 
+	1. Change name to "iTreeSurf" :)
+-----------------------------------------------------------------------
+Date  : 2002-06-20
+Owner : I love tree
+Ver   : 3.6
+Build : 0029
+Change : 
+	1. delete CMainFrm::m_bTopTab;
+		, use _configFile._bTopTab
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-25
+Owner : I love tree
+Ver   : 3.6
+Build : 0030
+Change : 
+	1. delete CMainFrm::bGoHome and <iTreeSurf.cpp\int nOpenType>
+		, use _configFile._nOpenType
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0031
+Change : 
+	1. Kill some fails when debugging, thanks to "Bobi Jam".
+		But when no "iTreeSurf.ini" file, debug still fails. :(
+		If use default "iTreeSurf.ini", debug is OK.
+	//3.6.1 you must quote this line, if you want to be in DEBUG mode
+	//?
+	InitFavorites(); 
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0032
+Change : 
+	1. delete CMainFrm::nMaxWins
+		, use _configFile._nMaxWins
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0033
+Change : 
+	1. delete CMainFrm::nMaxWins
+		, use _configFile._nMaxWins
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0034
+Change : 
+	1. delete <iTreeSurf.cpp\int ep> for proxy
+		, use _configFile._nEnableProxy
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0035
+Change : 
+	1. delete <iTreeSurf.cpp\GetProfileBinary("Settings","lastvisit">
+		, use _configFile.GetStringArray_LastVisit()
+		//? OK, but not good
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0036
+Change : 
+	1. delete <iTreeSurf.cpp\BOOL bFullScreenMode>
+		, use _configFile._bFullScreen
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-26
+Owner : I love tree
+Ver   : 3.6
+Build : 0037
+Change : 
+	1. delete <iTreeSurf.cpp\bFirst>, FirstRun() and related, useless
+		move FirstRun() to _configFile.FirstRun()
+		OK
+-----------------------------------------------------------------------
+Date  : 2002-06-27
+Owner : I love tree
+Ver   : 3.6
+Build : 0041
+Change : 
+	1. delete <CiTreeSurf::LoadConfg()>,
+		use CiTreeSurf::SetMainFrameAccordingToConfig() + _configFile.LoadOtherSettings()
+		run OK
+-----------------------------------------------------------------------
+Date  : 2002-06-27
+Owner : I love tree
+Ver   : 3.6
+Build : 0042
+Change : 
+	1. set _pConfig in <CMainFrame::CMainFrame()>
+-----------------------------------------------------------------------
+Date  : 2002-06-27
+Owner : I love tree
+Ver   : 3.6
+Build : 0043
+Change : 
+	1. delete all GetProfileInt("ToolBar", use <CConfigTable::GetToolBarID(const CString)>;
+		change "-5" to _INI_VAR_TOOLBAR_ID__D
+	2. delete all WriteProfileInt("ToolBar", use <CConfigTable::WriteToolBarID(
+-----------------------------------------------------------------------
+Date  : 2002-07-02
+Owner : I love tree
+Ver   : 3.6
+Build : 0044
+Change : 
+	1. move m_aProxyCategories to CConfigTable::_aProxyCategories
+	2. move m_DList to CConfigTable::_DownloadList
+	3. move m_astrPopup to CConfigTable::_cslPopup
+	4. m_astrUrlFilter to CConfigTable::_csaUrlFilter
+	5. delete CConfigTable::_DownloadList, use CConfigTable::_aDownloadTools directly
+	6. move main part of <CMainFrame::OnDelayLoadConfig(> to <CConfigTable::LoadRemainingSettings()>
+	7. delete m_astrBGPics, use _cslBGPics
+	8. m_strBGPic => _csBGPic
+	9. m_ExternalUtilList => _ExternalUtilList
+-----------------------------------------------------------------------
+Date  : 2002-07-07
+Owner : I love tree
+Ver   : 3.6
+Build : 0045
+Change : 
+	1. change most of <CiTreeSurf::SaveConfg()> to CConfigTable::SaveSettings()
+	2. move all writeprofile to CConfigTable::
+	3. "MY2IESHARE" => "I_TREE_SURF_MAP_FILE"
+-----------------------------------------------------------------------
+Date  : 2002-07-08
+Owner : I love tree
+Ver   : 3.6.1
+Build : 0046
+Change : 
+	1. move all GetPrivate to CConfigTable::
+-----------------------------------------------------------------------
+Date  : 2002-07-08
+Owner : I love tree
+Ver   : 3.6.1
+Build : 050
+Change : 
+	1. modify version to be "3.6.1 (Build 050)"
+-----------------------------------------------------------------------
+=== RELEASE iTreeSurf 3.6.1 (Build 050) at this point ===
+=== executable and source ===
+-----------------------------------------------------------------------
+Date  : 2002-07-11
+Owner : I love tree
+Ver   : 3.6.1
+Build : 051
+Change : 
+	1. If set as default browser, execute a htm file, 
+		then "Open homepage" in options will change to "open last visits".
+		Modify in <CiTreeSurfApp::InitInstance()>.
+	2. Add "Co-dev" in help menu.
+-----------------------------------------------------------------------
+Date  : 2002-07-12
+Owner : I love tree
+Ver   : 3.6.1
+Build : 052
+Change : 
+	1. "先后" -> "向后" in options.
+	2. Add class CAdvancedProp, but not used now.
+	3. In <CAddressBarEx::CAddressBarEx()>, add GetBool_ShowGoButton(
+-----------------------------------------------------------------------
+Date  : 2002-07-15
+Owner : I love tree
+Ver   : 3.6.1
+Build : 053
+Change : 
+	1. Add _configFile.GetDw_ShowHidden in <CFavTree::CFavTree()>
+	2. Add _configFile.GetDw_TotalBytesRecvd(, but not used. //In <inline void GetRASSpeedOn9X>
+-----------------------------------------------------------------------
+Date  : 2002-07-18
+Owner : I love tree
+Ver   : 3.6.1
+Build : 054
+Change : 
+	1. Alt-` to hide even when iTreeSurf not active
+-----------------------------------------------------------------------
+Date  : 2002-07-18
+Owner : I love tree
+Ver   : 3.6.1
+Build : 055
+Change : 
+	1. delete "extern int nNextTab" in <mainfrm.h>, move it to <ChildFrm.h>
+	2. delete <MainFrm.h\extern HANDLE m_hMutex> and related
+	3. delete <MainFrm.h\extern int percent>, add CGlobalSpace
+	4. add <CConfigTable::Set_UserAgentInfo()>
+	5. move "MainFrm.h\extern BOOL m_bAutoStart" to <itreesurf.h>
+	6. move BSTR bstryes to <CGlobalSpace::_bsYes>
+	7. move "MainFrm.h\extern BOOL bVerbose" to CGlobalSpace
+	8. move many "MainFrm.h\extern..." to CGlobalSpace
+-----------------------------------------------------------------------
+Date  : 2002-07-22 - 2002-07-25
+Owner : I love tree
+Ver   : 3.6.1
+Build : 056
+Change : 
+	1. move some extern vars to CGlobalSpace
+	2. Add "_i...Count" in CGlobalSpace
+-----------------------------------------------------------------------
+=== RELEASE iTreeSurf 3.6.1 (Build 056) at this point ===
+=== executable and source ===
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
