@@ -2,13 +2,9 @@
 #include "CDWMainFrame.h"
 
 
-#ifdef __TEST_WEB_WND__
 CDWMainFrame::CDWMainFrame(void)
-#else
-CDWMainFrame::CDWMainFrame(void) :
-    m_wndClient(m_wndTableBar)
-#endif
 {
+    m_pNowChildFrm = NULL;
 }
 
 CDWMainFrame::~CDWMainFrame(void)
@@ -40,7 +36,10 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
         if ( m_wndSuperbar.m_address_edit == hFWnd )
             m_wndSuperbar.m_search_edit.SetFocus();
         else if ( m_wndSuperbar.m_search_edit == hFWnd )
-            m_wndClient.SetFocus();        
+        {
+            if ( m_pNowChildFrm != NULL )
+                 m_pNowChildFrm->SetFocus();
+        }
     }
     
 #ifndef __TEST_WEB_WND__
@@ -86,12 +85,10 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndStatusBar.Create  ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
     
-    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
 #ifdef __TEST_WEB_WND__
+    m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
     m_wndClient.OpenURL(L"http://www.sogou.com");
 #endif
-
-    m_wndClient.SetFocus();
 
     CDWEventSvr::Instance().AddCallback(this);
     
@@ -161,17 +158,32 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     rcToolBar.top    = rcToolBar.bottom;
     rcToolBar.bottom = rcStatusBar.top;
 
-    if ( m_wndClient.IsWindow() )
+    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
     {
-        m_wndClient.MoveWindow( &rcToolBar );
+        m_pNowChildFrm->MoveWindow( &rcToolBar );
     }
 
     return 0L;
 }
 
+void CDWMainFrame::GetChildFrmRect(RECT& rcChildFrm)
+{
+    GetClientRect(&rcChildFrm);
+    
+    if ( IsZoomed() )
+    {
+        rcChildFrm.top += 1;
+    }
+
+    rcChildFrm.top += 94;
+    rcChildFrm.bottom -= 20;
+}
+
+
 LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-    m_wndClient.SetFocus();
+    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
+        m_pNowChildFrm->SetFocus();
 
     return DefWindowProc();
 }
@@ -191,81 +203,47 @@ LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
 
 void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 {
-    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
+    int nIdx = m_wndTableBar.GetSelectIndex();
 
-    static unsigned short uId = 0;
-    static int nIdx = 0;
-    uId++;
-
-    nIdx = m_wndTableBar.GetSelectIndex();
-    nIdx++;
-
-    ATL::CString strCaption;
+    ATL::CString strTitle;
     if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, BLANK_URL) )
-        strCaption = L"¿Õ°×Ò³";
+        strTitle = L"¿Õ°×Ò³";
     else
-        strCaption = pszURL;
-
-    m_wndTableBar.InsertTableItem( nIdx, 
-        strCaption, uId, uId );
+        strTitle = pszURL;
 
     pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? BLANK_URL : pszURL;
 
+    RECT rcChildFrm = { 0 };
+    GetChildFrmRect(rcChildFrm);
+
+    CDWChildFrm* pNewFrm = CDWChildFrm::CreateChildFrm( 
+        m_hWnd, 
+        rcChildFrm,
+        m_wndTableBar,
+        strTitle, pszURL);
+    if ( pNewFrm == NULL )
+        return;
+
+    m_wndTableBar.InsertTableItem( ++nIdx, strTitle, 0, (LPARAM)pNewFrm );
+
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
-#ifndef __TEST_WEB_WND__
-    m_wndClient.m_mapUrlWndInfo[(HWND)uId].strURL   = pszURL;
-    m_wndClient.m_mapUrlWndInfo[(HWND)uId].strTitle = strCaption;
-#endif
-
+    m_listChildFrm.AddTail(pNewFrm);
+    m_pNowChildFrm = pNewFrm;
     m_wndTableBar.SelectIndex(nIdx);
-    psmgt.CreateWebWnd( m_wndClient, MAKELPARAM(uId, nIdx), pszURL);
-
 }
 
 
 void CDWMainFrame::OnOpenURL( LPCTSTR pszURL )
 {
-    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
-
-    int nIdx = m_wndTableBar.GetSelectIndex();
-    ATLASSERT( nIdx >= 0 );
-    if ( nIdx < 0 )
-        return;
-
-    ATL::CString strCaption;
-    if ( (pszURL == NULL || lstrlenW(pszURL) <= 0 ) || !StrCmpI(pszURL, BLANK_URL) )
-        strCaption = L"¿Õ°×Ò³";
-    else
-        strCaption = pszURL;
-
-    pszURL =  (pszURL == NULL || lstrlenW(pszURL) <= 0 ) ? BLANK_URL : pszURL;
-
-    HWND hWnd = (HWND)m_wndTableBar.GetItemParam(nIdx);
-    ATLASSERT(::IsWindow(hWnd));
-    if ( !::IsWindow(hWnd) )
-        return;
-
-    m_wndTableBar.SetItemCaption( nIdx, strCaption );
-    m_wndTableBar.SetItemIcon( nIdx, NULL );
-
-#ifndef __TEST_WEB_WND__
-    m_wndClient.m_mapUrlWndInfo[hWnd].strURL   = pszURL;
-    m_wndClient.m_mapUrlWndInfo[hWnd].strTitle = strCaption;
-#endif
-    
-    CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
-
-    psmgt.WebWndOpenURL( hWnd, pszURL );
-    if ( m_wndClient.IsWindow() )
-        m_wndClient.SetFocus();
+    ATLASSERT( m_pNowChildFrm != NULL );
+    if ( m_pNowChildFrm != NULL )
+        m_pNowChildFrm->OnOpenURL( pszURL );
 }
 
 
 void CDWMainFrame::OnCloseURL( int nIndex )
 {
-    CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
-
     if ( m_wndTableBar.GetItemCount() == 1) // ×îºóÒ»Ò³ ²»¹Ø±Õ 
     {   
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
@@ -285,16 +263,20 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 
     ATLASSERT( nSelIndex == nIndex );
 
-    HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
+    CDWChildFrm* pCloseFrm = (CDWChildFrm*)m_wndTableBar.GetItemParam(nIndex);   
     m_wndTableBar.RemoveTableItem(nSelIndex);
-    psmgt.DestryWebWnd( hSelWnd );
+
+    POSITION pos = m_listChildFrm.Find(pCloseFrm);
+    ATLASSERT( pos != NULL );
+    if ( pos != NULL )
+        m_listChildFrm.RemoveAt(pos);
+
+    pCloseFrm->DestroyWindow();
+    delete pCloseFrm;
     
-    //if ( nSelIndex >= m_wndTableBar.GetItemCount() )
-    //    nSelIndex = m_wndTableBar.GetItemCount()-1;
     if ( --nSelIndex < 0 )
         nSelIndex = 0;
     
-
     m_wndTableBar.SelectIndex( nSelIndex );
     OnSelectURL(nSelIndex);
 }
@@ -304,8 +286,8 @@ void CDWMainFrame::OnSelectURL( int nIndex )
     HWND hSelWnd = (HWND)m_wndTableBar.GetItemParam(nIndex);
     //ATLASSERT(::IsWindow(hSelWnd));
 #ifndef __TEST_WEB_WND__
-    m_wndClient.SetFocus();
-    m_wndClient.ShowClient( hSelWnd );
+    //m_wndClient.SetFocus();
+    //m_wndClient.ShowClient( hSelWnd );
 #endif
 }
 
@@ -318,8 +300,8 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
         {
 #ifndef __TEST_WEB_WND__
 
-            if ( m_wndClient.m_wndClient.IsWindow() && 
-                 m_wndClient.m_mapUrlWndInfo[m_wndClient.m_wndClient].strURL == BLANK_URL )
+            if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() &&
+                 m_pNowChildFrm->m_strURL == BLANK_URL )
             {
                 OnOpenURL( (LPCTSTR) wParam );
             }

@@ -1316,8 +1316,8 @@ void CDWHtmlView::NavigateError(
     ATLASSERT(pvFrame != NULL);
     ATLASSERT(pvStatusCode != NULL);
     ATLASSERT(pvbCancel != NULL);
-    ATLASSERT(V_VT(pvURL) == VT_BSTR);
-    ATLASSERT(V_VT(pvFrame) == VT_BSTR);
+    ATLASSERT(V_VT(pvURL) & VT_BSTR);
+    ATLASSERT(V_VT(pvFrame) & VT_BSTR);
 
     CString strURL(*pvURL);
     CString strFrame(*pvFrame);

@@ -15,7 +15,7 @@
 #include "DWFrameUI.h"
 #include "DWSuperToolbar.h"
 #include "DWFavoriteBar.h"
-#include "DWFrameClient.h"
+#include "DWChildFrm.h"
 #include "DWStatusBar.h"
 
 //#define __TEST_WEB_WND__
@@ -68,6 +68,7 @@ protected:
 
     virtual LRESULT OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
+    void GetChildFrmRect(RECT& rcChildFrm);
 protected:
 
     LRESULT OnCreate    (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -95,9 +96,9 @@ protected:
     CDWStatusBar    m_wndStatusBar;
 #ifdef __TEST_WEB_WND__
     CDWWebView      m_wndClient;
-    //CAxWindow     m_wndClient;
 #else
-    CDWFrameClient  m_wndClient;
+    ATL::CAtlList<CDWChildFrm*> m_listChildFrm;
+    CDWChildFrm* m_pNowChildFrm;
 #endif
 
 };

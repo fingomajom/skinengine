@@ -88,20 +88,30 @@ public:
         BOOL* pbCancel)
     {
     }
+
     virtual void OnStatusTextChange(LPCTSTR lpszText)
     {
+        ::SendCopyData(m_hNotifyWnd, 
+            WM_SETTEXT, 
+            lpszText,
+            (lstrlenW(lpszText) + 1) * sizeof(TCHAR) );
     }
+
     virtual void OnProgressChange(long nProgress, long nProgressMax)
     {
+        int a = 0;
     }
     virtual void OnCommandStateChange(long nCommand, BOOL bEnable)
     {
+        int a = 0;
     }
     virtual void OnDownloadBegin()
     {
+        int a = 0;
     }
     virtual void OnDownloadComplete()
     {
+        int a = 0;
     }
 
     virtual void OnTitleChange(LPCTSTR lpszText)

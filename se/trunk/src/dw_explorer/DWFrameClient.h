@@ -47,10 +47,14 @@ public:
 
     BEGIN_MSG_MAP(CDWFrameClient)
 
+        MESSAGE_HANDLER(WM_COPYDATA, OnCopyData)
+
         MESSAGE_HANDLER(WM_CREATE , OnCreate )
         MESSAGE_HANDLER(WM_SIZE   , OnSize   )
 
         MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
+
+        MESSAGE_HANDLER(WM_SETTEXT , OnSetText  )
 
         MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd     )
         MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd   )
@@ -68,6 +72,16 @@ public:
         return 0;
     }
 
+    LRESULT OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        PCOPYDATASTRUCT pcds = (PCOPYDATASTRUCT)lParam;
+
+        SendMessage( pcds->dwData, (LPARAM)pcds->lpData, 0 );
+
+        return 0;
+    }
+
+
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
         if ( m_wndClient.IsWindow() )
@@ -75,10 +89,19 @@ public:
             m_wndClient.SetFocus();
         }
         
-        LRESULT lResult = DefWindowProc();
-
-        return lResult;
+        return 0L;
     }
+
+    LRESULT OnSetText(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LPCTSTR pszStatus = (LPCTSTR)wParam;
+
+        CDWEventSvr::Instance().OnMessage( edi_status_bar, 
+             wParam);
+
+        return 0;
+    }
+
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {

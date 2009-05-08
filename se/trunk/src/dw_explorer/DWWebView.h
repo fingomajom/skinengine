@@ -37,9 +37,6 @@ public:
         m_strTitle.Empty();
         m_strURL = pszURL;
 
-        //m_spWebBrowser->Stop();
-        //m_spWebBrowser->Navigate( L"about:blank", 0, 0, 0, 0 );
-
         Navigate2( pszURL );
 
         return TRUE;

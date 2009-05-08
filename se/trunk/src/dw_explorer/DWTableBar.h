@@ -308,8 +308,12 @@ public:
             rcSrcImage1.right -= 13;
 
             int nidx = 0;
-            if (m_nCloseClickIndex == m_nSelectIndex && m_nCloseClickIndex == m_nHotIndex ) 
+            if ( m_nHotCloseIndex == m_nCloseClickIndex && 
+                 m_nHotCloseIndex == m_nSelectIndex &&
+                 m_nCloseClickIndex == m_nHotIndex ) 
+            {
                 nidx = 2;
+            }
             else if (m_nHotCloseIndex == m_nSelectIndex && m_nHotCloseIndex == m_nHotIndex ) 
                 nidx = 1;
 
@@ -456,7 +460,6 @@ public:
         {
             nHotPos = m_nSelectIndex;
             
-            rcSelBtn = m_vtTableBtn[m_nSelectIndex].rcBtn;
             rcSelBtn.left = rcSelBtn.right - 30;
             rcSelBtn.right = rcSelBtn.left + 23;
 
@@ -497,7 +500,7 @@ public:
             bReflashWnd = TRUE;
         }
 
-        if ( m_nHotCloseIndex != nHotClosePos && nHotClosePos >= sys_tbi_count)
+        if ( m_nHotCloseIndex != nHotClosePos && (nHotClosePos >= sys_tbi_count || nHotClosePos < 0))
         {
             m_nHotCloseIndex = nHotClosePos;
             bReflashWnd = TRUE;
@@ -614,8 +617,7 @@ public:
                 TGM_ITEM_CLOSE_CLICK, 
                 m_nCloseClickIndex - sys_tbi_count );
         }
-
-        if (  m_nHotCloseIndex >= 0 && m_nHotCloseIndex == m_nHotIndex )
+        else if (  m_nHotCloseIndex >= 0 && m_nHotCloseIndex == m_nHotIndex )
         {
             OnSysBtnClick(m_nHotCloseIndex);
         }

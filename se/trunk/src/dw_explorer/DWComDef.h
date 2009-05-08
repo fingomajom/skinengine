@@ -26,7 +26,9 @@
 
 #define WM_WEBWND_INFO_CHANGED  (WM_USER + 1200)
 
-
+#define WM_WEBVIEW_SETTITLE     (WM_USER + 1210)
+#define WM_WEBVIEW_SETURL       (WM_USER + 1211)
+#define WM_WEBVIEW_SETSTATUS    (WM_USER + 1212)
 
 
 
@@ -38,3 +40,11 @@
 
 #define CLASS_NAME_IE_SERVER            _T("Internet Explorer_Server")
 #define BLANK_URL                       L"about:blank"
+
+
+inline LRESULT SendCopyData( HWND hWnd, UINT uMsg, const void* lpBuf, DWORD dwLen )
+{
+    COPYDATASTRUCT cds = { uMsg, dwLen, const_cast<void*>(lpBuf) };
+
+    return SendMessage( hWnd, WM_COPYDATA, 0, (WPARAM)&cds );
+}
