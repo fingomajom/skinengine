@@ -14,6 +14,7 @@
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
 #include "DWIEFavoritesMgt.h"
+#include "DWMenuorder.h"
 #include "DWMenu.h"
 
 static HHOOK g_hFavPopupMenuHook = NULL;
@@ -164,6 +165,8 @@ public:
         m_vtToolBtn.RemoveAll();
 
         ATL::CAtlList<IEFavoriteItem>& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
+
+        _SortFavMenuItem(fList);
 
         for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
         {
@@ -513,11 +516,48 @@ public:
 
     protected:
 
+    void _SortFavMenuItem( ATL::CAtlList<IEFavoriteItem>& fList, LPCTSTR pszFavPath = NULL )
+    {
+        CDWMenuOrder odr;
+        if ( !odr.LoadMenuOrder(pszFavPath) )
+            return;
+
+        for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
+        {
+            IEFavoriteItem& item = fList.GetNext(pos);
+
+            if ( item.pChildList != NULL )
+            {
+                ATL::CString strFavPath = pszFavPath;
+                strFavPath += L"\\";
+                strFavPath += item.strTitle;
+
+                _SortFavMenuItem(*item.pChildList, strFavPath );
+            }
+        }
+
+        for ( int i = 0; i < odr.len; i++ )
+        {
+            POSITION pos1 = fList.FindIndex(i);
+            POSITION pos2 = fList.FindIndex(odr.index[i]);
+
+            if ( pos1 && pos2 && pos1 != pos2 )
+            {
+                int idr = odr.GetOrder( fList.GetAt(pos1).strTitle );
+
+                odr.index[idr] = odr.index[i];
+
+                fList.SwapElements(pos1, pos2);
+            }
+        }
+    }
+
     HMENU _CreateFavoriteMenu( CMenuHandle menu, ATL::CAtlList<IEFavoriteItem>& fList, UINT& uMenuId )
     {
         ATLASSERT( menu.IsMenu() );
         if ( !menu.IsMenu() )
             return NULL;
+
 
         static IEFavoriteItem sitem( L"添加到此文件夹...", 0 );
 
@@ -536,7 +576,8 @@ public:
             if ( item.pChildList != NULL )
             {
                 CMenuHandle subMenu;
-                subMenu.CreatePopupMenu();                
+                subMenu.CreatePopupMenu();
+
                 _CreateFavoriteMenu(subMenu, *item.pChildList, uMenuId );
 
                 menu.AppendMenu( MF_STRING, subMenu, item.strTitle );

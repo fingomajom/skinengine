@@ -305,6 +305,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWMenuorder.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\DWMenuorder.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWMessageLoop.h"
 						>
 					</File>

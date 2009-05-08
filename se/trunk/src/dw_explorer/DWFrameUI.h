@@ -261,22 +261,16 @@ public:
 
             rcBorder = rcWindow;
 
-            dc.Draw3dRect( &rcBorder, 
-                skin.clrFrameNcBorder,
-                skin.clrFrameWindow);
-
-            COLORREF clrTemp = HLS_TRANSFORM( skin.clrFrameWindow, 60, 0 );
-
             CPen pen;  pen .CreatePen( PS_SOLID, 1, skin.clrFrameNcBorder );
             CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, -40, -40 ) );
             CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
             CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  40, 0 ) );
             CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow);
-            CPen pen5; pen5.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
 
             HPEN   hOldPen   = dc.SelectPen( pen );
             HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
 
+            dc.Rectangle(&rcBorder);
             ::InflateRect( &rcBorder, -1, -1);
             dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 3, 3);
             dc.SelectPen( pen1 );

@@ -122,7 +122,24 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
                     subPath.Append(wfd.cFileName);
 
                     if ( _BuildIEFavorites( subPath, fItem.pChildList ) )
-                        pList->AddHead( fItem );
+                    {
+                        POSITION pos = pList->GetTailPosition();
+                        while ( pos && (pList->GetAt(pos)).pChildList == NULL )
+                        {
+                            pList->GetPrev(pos);
+                        }
+
+                        while ( pos && StrCmp(pList->GetAt(pos).strTitle, fItem.strTitle) > 0 )
+                        { 
+                            pList->GetPrev(pos);
+                        }
+
+                        if ( pos )
+                            pList->InsertAfter(pos, fItem);
+                        else                
+                            pList->AddHead( fItem );
+
+                    }
                     else
                     {
                         delete fItem.pChildList;
@@ -145,8 +162,23 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
                 IEFavoriteItem fItem(wfd.cFileName, szURL);
 
                 fItem.pParentList = pList;
+                
+                POSITION pos = pList->GetHeadPosition();
+                while ( pos && (pList->GetAt(pos)).pChildList != NULL )
+                { 
+                    pList->GetNext(pos);
+                }
 
-                pList->AddTail( fItem );
+                while ( pos && StrCmp(pList->GetAt(pos).strTitle, fItem.strTitle) < 0 )
+                { 
+                    pList->GetNext(pos);
+                }
+
+
+                if ( pos )
+                    pList->InsertBefore(pos, fItem);
+                else                
+                    pList->AddTail( fItem );
             }
         }
         
