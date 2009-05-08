@@ -52,9 +52,12 @@ public:
 
         MESSAGE_HANDLER(WM_TIMER       , OnTimer )
 
+        MESSAGE_HANDLER(WM_MENUSELECT  , OnMenuSelect)
+
         CHAIN_MSG_MAP(CDWToolbar)
 
     END_MSG_MAP()
+
         
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
@@ -199,6 +202,29 @@ public:
 
         return 0;
     }
+
+    LRESULT OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+
+        WORD wFlags = HIWORD(wParam);
+        WORD wID    = LOWORD(wParam);
+
+        IEFavoriteItem* pFavItem = GetMenuFavItem( wID );
+
+        if( (wFlags == 0xFFFF && lParam == NULL) || pFavItem == NULL )   // menu closing
+        {
+            CDWEventSvr::Instance().OnMessage( edi_status_bar );
+        }
+        else if ( !(wFlags & MF_POPUP) )
+        {
+            CDWEventSvr::Instance().OnMessage( edi_status_bar,
+                (WPARAM)(LPCTSTR)pFavItem->strURL );
+        }
+
+        return 1;
+    }
+
     
     BOOL IsHasSubMenu( int nIndex )
     {
@@ -264,8 +290,10 @@ public:
     template <bool t_bManaged>
     class CDWFavMenuT : public CDWMenuT<t_bManaged>
     {
+        ATL::CAtlMap<UINT, IEFavoriteItem*>& m_mapMenuId;
     public:
-        CDWFavMenuT(HMENU hMenu = NULL) : CDWMenuT(hMenu)
+        CDWFavMenuT(ATL::CAtlMap<UINT, IEFavoriteItem*>& mapMenuId) 
+            : m_mapMenuId(mapMenuId)
         { }
 
         virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
@@ -280,10 +308,10 @@ public:
             }
             else
             {
-                IEFavoriteItem* pitem = (IEFavoriteItem*)lpDrawItem->itemID;
+                IEFavoriteItem* pitem =  GetMenuFavItem(lpDrawItem->itemID);
                 ATLASSERT(pitem);
 
-                if ( pitem->strURL.GetLength() <= 0 )
+                if ( pitem == NULL || pitem->strURL.GetLength() <= 0 )
                     icon.m_hIcon = NULL;
                 else
                 {
@@ -300,12 +328,25 @@ public:
                     lpDrawItem->rcItem.top  + 2,
                     16, 16);
         }
+
+        IEFavoriteItem* GetMenuFavItem( UINT uMenuId )
+        {
+            ATL::CAtlMap<UINT, IEFavoriteItem*>::CPair* 
+                pFind = m_mapMenuId.Lookup( uMenuId );
+
+            if ( pFind == NULL )
+                return NULL;
+
+            return pFind->m_value;
+        }
+
     };
 
     void PopupFavMenu()
     {
 
-        CDWFavMenuT<FALSE> menu = CreateFavoriteMenu();
+        CDWFavMenuT<FALSE> menu(m_mapMenuId);
+        menu.m_hMenu = CreateFavoriteMenu();
         if ( !menu.IsMenu() )
             return;
 
@@ -339,7 +380,7 @@ public:
         Invalidate();
         if ( nCmdId != NULL )
         {
-            IEFavoriteItem* pitem = (IEFavoriteItem*)nCmdId;
+            IEFavoriteItem* pitem = GetMenuFavItem(nCmdId);
 
             CDWEventSvr::Instance().OnMessage( edi_open_url, 
                 (WPARAM)(LPCTSTR)pitem->strURL, TRUE );
@@ -444,7 +485,8 @@ public:
         if ( !m_favMenu.IsMenu() )
         {
             m_favMenu.CreatePopupMenu();
-            _CreateFavoriteMenu( m_favMenu.m_hMenu, fList );
+            UINT uMenuId = 100;
+            _CreateFavoriteMenu( m_favMenu.m_hMenu, fList, uMenuId );
         }
 
         ATLASSERT( m_nClickIndex>= 0 );
@@ -470,7 +512,7 @@ public:
 
     protected:
 
-    HMENU _CreateFavoriteMenu( CMenuHandle menu, ATL::CAtlList<IEFavoriteItem>& fList )
+    HMENU _CreateFavoriteMenu( CMenuHandle menu, ATL::CAtlList<IEFavoriteItem>& fList, UINT& uMenuId )
     {
         ATLASSERT( menu.IsMenu() );
         if ( !menu.IsMenu() )
@@ -478,9 +520,11 @@ public:
 
         static IEFavoriteItem sitem( L"添加到此文件夹...", 0 );
 
+        
         if ( menu.m_hMenu != m_favMenu.m_hMenu )
         {
-            menu.AppendMenu( MF_STRING, (UINT_PTR)&sitem, L"添加到此文件夹..." );
+            menu.AppendMenu( MF_STRING    , uMenuId, L"添加到此文件夹..." );  
+            m_mapMenuId[uMenuId++] = &sitem;
             menu.AppendMenu( MF_SEPARATOR , (UINT_PTR)ID_SEPARATOR, L"" );
         }
         
@@ -492,19 +536,30 @@ public:
             {
                 CMenuHandle subMenu;
                 subMenu.CreatePopupMenu();                
-                _CreateFavoriteMenu(subMenu, *item.pChildList );
+                _CreateFavoriteMenu(subMenu, *item.pChildList, uMenuId );
 
                 menu.AppendMenu( MF_STRING, subMenu, item.strTitle );
             }
             else
             {
-                menu.AppendMenu( MF_STRING, (UINT_PTR)&item, item.strTitle );
+                menu.AppendMenu( MF_STRING, uMenuId, item.strTitle );
+                m_mapMenuId[uMenuId++] = &item;
             }
         }
 
         return menu;
     }
 
+    IEFavoriteItem* GetMenuFavItem( UINT uMenuId )
+    {
+        ATL::CAtlMap<UINT, IEFavoriteItem*>::CPair* 
+            pFind = m_mapMenuId.Lookup( uMenuId );
+
+        if ( pFind == NULL )
+            return NULL;
+
+        return pFind->m_value;
+    }
 
     static DWORD WINAPI LoadFavoritesThread( LPVOID p )
     {
@@ -520,6 +575,8 @@ public:
 
     BOOL  m_bPopMenu;
     CMenu m_favMenu;
+
+    ATL::CAtlMap<UINT, IEFavoriteItem*> m_mapMenuId;
 
 public:
 

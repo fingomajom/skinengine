@@ -194,6 +194,8 @@ public:
         MESSAGE_HANDLER(WM_LBUTTONDOWN      , OnLButtonDown)
         MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
 
+        MESSAGE_HANDLER(WM_MENUSELECT       , OnMenuSelect)
+
         COMMAND_CODE_HANDLER(EN_CHANGE, OnEnChange )
 
         CHAIN_MSG_MAP(CDWToolbar)
@@ -234,15 +236,35 @@ public:
         return 0;
     }
 
-    virtual void DoAfterPaint ( HDC hDC )
+    LRESULT OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        TCHAR szBuffer[MAX_PATH] = { 0 };
+
+        WORD wFlags = HIWORD(wParam);
+        WORD wID    = LOWORD(wParam);
+
+        if( (wFlags == 0xFFFF && lParam == NULL) || wID < 10 )   // menu closing
+        {
+            CDWEventSvr::Instance().OnMessage( edi_status_bar );
+        }
+        else if ( !(wFlags & MF_POPUP) )
+        {
+            CMenuHandle menu = HMENU(lParam);
+
+            CDWEventSvr::Instance().OnMessage( edi_status_bar, 
+                (WPARAM)(LPCTSTR)CDWSearchMgt::Instace().GetSearchName(wID-10) );
+        }
+
+        return 1;
+    }
+
+    virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
-        RECT rcClient = { 0 };
-        GetClientRect(&rcClient);
+        CDCHandle dc(hDC);
 
-        CMemoryDC dc(hDC, rcClient);
-
+        RECT rcEdit = { 0 };
 
         CreateBkBrush();
 
@@ -261,33 +283,31 @@ public:
         HPEN   hOldPen   = dc.SelectPen( pen );
         HBRUSH hOldBrush = dc.SelectBrush( IsHttps() ? m_bkSBrush : m_bkBrush );
 
-        m_address_edit.GetWindowRect(&rcClient);
-        ScreenToClient(&rcClient);
-        InflateRect(&rcClient, 2, 2);
-        rcClient.top  -= 2;
-        rcClient.left -= 18;
+        m_address_edit.GetWindowRect(&rcEdit);
+        ScreenToClient(&rcEdit);
+        InflateRect(&rcEdit, 2, 2);
+        rcEdit.top  -= 2;
+        rcEdit.left -= 18;
 
         POINT pt = { 3, 3 };
 
-        dc.RoundRect(&rcClient, pt);
-        m_icon_addr.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
-
-        InflateRect(&rcClient, 1, 1);
+        dc.RoundRect(&rcEdit, pt);
+        m_icon_addr.DrawIconEx( dc, rcEdit.left + 4, rcEdit.top + 3, 16, 16 );
 
         dc.SelectBrush( m_bkBrush );
-        m_search_edit.GetWindowRect(&rcClient);
-        ScreenToClient(&rcClient);
-        InflateRect(&rcClient, 2, 2);
-        rcClient.top  -= 2;
-        rcClient.left -= 23;
+        m_search_edit.GetWindowRect(&rcEdit);
+        ScreenToClient(&rcEdit);
+        InflateRect(&rcEdit, 2, 2);
+        rcEdit.top  -= 2;
+        rcEdit.left -= 23;
 
-        dc.RoundRect(&rcClient, pt);
-        m_icon_search.DrawIconEx( dc, rcClient.left + 4, rcClient.top + 3, 16, 16 );
+        dc.RoundRect(&rcEdit, pt);
+        m_icon_search.DrawIconEx( dc, rcEdit.left + 4, rcEdit.top + 3, 16, 16 );
 
         RECT rcImage = { 0, 0, 0, 0 };
         rcImage.right  = skin.png_dropdown.GetWidth() / 4;
         rcImage.bottom = skin.png_dropdown.GetHeight();
-        skin.png_dropdown.AlphaDraw( dc, rcClient.left + 18, rcClient.top + 10, &rcImage, 1, 1.2f );
+        skin.png_dropdown.AlphaDraw( dc, rcEdit.left + 18, rcEdit.top + 10, &rcImage, 1, 1.2f );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);

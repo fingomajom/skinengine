@@ -16,10 +16,11 @@
 #include "DWSuperToolbar.h"
 #include "DWFavoriteBar.h"
 #include "DWFrameClient.h"
+#include "DWStatusBar.h"
 
 //#define __TEST_WEB_WND__
 #ifdef __TEST_WEB_WND__
-#include "DWWebWnd.h"
+#include "DWWebView.h"
 #endif
 
 class CDWMainFrame : 
@@ -91,10 +92,10 @@ protected:
     CDWSuperToolbar m_wndSuperbar;
     CDWFavoriteBar  m_wndFavoriteBar;
     CDWTableBar     m_wndTableBar;
-
+    CDWStatusBar    m_wndStatusBar;
 #ifdef __TEST_WEB_WND__
-    CDWWebWnd       m_wndClient;
-    //CAxWindow       m_wndClient;
+    CDWWebView      m_wndClient;
+    //CAxWindow     m_wndClient;
 #else
     CDWFrameClient  m_wndClient;
 #endif

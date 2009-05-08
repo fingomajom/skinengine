@@ -86,16 +86,15 @@ public:
         return 0L;
     }
 
-    virtual void DoAfterPaint ( HDC hDC ) 
+    virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
         
-        RECT rcClient;
-        GetClientRect(&rcClient);
+        RECT rcText = rcClient;
 
-        rcClient.top   += 2;
-        rcClient.left  += 2;
-        rcClient.right -= 40;
+        rcText.top   += 2;
+        rcText.left  += 2;
+        rcText.right -= 40;
 
         TCHAR szText[MAX_PATH] = { 0 };
         ::GetWindowText(GetParent(), szText, MAX_PATH);
@@ -103,17 +102,17 @@ public:
         CIconHandle icon = (HICON)::SendMessage(GetParent(), WM_GETICON, FALSE, 0);
         if ( icon.m_hIcon != NULL )
         {
-            icon.DrawIconEx( hDC, rcClient.left, rcClient.top , 16, 16 );
-            rcClient.left += 20;
+            icon.DrawIconEx( hDC, rcText.left, rcText.top , 16, 16 );
+            rcText.left += 20;
         }
         
-        rcClient.top += 1;
+        rcText.top += 1;
 
         int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
         HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
         ::SetTextColor(hDC, HLS_TRANSFORM(skin.clrFrameWindow, -60, 0));
 
-        DrawText( hDC, szText, -1, &rcClient, 
+        DrawText( hDC, szText, -1, &rcText, 
             DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 
         ::SelectObject( hDC, hOldObj );

@@ -224,7 +224,7 @@ public:
 
     virtual void _InitMenu( CMenuHandle menu ) 
     {
-        static TCHAR szBuffer[MAX_PATH] = { 0 };
+        TCHAR szBuffer[MAX_PATH] = { 0 };
 
         int nCount = menu.GetMenuItemCount();
 

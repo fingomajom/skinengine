@@ -3,7 +3,7 @@
 #include "RpcMsgDef.h"
 #include "RpcMsg.h"
 
-class CDWWebWnd;
+class CDWWebView;
 
 class CDWClientMgt
 {
@@ -25,15 +25,15 @@ protected:
     static DWORD WINAPI WebWndMsgLoopThread( LPVOID p );
     static DWORD WINAPI WaitForQuitThread( LPVOID p );
 
-    void _AddWebWnd   ( CDWWebWnd* );
-    void _RemoveWebWnd( CDWWebWnd* );
+    void _AddWebWnd   ( CDWWebView* );
+    void _RemoveWebWnd( CDWWebView* );
 
 public:
     static DWORD m_dwMainThreadId;
 public:
 
     CComAutoCriticalSection   m_cs;
-    ATL::CAtlList<CDWWebWnd*> m_listWebWnd;
+    ATL::CAtlList<CDWWebView*> m_listWebWnd;
 
     CComAutoCriticalSection   m_CreateWebWndCS;
     HANDLE m_hCreateWebWndEvent;

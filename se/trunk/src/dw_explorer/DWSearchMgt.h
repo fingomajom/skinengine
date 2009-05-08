@@ -105,6 +105,12 @@ public:
         return m_searchList[m_nSelIndex].strName;
     }
 
+    ATL::CString GetSearchName(int nSelIndex) const
+    {
+        return m_searchList[nSelIndex].strName;
+    }
+
+
     ATL::CString GetSearchURL() const
     {
         return m_searchList[m_nSelIndex].strURL;

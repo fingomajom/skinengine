@@ -19,6 +19,7 @@
 #define edi_addr_setfocus       10
 #define edi_spr_icon_changed    11
 
+#define edi_status_bar          20
 
 #define edi_skin_changed        101
 

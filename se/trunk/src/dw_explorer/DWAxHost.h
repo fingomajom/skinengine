@@ -11,8 +11,9 @@
 #include <mshtml.h>
 #include <mshtmhst.h>
 #include <exdisp.h>
-
 #include <atlcom.h>
+
+#include "DWHtmlView.h"
 
 
 #pragma pack(push,_ATL_PACKING)
@@ -234,6 +235,8 @@ public:
 
 		m_hAccel = NULL;
 		m_iidSink = IID_NULL;
+
+        m_pHtmlView = NULL;
 	}
 
 	virtual ~CDWAxHost()
@@ -403,6 +406,8 @@ public:
 			DestroyAcceleratorTable(m_hAccel);
 			m_hAccel = NULL;
 		}
+
+        m_pHtmlView = NULL;
 	}
 
 
@@ -1255,6 +1260,8 @@ public:
 	DWORD m_dwDocHostDoubleClickFlags;
 	CComBSTR m_bstrOptionKeyPath;
 
+    CDWHtmlView* m_pHtmlView;
+
 	void SubclassWindow(HWND hWnd)
 	{
 		m_bSubclassed = CWindowImpl<CDWAxHost>::SubclassWindow(hWnd);
@@ -1360,6 +1367,11 @@ public:
 		return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
 	}
 
+    CDWHtmlView* GetView() const
+    {
+        return m_pHtmlView;
+    }
+
 	STDMETHOD(QueryService)( REFGUID rsid, REFIID riid, void** ppvObj) 
 	{
 		ATLASSERT(ppvObj != NULL);
@@ -1413,7 +1425,12 @@ public:
 
     STDMETHOD(ShowContextMenu)(DWORD dwID, POINT *ppt, IUnknown *pcmdtReserved, IDispatch *pdispReserved)
     {
-        return E_NOTIMPL;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnShowContextMenu( dwID, ppt, pcmdtReserved, pdispReserved );
     }
 
     STDMETHOD(GetHostInfo)(DOCHOSTUIINFO *pInfo)
@@ -1424,77 +1441,138 @@ public:
         return S_OK ;
     }
 
-    STDMETHOD(ShowUI)(DWORD dwID, IOleInPlaceActiveObject *pActiveObject, IOleCommandTarget *pCommandTarget, IOleInPlaceFrame *pFrame, IOleInPlaceUIWindow *pDoc)
+    STDMETHOD(ShowUI)(DWORD dwID, 
+        IOleInPlaceActiveObject *pActiveObject, 
+        IOleCommandTarget *pCommandTarget, 
+        IOleInPlaceFrame *pFrame, 
+        IOleInPlaceUIWindow *pDoc)
     {
-        return S_OK ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
+
+        return pView->OnShowUI( dwID, pActiveObject, pCommandTarget, pFrame, pDoc);
     }
 
     STDMETHOD(HideUI)(void)
     {
-        return S_OK ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
+
+        return pView->OnHideUI( );
     }
 
     STDMETHOD(UpdateUI)(void)
     {
-        return S_OK ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
+
+        return pView->OnUpdateUI();
     }
 
     STDMETHOD(EnableModeless)(BOOL fEnable)
     {
-        return E_NOTIMPL ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnEnableModeless( fEnable );
     }
 
     STDMETHOD(OnDocWindowActivate)(BOOL fActivate) 
     {
-        return E_NOTIMPL ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnDocWindowActivate( fActivate );
     }
 
     STDMETHOD(OnFrameWindowActivate)(BOOL fActivate)
     {
-        return E_NOTIMPL ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnFrameWindowActivate( fActivate );
     }
 
     STDMETHOD(ResizeBorder)(LPCRECT prcBorder, IOleInPlaceUIWindow *pUIWindow, BOOL fRameWindow)
     {
-        return S_OK ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
+
+        return pView->OnResizeBorder( prcBorder, pUIWindow, fRameWindow );
     }
 
     STDMETHOD(TranslateAccelerator)(LPMSG lpMsg, const GUID *pguidCmdGroup, DWORD nCmdID)
     {
-        return S_FALSE ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_FALSE ;
+
+        return pView->OnTranslateAccelerator( lpMsg, pguidCmdGroup, nCmdID );
     }
 
     STDMETHOD(GetOptionKeyPath)(LPOLESTR *pchKey, DWORD dw)
     {
-        return E_NOTIMPL ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnGetOptionKeyPath( pchKey, dw );
     }
 
     STDMETHOD(GetDropTarget)(IDropTarget *pDropTarget, IDropTarget **ppDropTarget)
     {
-        //CDragDropManager *pDDM = new CDragDropManager(m_pAxControl);
-        //RegisterDragDrop(m_pAxControl->m_hWnd, (IDropTarget*)pDDM);
-        //pDDM->SetOriginalDropTarget(pDropTarget);
-        //*ppDropTarget = (IDropTarget*)pDDM;
-        //m_pDragDropManagers.push_back(pDDM);
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
 
-        return S_OK;
+        return pView->OnGetDropTarget( pDropTarget, ppDropTarget );
     }
 
     STDMETHOD(GetExternal)(IDispatch **ppDispatch)
     {
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
 
-        return E_NOTIMPL ;
+        return pView->OnGetExternal( ppDispatch );
     }
 
     STDMETHOD(TranslateUrl)(DWORD dwTranslate, OLECHAR *pchURLIn, OLECHAR **ppchURLOut)
     {
-        //m_bstrUrl = pchURLIn ;
-        return S_OK;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return S_OK ;
+
+        return pView->OnTranslateUrl( dwTranslate, pchURLIn, ppchURLOut );
     }
 
     STDMETHOD(FilterDataObject)(IDataObject *pDO, IDataObject **ppDORet) 
     {
-        return E_NOTIMPL ;
+        CDWHtmlView *pView = GetView();
+        ATLASSERT( pView != NULL );
+        if ( pView == NULL )
+            return E_NOTIMPL ;
+
+        return pView->OnFilterDataObject( pDO, ppDORet );
     }
 
 };

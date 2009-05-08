@@ -497,7 +497,7 @@ public:
             bReflashWnd = TRUE;
         }
 
-        if ( m_nHotCloseIndex != nHotClosePos && m_nHotIndex >= sys_tbi_count)
+        if ( m_nHotCloseIndex != nHotClosePos && nHotClosePos >= sys_tbi_count)
         {
             m_nHotCloseIndex = nHotClosePos;
             bReflashWnd = TRUE;

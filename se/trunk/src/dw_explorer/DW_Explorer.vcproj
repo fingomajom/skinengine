@@ -249,6 +249,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWStatusBar.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWSuperToolbar.h"
 						>
 					</File>
@@ -338,13 +342,29 @@
 				Name="UI"
 				>
 				<File
-					RelativePath=".\DWAxHost.h"
+					RelativePath=".\DWHtmlEventMgt.h"
 					>
 				</File>
 				<File
-					RelativePath=".\DWWebWnd.h"
+					RelativePath=".\DWWebView.h"
 					>
 				</File>
+				<Filter
+					Name="Base"
+					>
+					<File
+						RelativePath=".\DWAxHost.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWHtmlView.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\DWHtmlView.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="detours"

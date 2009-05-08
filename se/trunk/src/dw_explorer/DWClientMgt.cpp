@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "DWClientMgt.h"
-#include "DWWebWnd.h"
+#include "DWWebView.h"
 #include "CookieMgt.h"
 
 DWORD CDWClientMgt::m_dwMainThreadId = NULL;
@@ -124,7 +124,7 @@ int OnWebWndInfo(
 
     for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
     {
-        CDWWebWnd* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
+        CDWWebView* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
         if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
         {
             strTitle = pWebWnd->m_strTitle;
@@ -169,7 +169,7 @@ int OnWebWndOpenURL(
 
     for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
     {
-        CDWWebWnd* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
+        CDWWebView* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
         if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
         {
             pWebWnd->OpenURL( (WCHAR*)pParameter->GetDataBuffer()+2 );
@@ -281,13 +281,13 @@ BOOL CDWClientMgt::DestroyWebWnd( HWND hWnd )
 }
 
 
-void CDWClientMgt::_AddWebWnd( CDWWebWnd* pWnd )
+void CDWClientMgt::_AddWebWnd( CDWWebView* pWnd )
 {
     m_cs.Lock();
     m_listWebWnd.AddTail( pWnd );
     m_cs.Unlock();
 }
-void CDWClientMgt::_RemoveWebWnd( CDWWebWnd* pWnd )
+void CDWClientMgt::_RemoveWebWnd( CDWWebView* pWnd )
 {
     BOOL bAllQuit = FALSE;
 
@@ -319,7 +319,7 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
     
     ATL::CString strURL = clt.m_strOpenURL;
 
-    CDWWebWnd wndWeb;
+    CDWWebView wndWeb;
 
     wndWeb.m_hNotifyWnd = *pWndRet;
     if ( wndWeb.Create(*pWndRet, &wndWeb.rcDefault, NULL) == NULL )
@@ -328,7 +328,7 @@ DWORD WINAPI CDWClientMgt::WebWndMsgLoopThread( LPVOID p )
         ::SetEvent(clt.m_hCreateWebWndEvent);
         return 0;
     }
-    clt.m_piWebBrowser = wndWeb.m_spWebBrowser.p;
+    clt.m_piWebBrowser = wndWeb.GetWebBrowser();
     *pWndRet = wndWeb;
     ::SetEvent(clt.m_hCreateWebWndEvent);
 

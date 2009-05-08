@@ -80,10 +80,12 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     SetIcon(hIconSmall, FALSE);
 
 
-    m_wndSuperbar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
+    m_wndSuperbar.Create   ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN );    
     m_wndFavoriteBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
-    m_wndTableBar.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    m_wndTableBar.Create   ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+    m_wndStatusBar.Create  ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
+    
     m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
 #ifdef __TEST_WEB_WND__
     m_wndClient.OpenURL(L"http://www.sogou.com");
@@ -92,7 +94,10 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndClient.SetFocus();
 
     CDWEventSvr::Instance().AddCallback(this);
+    
+#ifndef __TEST_WEB_WND__
     OnNewURL(NULL);
+#endif
 
 
     return 0L;
@@ -114,6 +119,7 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     
     RECT rcClient  = { 0 };
     RECT rcToolBar = { 0 };
+    RECT rcStatusBar = { 0 };
     GetClientRect(&rcClient);
 
     rcToolBar = rcClient;
@@ -143,8 +149,17 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     if ( m_wndTableBar.IsWindow() )
         m_wndTableBar.MoveWindow( &rcToolBar );
 
+    rcStatusBar = rcClient;
+    rcStatusBar.top = rcStatusBar.bottom - 20;
+
+    if ( m_wndStatusBar.IsWindow() )
+    {
+        m_wndStatusBar.MoveWindow( &rcStatusBar );
+    }
+
+
     rcToolBar.top    = rcToolBar.bottom;
-    rcToolBar.bottom = rcClient.bottom;
+    rcToolBar.bottom = rcStatusBar.top;
 
     if ( m_wndClient.IsWindow() )
     {

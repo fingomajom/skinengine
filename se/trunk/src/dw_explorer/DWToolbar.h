@@ -263,13 +263,19 @@ public:
         info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
     }
 
-    virtual void DoBeforePaint( HDC hDC ) {}
-    virtual void DoAfterPaint ( HDC hDC ) {}
-
-    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    virtual void DoBeforePaint( HDC hDC, const RECT& rcClient) 
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
+        CDCHandle(hDC).FillSolidRect( &rcClient, skin.clrFrameWindow );
+    }
+
+    virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
+    {
+    }
+
+    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
         CPaintDC dc(m_hWnd);
 
         RECT rcClient = { 0 };
@@ -278,9 +284,7 @@ public:
         {
             CMemoryDC memDC( dc, rcClient );
             
-            memDC.FillSolidRect( &rcClient, skin.clrFrameWindow );
-
-            DoBeforePaint( memDC );
+            DoBeforePaint( memDC, rcClient );
 
             for ( int idx = 0; idx < m_vtToolBtn.GetSize(); idx++ )
             {
@@ -289,7 +293,7 @@ public:
                 DrawToolBtn( memDC, info, 0 );
             }
 
-            DoAfterPaint( memDC );
+            DoAfterPaint( memDC, rcClient );
         }
 
         return 1L;
