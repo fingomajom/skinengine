@@ -17,7 +17,7 @@ class CDWMenuT : public CMenuT<t_bManaged>
     static HWND    s_hWndTrackMenu;
     static CDWMenuT<t_bManaged>* s_pThis;
     
-    static ATL::CSimpleArray<ATL::CString> s_MenuItemString;
+    static ATL::CAtlList<ATL::CString> s_MenuItemString;
 
     enum{
         menu_max_wdith  = 250,
@@ -235,9 +235,9 @@ public:
             UINT id = menu.GetMenuItemID(i);
             
             menu.GetMenuString( i, szBuffer, MAX_PATH, MF_BYPOSITION);
-            s_MenuItemString.Add(szBuffer);
+            POSITION pos = s_MenuItemString.AddTail(szBuffer);
 
-            LPCTSTR lpszNewItem = (LPCTSTR)s_MenuItemString[s_MenuItemString.GetSize()-1];
+            LPCTSTR lpszNewItem = (LPCTSTR)s_MenuItemString.GetAt(pos);
             
             if ( sub.IsMenu() )
             {
@@ -352,20 +352,12 @@ public:
                 CDWMenuWindow* pWnd = new CDWMenuWindow();
                 ATLASSERT(pWnd);
                 if ( pWnd )
-                    pWnd->SubclassWindow(wndMenu);
-            
+                    pWnd->SubclassWindow(wndMenu);            
             }
         }
         else if(nCode == HCBT_DESTROYWND)
         {
-            CWindow wndMenu = (HWND)wParam;
-
-            ::GetClassName(wndMenu, szClassName, cchClassName);
-            if(!StrCmpI(_T("#32768"), szClassName))
-            {
-            }
-        }
-        
+        }        
 
         return lResult;
     }
@@ -376,4 +368,4 @@ template <bool t_bManaged> __declspec(selectany) HHOOK   CDWMenuT<t_bManaged>::s
 template <bool t_bManaged> __declspec(selectany) WNDPROC CDWMenuT<t_bManaged>::s_pOldWindowProc  = NULL;
 template <bool t_bManaged> __declspec(selectany) HWND    CDWMenuT<t_bManaged>::s_hWndTrackMenu   = NULL;
 template <bool t_bManaged> __declspec(selectany) CDWMenuT<t_bManaged>* CDWMenuT<t_bManaged>::s_pThis = NULL;
-template <bool t_bManaged> __declspec(selectany) ATL::CSimpleArray<ATL::CString> CDWMenuT<t_bManaged>::s_MenuItemString;
+template <bool t_bManaged> __declspec(selectany) ATL::CAtlList<ATL::CString> CDWMenuT<t_bManaged>::s_MenuItemString;

@@ -62,8 +62,7 @@ public:
         
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        DWORD dwThreadId = 0;
-        CloseHandle( CreateThread(NULL, 0, LoadFavoritesThread, this, 0, &dwThreadId));
+        LoadFavorites();
 
         bHandled = FALSE;
 
@@ -158,6 +157,15 @@ public:
         
         dc.SelectFont( hOldFont );
         dc.SetBkMode ( nBkMode );
+    }
+
+    LRESULT LoadFavorites()
+    {
+        DWORD dwThreadId = 0;
+
+        CloseHandle( CreateThread(NULL, 0, LoadFavoritesThread, this, 0, &dwThreadId));
+        
+        return dwThreadId;
     }
 
     LRESULT OnLoadFavoritesOK(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -473,6 +481,8 @@ public:
 
     LRESULT OnDestroy(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        m_favSysItem.RemoveAll();
+
         return 1L;
     }
 
@@ -600,13 +610,16 @@ public:
             return NULL;
 
 
-        static IEFavoriteItem sitem( L"添加到此文件夹...", 0 );
 
         
         if ( menu.m_hMenu != m_favMenu.m_hMenu )
         {
-            menu.AppendMenu( MF_STRING    , uMenuId, L"添加到此文件夹..." );  
-            m_mapMenuId[uMenuId++] = &sitem;
+            IEFavoriteItem sysitem( L"添加到此文件夹...", 0 );
+
+            POSITION pos = m_favSysItem.AddTail(sysitem);
+
+            menu.AppendMenu( MF_STRING, uMenuId, sysitem.strTitle );  
+            m_mapMenuId[uMenuId++] = &m_favSysItem.GetAt(pos);
             menu.AppendMenu( MF_SEPARATOR , (UINT_PTR)ID_SEPARATOR, L"" );
         }
         
@@ -660,7 +673,7 @@ public:
     CMenu m_favMenu;
 
     ATL::CAtlMap<UINT, IEFavoriteItem*> m_mapMenuId;
-
+    ATL::CAtlList<IEFavoriteItem> m_favSysItem;
 public:
 
     DECLARE_WND_CLASS(_T("DWExplorer_FavoriteBar"));

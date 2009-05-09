@@ -1,111 +1,14 @@
 
 #pragma once
 
-//#include <atlutil.h>
 #include "DWComDef.h"
 #include "DWToolbar.h"
 #include "DWEventSvr.h"
 #include "DWSearchMgt.h"
 #include "DWFavIconMgt.h"
 #include "DWMenu.h"
+#include "DWEdit.h"
 
-class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
-{
-public:
-
-    CDWEdit()
-    {
-    }
-    
-    BEGIN_MSG_MAP(CDWMainFrame)
-
-        MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
-        MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
-        MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
-        MESSAGE_HANDLER( WM_COMMAND    , OnCommand  )
-
-        MESSAGE_HANDLER( WM_PAINT      , OnPaint    )
-
-    END_MSG_MAP()
-
-    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        LRESULT lResult = DefWindowProc();
-        
-        //CWindow::Invalidate();
-        //CWindow(GetParent()).Invalidate();
-
-        return lResult;
-    }
-
-    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        LRESULT lResult = DefWindowProc();
-
-        SetSelAll();
-        CWindow::Invalidate();
-
-        return lResult;
-    }
-
-    LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        LRESULT lResult = DefWindowProc();
-
-        return lResult;
-    }
-
-    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        BOOL bSelAll = FALSE;
-
-        if ( GetFocus() != m_hWnd )
-            bSelAll = TRUE;
-
-        LRESULT lResult = DefWindowProc();
-
-        if ( bSelAll )
-            SetSelAll();
-
-        return lResult;
-    }
-
-    LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        if ( GetWindowTextLength() > 0 ||
-             ( m_strBkText.GetLength() <= 0 || GetFocus() == m_hWnd ) )
-        {
-            return DefWindowProc();
-        }
-        
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
-
-        CPaintDC dc(m_hWnd);
-
-
-        COLORREF clrText = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
-
-        RECT rcClient;
-        GetClientRect(&rcClient);
-
-        dc.FillRect(&rcClient, 
-            (HBRUSH)::SendMessage(GetParent(), WM_CTLCOLOREDIT, (WPARAM)dc.m_hDC, 0 ) );
-        
-        HFONT hOldFont = dc.SelectFont( GetFont() );
-        
-        rcClient.left  += 2;
-        rcClient.right -= 2;
-        dc.SetTextColor(clrText);
-        dc.DrawText( m_strBkText, -1, &rcClient, DT_VCENTER | DT_SINGLELINE | DT_LEFT);
-        
-        dc.SelectFont( hOldFont );
-
-
-        return 0L;
-    }
-
-    ATL::CString m_strBkText;
-};
 
 class CDWSuperToolbar : 
     public CDWToolbar, 
@@ -207,9 +110,11 @@ public:
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
         m_address_edit.Create(m_hWnd, &rcDefault, NULL, 
-            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP,
+            0, ID_TOOL_ADDR_DROPDOWN);
         m_search_edit .Create(m_hWnd, &rcDefault, NULL, 
-            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP );
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP,
+            0, ID_TOOL_SERACH_DROPDOWN);
 
         m_address_edit.SetFont( skin.fontDefault );
         m_search_edit.SetFont( skin.fontDefault );
@@ -223,9 +128,57 @@ public:
 
         CDWEventSvr::Instance().AddCallback( this );
 
+        AddToolBtn2( _T(""), ID_TOOL_ADDR_DROPDOWN  , &skin.png_dropdown);
+        AddToolBtn2( _T(""), ID_TOOL_SERACH_DROPDOWN, &skin.png_dropdown);
+
         bHandled = FALSE;
         return 0L;
     }
+
+    virtual void RePositionBtns()
+    {
+        RECT rcEdit = { 0 };
+
+        m_address_edit.GetWindowRect(&rcEdit);
+        ScreenToClient(&rcEdit);
+        rcEdit.left  = rcEdit.right+2;
+        rcEdit.right = rcEdit.left + 11;
+
+        m_vtToolBtn[0].rcBtn = rcEdit;
+
+        m_search_edit.GetWindowRect(&rcEdit);
+        ScreenToClient(&rcEdit);
+        rcEdit.left  = rcEdit.right+2;
+        rcEdit.right = rcEdit.left + 11;
+
+        m_vtToolBtn[1].rcBtn = rcEdit;
+    }
+
+    virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
+    {
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+        ATLASSERT(info.image);
+        if ( info.image == NULL )
+            return;
+
+        RECT rcSrcImage = { 0 };
+
+        rcSrcImage.left   = info.image->GetWidth() / 4;
+        rcSrcImage.bottom = info.image->GetHeight();
+
+        rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
+        rcSrcImage.left  = rcSrcImage.left * nIdex;
+
+        if ( info.uID == ID_TOOL_ADDR_DROPDOWN && IsHttps() )
+            CDCHandle(hDC).FillRect(&info.rcBtn, m_bkSBrush);
+        else
+            CDCHandle(hDC).FillRect(&info.rcBtn, m_bkBrush);
+
+
+        info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
+    }
+
 
     LRESULT OnEnChange(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
     {
@@ -258,7 +211,7 @@ public:
         return 1;
     }
 
-    virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
+    virtual void DoBeforePaint( HDC hDC, const RECT& rcClient ) 
     {
         CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
@@ -286,8 +239,14 @@ public:
         m_address_edit.GetWindowRect(&rcEdit);
         ScreenToClient(&rcEdit);
         InflateRect(&rcEdit, 2, 2);
-        rcEdit.top  -= 2;
-        rcEdit.left -= 18;
+        rcEdit.top   -= 2;
+        rcEdit.left  -= 18;
+        rcEdit.right += 12;
+
+
+        RECT rcImage = { 0, 0, 0, 0 };
+        rcImage.right  = skin.png_dropdown.GetWidth() / 4;
+        rcImage.bottom = skin.png_dropdown.GetHeight();
 
         POINT pt = { 3, 3 };
 
@@ -298,16 +257,14 @@ public:
         m_search_edit.GetWindowRect(&rcEdit);
         ScreenToClient(&rcEdit);
         InflateRect(&rcEdit, 2, 2);
-        rcEdit.top  -= 2;
-        rcEdit.left -= 23;
+        rcEdit.top   -= 2;
+        rcEdit.left  -= 23;
+        rcEdit.right += 12;
 
         dc.RoundRect(&rcEdit, pt);
         m_icon_search.DrawIconEx( dc, rcEdit.left + 4, rcEdit.top + 3, 16, 16 );
 
-        RECT rcImage = { 0, 0, 0, 0 };
-        rcImage.right  = skin.png_dropdown.GetWidth() / 4;
-        rcImage.bottom = skin.png_dropdown.GetHeight();
-        skin.png_dropdown.AlphaDraw( dc, rcEdit.left + 18, rcEdit.top + 10, &rcImage, 1, 1.2f );
+        skin.png_dropdown.AlphaDraw( dc, rcEdit.left + 18, rcEdit.top + 10, &rcImage, 0, 1.0f );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -356,7 +313,25 @@ public:
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CDWToolbar::OnLButtonDown(uMsg, wParam, lParam, bHandled);
-        bHandled = TRUE;
+        if ( m_nClickIndex >= 0 )
+        {
+            switch ( m_vtToolBtn[m_nClickIndex].uID )
+            {
+            case ID_TOOL_ADDR_DROPDOWN:
+                if ( m_address_edit.IsDropdownList() )
+                    m_address_edit.HideDropdownList();
+                else
+                    m_address_edit.ShowDropdownList();
+                break;
+            case ID_TOOL_SERACH_DROPDOWN:
+                if ( m_search_edit.IsDropdownList() )
+                    m_search_edit.HideDropdownList();
+                else
+                    m_search_edit.ShowDropdownList();
+                break;
+            }
+        }
+
 
         RECT rcSearchIcon = { 0 };
 
@@ -473,11 +448,16 @@ public:
         rcAddr.right = rcSerach.left - 8;
 
         rcAddr.left += 22;
+        rcAddr.right -= 12;
+
         rcSerach.left += 22;
+        rcSerach.right -= 12;
 
         
         m_address_edit.MoveWindow(&rcAddr);
         m_search_edit .MoveWindow(&rcSerach);
+
+        RePositionBtns();
 
         return 1L;
     }
@@ -512,6 +492,8 @@ public:
 
         return 0;
     }
+
+    DECLARE_WND_CLASS(_T("DWExplorer_DWSuperToolbar"));
 
 public:
 

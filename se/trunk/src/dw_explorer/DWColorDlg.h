@@ -108,12 +108,15 @@ public:
 
     BOOL ShowWindow(int nCmdShow) throw()
     {
-        s_hWndColorDialog = m_hWnd;
-        s_hColorDialogHook = ::SetWindowsHookEx(WH_GETMESSAGE, 
-            MsgHookFunc, 
-            _Module.GetModuleInstance(), 
-            GetCurrentThreadId());
-        ATLASSERT(s_hColorDialogHook);
+        if ( nCmdShow != SW_HIDE )
+        {
+            s_hWndColorDialog = m_hWnd;
+            s_hColorDialogHook = ::SetWindowsHookEx(WH_GETMESSAGE, 
+                MsgHookFunc, 
+                _Module.GetModuleInstance(), 
+                GetCurrentThreadId());
+            ATLASSERT(s_hColorDialogHook);
+        }
 
         return CDialogImpl<CDWColorDialog>::ShowWindow( nCmdShow );
     }

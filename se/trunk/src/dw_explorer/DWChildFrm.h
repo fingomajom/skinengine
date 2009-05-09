@@ -169,9 +169,7 @@ public:
             m_wndClient.SetFocus();
         }
 
-        LRESULT lResult = DefWindowProc();
-
-        return lResult;
+        return 0L;
     }
 
     LRESULT OnSetStatus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -324,7 +322,7 @@ public:
 
         if ( !bRePaint )
             m_wndClient.SetRedraw(FALSE);
-
+        
         m_wndClient.MoveWindow(&rcClient);
 
         if ( !bRePaint )

@@ -32,7 +32,8 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-    CDWCrashMgt _CrashMgt;
+    //CDWCrashMgt *_CrashMgt = new CDWCrashMgt();
+    //CDWCrashMgt _CrashMgt;
 
     HRESULT hRes = ::CoInitialize(NULL);
     ATLASSERT(SUCCEEDED(hRes));

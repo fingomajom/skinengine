@@ -253,10 +253,6 @@
 						>
 					</File>
 					<File
-						RelativePath=".\DWSuperToolbar.h"
-						>
-					</File>
-					<File
 						RelativePath=".\DWSysBtnToolbar.h"
 						>
 					</File>
@@ -272,6 +268,22 @@
 						RelativePath=".\DWToolbar.h"
 						>
 					</File>
+					<Filter
+						Name="AddrBar"
+						>
+						<File
+							RelativePath=".\DWDropdownList.h"
+							>
+						</File>
+						<File
+							RelativePath=".\DWEdit.h"
+							>
+						</File>
+						<File
+							RelativePath=".\DWSuperToolbar.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 				<Filter
 					Name="Common"
