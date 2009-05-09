@@ -305,8 +305,16 @@ public:
             CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
 
             CIconHandle icon = skin.iconNull;
+            
+            MENUITEMINFO MenuItemInfo = { 0 };
+            MenuItemInfo.cbSize = sizeof(MenuItemInfo);
+            MenuItemInfo.fMask = MIIM_SUBMENU;
 
-            if ( ::IsMenu((HMENU)lpDrawItem->itemID) )
+            CDWMenuHandle((HMENU)lpDrawItem->hwndItem).GetMenuItemInfo(
+                lpDrawItem->itemID,
+                FALSE, &MenuItemInfo);
+
+            if ( MenuItemInfo.hSubMenu != NULL )
             {
                 icon = skin.iconFavDir;
             }
@@ -531,10 +539,31 @@ public:
             }
         }
 
+        if ( odr.len <= 0 )
+            return;
+
+        int *index = new int[odr.len];
+
         for ( int i = 0; i < odr.len; i++ )
         {
-            int 
+            index[i] = odr.GetOrder(fList[i].strTitle);
         }
+
+        for ( int i = 0; i < odr.len; i++ )
+        {
+            if ( index[i] >= 0 && index[i] != i )
+            {
+                index[ index[i] ] = index[i];
+
+                IEFavoriteItem item = fList[index[i]];
+
+                fList[index[i]] = fList[i];
+                fList[i] = item;
+
+            }
+        }
+        
+        delete []index;
     }
 
     HMENU _CreateFavoriteMenu( CMenuHandle menu, CDWFavList& fList, UINT& uMenuId )

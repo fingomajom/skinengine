@@ -59,7 +59,6 @@ WCHAR* Get_String(LPBYTE& lpb, LPBYTE lpend)
 WCHAR* Get_StringW(LPBYTE& lpb, LPBYTE lpend)
 {
 	int sl = lstrlenW((WCHAR*)lpb);
-	sl = sl*2;
 	if(lpb+sl>lpend && lpend!=NULL)
 		return NULL;
 
@@ -68,7 +67,7 @@ WCHAR* Get_StringW(LPBYTE& lpb, LPBYTE lpend)
 		WCHAR * lptemp;
 		__try
 		{
-			lptemp = new WCHAR[sl+2];
+			lptemp = new WCHAR[sl+1];
 		}
 		__except(1)
 		{
