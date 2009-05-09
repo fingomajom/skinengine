@@ -10,7 +10,7 @@ DWORD GetDWORD(LPBYTE& lpb, LPBYTE lpend)
 	if(lpb+4>lpend && lpend!=NULL)
 		return 0;
 
-	DWORD dw = (DWORD)(*lpb);
+	DWORD dw = *((DWORD*)lpb);
 	lpb+=4;
 	return dw;
 }
@@ -20,7 +20,7 @@ WORD GetWORD(LPBYTE& lpb, LPBYTE lpend)
 	if(lpb+2>lpend && lpend!=NULL)
 		return 0;
 
-	WORD w = (WORD)(*lpb);
+	WORD w = *((WORD*)lpb);
 	lpb+=2;
 	return w;
 }
@@ -36,7 +36,7 @@ WCHAR* Get_String(LPBYTE& lpb, LPBYTE lpend)
 		WCHAR * lptemp;
 		__try
 		{
-			lptemp = new WCHAR[sl+1];
+			lptemp = new WCHAR[sl+2];
 		}
 		__except(1)
 		{
@@ -46,7 +46,7 @@ WCHAR* Get_String(LPBYTE& lpb, LPBYTE lpend)
 		if(lptemp!=NULL)
 		{
             MultiByteToWideChar( CP_OEMCP, 0, 
-                (char*)lpb, sl, lptemp, sl + 1 );
+                (char*)lpb, -1, lptemp, sl + 2 );
 		}
 		lpb+=sl;
 		lpb++;
@@ -59,7 +59,7 @@ WCHAR* Get_String(LPBYTE& lpb, LPBYTE lpend)
 WCHAR* Get_StringW(LPBYTE& lpb, LPBYTE lpend)
 {
 	int sl = lstrlenW((WCHAR*)lpb);
-	if(lpb+sl>lpend && lpend!=NULL)
+	if(lpb+(sl*2)>lpend && lpend!=NULL)
 		return NULL;
 
 	if(sl>0)
@@ -67,7 +67,7 @@ WCHAR* Get_StringW(LPBYTE& lpb, LPBYTE lpend)
 		WCHAR * lptemp;
 		__try
 		{
-			lptemp = new WCHAR[sl+1];
+			lptemp = new WCHAR[sl+2];
 		}
 		__except(1)
 		{
@@ -76,11 +76,12 @@ WCHAR* Get_StringW(LPBYTE& lpb, LPBYTE lpend)
 
 		if(lptemp!=NULL)
 		{
-			StrCpy(lptemp, (WCHAR*)lpb);
+            ZeroMemory(lptemp, (sl+2)*sizeof(WCHAR) );
+			StrCpyN(lptemp, (WCHAR*)lpb, sl+1);
 		}
-		lpb+=sl;
-		while(*lpb==0 && (lpb<=lpend || lpend==NULL))
-			lpb++;
+		lpb+=((lstrlenW(lptemp)+1)*2);
+		//while(*lpb==0 && (lpb<=lpend || lpend==NULL))
+		//	lpb++;
 		return lptemp;
 	}
 	else
@@ -115,9 +116,16 @@ int CDWMenuOrder::GetOrder( LPCTSTR pszName ) const
     if (!mois)
         return -1;
 
+    TCHAR szLongPath[MAX_PATH] = L"C:\\";
+    TCHAR szShortPath[MAX_PATH] = { 0 };
+
+    StrNCatW(szLongPath, pszName, 20 );
+    
+    GetShortPathNameW( szLongPath, szShortPath, MAX_PATH );
+
     for ( int i = 0; i < len; i++ )
     {
-        if ( !StrCmpI(pszName, mois[i].longname) )
+        if ( !StrCmpNI(pszName, mois[i].longname, 6)) //lstrlenW(pszName) ) )
             return mois[i].order;
     }
 
@@ -189,21 +197,12 @@ BOOL CDWMenuOrder::LoadMenuOrder(LPCTSTR sFolderPath)
 
 					lpend = lpbt + len1;
 					mois[i].order = GetDWORD(lpData, lpend);
-					len2 = mois[i].len = GetWORD(lpData, lpend);
-					mois[i].itemtype = GetWORD(lpData, lpend);
-					mois[i].filesize = GetDWORD(lpData, lpend);
-					mois[i].filedate = GetWORD(lpData, lpend);
-					mois[i].filetime = GetWORD(lpData, lpend);
-					mois[i].filetype = GetWORD(lpData, lpend);
-					if((mois[i].itemtype & 4) != 0)
-					{
-						mois[i].longname = Get_StringW(lpData, lpend);
-					}
-					else
-						mois[i].longname = Get_String(lpData, lpend);
-					mois[i].shortname = Get_String(lpData, lpend);
-					if(mois[i].order>=0 && mois[i].order<len)
-						index[mois[i].order] = i;
+
+                    len2 = *(WORD*)(lpbt + (len1 - 8));
+
+                    lpData = lpbt+(len2+8+20);
+
+                    mois[i].longname = Get_StringW(lpData, lpend);
 
 					lpData = lpbt + len1;
 					ret = TRUE;

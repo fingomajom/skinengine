@@ -228,7 +228,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 
     m_listChildFrm.AddTail(pNewFrm);
 
-    m_wndTableBar.SelectIndex( nIdx, FALSE );
+    m_wndTableBar.SelectIndex( nIdx );
     OnSelectURL(nIdx);
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 

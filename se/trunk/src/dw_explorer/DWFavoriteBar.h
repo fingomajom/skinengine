@@ -517,13 +517,24 @@ public:
 
     protected:
 
+    BOOL LoadMenuOrder( CDWMenuOrder& odr, LPCTSTR pszFavPath )
+    {
+        __try
+        {
+            return odr.LoadMenuOrder(pszFavPath);
+        }
+        __except(1)
+        {
+            return FALSE;
+        }
+    }
+
     void _SortFavMenuItem( CDWFavList& fList, LPCTSTR pszFavPath = NULL )
     {
         CDWMenuOrder odr;
-        if ( !odr.LoadMenuOrder(pszFavPath) )
-            return;
-
         
+        if ( !LoadMenuOrder(odr, pszFavPath) )
+            return;
 
         for ( size_t idx = 0; idx < fList.GetCount(); idx++ )
         {
@@ -539,30 +550,46 @@ public:
             }
         }
 
-        if ( odr.len <= 0 )
+        if ( odr.len <= 0 || fList.GetCount() <= 0 )
             return;
 
-        int *index = new int[odr.len];
+        int *index = new int[fList.GetCount()];
+        if ( index == 0 )
+            return;
 
-        for ( int i = 0; i < odr.len; i++ )
+        for ( int i = 0; i < (int)fList.GetCount(); i++ )
         {
             index[i] = odr.GetOrder(fList[i].strTitle);
+            if ( index[i] < 0 )
+                index[i] = odr.len+1;
         }
 
-        for ( int i = 0; i < odr.len; i++ )
+        for ( int i = 0; i < (int)fList.GetCount() - 1; i++ )
         {
-            if ( index[i] >= 0 && index[i] != i )
+            int k = 0;
+
+            int nsmall = odr.len+2;
+
+            for ( int j = i; j < (int)fList.GetCount(); j++ )
             {
-                index[ index[i] ] = index[i];
-
-                IEFavoriteItem item = fList[index[i]];
-
-                fList[index[i]] = fList[i];
-                fList[i] = item;
-
+                if ( index[j] <= nsmall )
+                {
+                    k = j;
+                    nsmall = index[j];
+                }
             }
+
+            if ( i == k )
+                continue;
+
+            index[k] = index[i];
+            index[i] = odr.len+3;
+
+            IEFavoriteItem item = fList[i];
+            fList[i] = fList[k];
+            fList[k] = item;
         }
-        
+
         delete []index;
     }
 
