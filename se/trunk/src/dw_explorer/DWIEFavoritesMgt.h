@@ -13,13 +13,17 @@
 
 #include <atlpath.h>
 
+struct IEFavoriteItem;
+
+typedef ATL::CAtlArray<IEFavoriteItem>  CDWFavList;
+
 struct IEFavoriteItem
 {
     enum{
         max_fav_title_len = 25
     };
 
-    IEFavoriteItem( LPCTSTR pszTitle, LPCTSTR pszURL = NULL )
+    IEFavoriteItem( LPCTSTR pszTitle = NULL, LPCTSTR pszURL = NULL )
     {
         if ( pszTitle != NULL )
         {
@@ -40,8 +44,8 @@ struct IEFavoriteItem
     ATL::CString strTitle;
     ATL::CString strURL  ;
 
-    ATL::CAtlList<IEFavoriteItem>* pChildList;
-    ATL::CAtlList<IEFavoriteItem>* pParentList;
+    CDWFavList* pChildList;
+    CDWFavList* pParentList;
 };
 
 
@@ -57,7 +61,7 @@ public:
 
     BOOL BuildIEFavorites();
     
-    ATL::CAtlList<IEFavoriteItem>& GetFavoriteList()
+    CDWFavList& GetFavoriteList()
     {
         return m_FavoriteList;
     }
@@ -65,9 +69,9 @@ public:
 
 protected:
 
-    BOOL _BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAtlList<IEFavoriteItem>* pList );
+    BOOL _BuildIEFavorites( LPCTSTR pszDirectory, CDWFavList* pList );
 
-    ATL::CAtlList<IEFavoriteItem> m_FavoriteList;
+    CDWFavList m_FavoriteList;
 };
 
 
@@ -89,7 +93,7 @@ inline BOOL CDWIEFavoritesMgt::BuildIEFavorites()
     return _BuildIEFavorites( szDirectroy, &m_FavoriteList );
 }
 
-inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAtlList<IEFavoriteItem>* pList )
+inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, CDWFavList* pList )
 {
     BOOL bResult = FALSE;
 
@@ -111,7 +115,7 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
             {
                 IEFavoriteItem fItem(wfd.cFileName);
                 fItem.pParentList = pList;
-                fItem.pChildList = new ATL::CAtlList<IEFavoriteItem>;
+                fItem.pChildList = new CDWFavList;
                 ATLASSERT(fItem.pChildList);
 
                 ATLASSERT(fItem.pChildList);
@@ -123,21 +127,21 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
 
                     if ( _BuildIEFavorites( subPath, fItem.pChildList ) )
                     {
-                        POSITION pos = pList->GetTailPosition();
-                        while ( pos && (pList->GetAt(pos)).pChildList == NULL )
+                        int pos = pList->GetCount() - 1;
+                        while ( pos >= 0 && (*pList)[pos].pChildList == NULL )
                         {
-                            pList->GetPrev(pos);
+                            pos--;
                         }
 
-                        while ( pos && StrCmp(pList->GetAt(pos).strTitle, fItem.strTitle) > 0 )
+                        while ( pos >= 0 && StrCmpI((*pList)[pos].strTitle, fItem.strTitle) > 0 )
                         { 
-                            pList->GetPrev(pos);
+                            pos--;
                         }
 
-                        if ( pos )
-                            pList->InsertAfter(pos, fItem);
+                        if ( pos >= 0 )
+                            pList->InsertAt( pos + 1, fItem );
                         else                
-                            pList->AddHead( fItem );
+                            pList->InsertAt( 0, fItem );
 
                     }
                     else
@@ -163,22 +167,22 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, ATL::CAt
 
                 fItem.pParentList = pList;
                 
-                POSITION pos = pList->GetHeadPosition();
-                while ( pos && (pList->GetAt(pos)).pChildList != NULL )
+                int pos = 0;
+                while ( pos < (int)pList->GetCount() && (*pList)[pos].pChildList != NULL )
                 { 
-                    pList->GetNext(pos);
+                    pos++;
                 }
 
-                while ( pos && StrCmp(pList->GetAt(pos).strTitle, fItem.strTitle) < 0 )
+                while ( pos < (int)pList->GetCount() && StrCmpI((*pList)[pos].strTitle, fItem.strTitle) < 0 )
                 { 
-                    pList->GetNext(pos);
+                    pos++;
                 }
 
 
-                if ( pos )
-                    pList->InsertBefore(pos, fItem);
+                if ( pos < (int)pList->GetCount() )
+                    pList->InsertAt( pos, fItem );
                 else                
-                    pList->AddTail( fItem );
+                    pList->Add( fItem );
             }
         }
         

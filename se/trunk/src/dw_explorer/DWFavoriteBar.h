@@ -164,13 +164,13 @@ public:
     {
         m_vtToolBtn.RemoveAll();
 
-        ATL::CAtlList<IEFavoriteItem>& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
+        CDWFavList& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
 
         _SortFavMenuItem(fList);
 
-        for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
+        for ( size_t idx = 0; idx < fList.GetCount(); idx++ )
         {
-            IEFavoriteItem& item = fList.GetNext(pos);
+            IEFavoriteItem& item = fList[idx];
             AddToolBtn2( item.strTitle, 0, 0, (LPARAM)&item );
         }
 
@@ -484,7 +484,7 @@ public:
     {
         CMenuHandle menu;
 
-        ATL::CAtlList<IEFavoriteItem>& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
+        CDWFavList& fList = CDWIEFavoritesMgt::Instance().GetFavoriteList();
 
         if ( !m_favMenu.IsMenu() )
         {
@@ -497,16 +497,9 @@ public:
         if ( m_nClickIndex < 0 )
             return NULL;
 
-        int nIndex = m_nClickIndex;
-        IEFavoriteItem * pItem = NULL;
+        IEFavoriteItem& Item = fList[m_nClickIndex];
 
-        POSITION pos = fList.GetHeadPosition();
-        while ( pos != NULL && nIndex-- >= 0 )
-        {
-            pItem = &fList.GetNext( pos );
-        }
-
-        if ( pItem == NULL && pItem->pChildList == NULL )
+        if ( Item.pChildList == NULL )
             return NULL;
 
         menu = m_favMenu.GetSubMenu( m_nClickIndex );
@@ -516,15 +509,17 @@ public:
 
     protected:
 
-    void _SortFavMenuItem( ATL::CAtlList<IEFavoriteItem>& fList, LPCTSTR pszFavPath = NULL )
+    void _SortFavMenuItem( CDWFavList& fList, LPCTSTR pszFavPath = NULL )
     {
         CDWMenuOrder odr;
         if ( !odr.LoadMenuOrder(pszFavPath) )
             return;
 
-        for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
+        
+
+        for ( size_t idx = 0; idx < fList.GetCount(); idx++ )
         {
-            IEFavoriteItem& item = fList.GetNext(pos);
+            IEFavoriteItem& item = fList[idx];
 
             if ( item.pChildList != NULL )
             {
@@ -538,21 +533,11 @@ public:
 
         for ( int i = 0; i < odr.len; i++ )
         {
-            POSITION pos1 = fList.FindIndex(i);
-            POSITION pos2 = fList.FindIndex(odr.index[i]);
-
-            if ( pos1 && pos2 && pos1 != pos2 )
-            {
-                int idr = odr.GetOrder( fList.GetAt(pos1).strTitle );
-
-                odr.index[idr] = odr.index[i];
-
-                fList.SwapElements(pos1, pos2);
-            }
+            int 
         }
     }
 
-    HMENU _CreateFavoriteMenu( CMenuHandle menu, ATL::CAtlList<IEFavoriteItem>& fList, UINT& uMenuId )
+    HMENU _CreateFavoriteMenu( CMenuHandle menu, CDWFavList& fList, UINT& uMenuId )
     {
         ATLASSERT( menu.IsMenu() );
         if ( !menu.IsMenu() )
@@ -569,9 +554,9 @@ public:
             menu.AppendMenu( MF_SEPARATOR , (UINT_PTR)ID_SEPARATOR, L"" );
         }
         
-        for ( POSITION pos = fList.GetHeadPosition(); pos != NULL; )
+        for ( size_t idx = 0; idx < fList.GetCount(); idx++ )
         {
-            IEFavoriteItem& item = fList.GetNext(pos);
+            IEFavoriteItem& item = fList[idx];
             
             if ( item.pChildList != NULL )
             {
