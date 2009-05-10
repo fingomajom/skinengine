@@ -12,8 +12,10 @@ struct SearchItem
     ATL::CString strURLFormat;
 };
 
-class CDWSearchMgt
+class CDWSearchMgt : public CDWSingleton<CDWSearchMgt>
 {
+    friend CDWSingleton<CDWSearchMgt>;
+protected:
     CDWSearchMgt( const CDWSearchMgt& );
 
     CDWSearchMgt()
@@ -83,12 +85,6 @@ class CDWSearchMgt
     }
 
 public:
-
-    static CDWSearchMgt& Instace()
-    {
-        static CDWSearchMgt __CDWSearchMgt_Instance__;
-        return __CDWSearchMgt_Instance__;
-    }
 
     void AddSearchItem( LPCTSTR pszName, LPCTSTR pszURL, LPCTSTR pszFormat )
     {

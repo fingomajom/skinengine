@@ -5,15 +5,14 @@
 #define WM_DOWNLOAD_FAV_ICON   (WM_USER + 1000)
 
 
-class CDWFavIconMgt
+class CDWFavIconMgt : public CDWSingleton<CDWFavIconMgt>
 {
+    friend class CDWSingleton<CDWFavIconMgt>;
+protected:
     CDWFavIconMgt( const CDWFavIconMgt& );
-
     CDWFavIconMgt();
 public:
     ~CDWFavIconMgt();
-
-    static CDWFavIconMgt& Instance();
 
     HICON GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam, BOOL bDownload = TRUE );
 
@@ -55,13 +54,6 @@ inline CDWFavIconMgt::~CDWFavIconMgt()
 
     m_cs.Unlock();
 }
-
-inline CDWFavIconMgt& CDWFavIconMgt::Instance()
-{
-    static CDWFavIconMgt* __CDWFavIconMgt_Instance__ = new CDWFavIconMgt();
-    return *__CDWFavIconMgt_Instance__;
-}
-
 
 inline  HICON CDWFavIconMgt::GetFavIcon( LPCTSTR URL, HWND hWnd, LPARAM lParam, BOOL bDownload )
 {

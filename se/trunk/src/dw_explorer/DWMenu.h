@@ -3,6 +3,7 @@
 #include "DWSkinUIMgt.h"
 #include "DWIEFavoritesMgt.h"
 
+#include <atlcrack.h>
 
 template <bool t_bManaged> class CDWMenuT;
 typedef CDWMenuT<false>   CDWMenuHandle;
@@ -42,7 +43,9 @@ public:
 
         s_pOldWindowProc = (WNDPROC)SetWindowLong( hWnd, GWL_WNDPROC, (LONG)NewMenuProc);
 
-        s_hMenuCreateHook = ::SetWindowsHookEx(WH_CBT, 
+        uFlags |= TPM_NOANIMATION;
+
+        s_hMenuCreateHook = ::SetWindowsHookEx(WH_CALLWNDPROC, 
             DWMenuCreateHookProc, 
             _Module.GetModuleInstance(), 
             GetCurrentThreadId());
@@ -104,12 +107,14 @@ public:
 
     virtual void _MeasureItemText( LPMEASUREITEMSTRUCT lpMeasureItem )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         CClientDC dc(s_hWndTrackMenu);
 
         SIZE sizeText = { 0 };
-        HFONT hOld = dc.SelectFont(skin.fontDefault);
+        HFONT hOld = dc.SelectFont(pskin->fontDefault);
 
         dc.GetTextExtent( (LPCTSTR)lpMeasureItem->itemData, -1, &sizeText);
 
@@ -147,12 +152,14 @@ public:
 
     virtual void _OnDrawMenuBkGnd( CDCHandle& dc, const RECT& rcBox, int nSelected )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         if ( nSelected )
-            dc.FillSolidRect( &rcBox, skin.clrFrameWindow );
+            dc.FillSolidRect( &rcBox, pskin->clrFrameWindow );
         else
-            dc.FillSolidRect( &rcBox, HLS_TRANSFORM(skin.clrFrameWindow, 80, 0));
+            dc.FillSolidRect( &rcBox, HLS_TRANSFORM(pskin->clrFrameWindow, 80, 0));
     }
 
     virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
@@ -162,7 +169,9 @@ public:
 
     virtual LRESULT OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         TCHAR szBuffer[MAX_PATH] = { 0 };
 
@@ -179,7 +188,7 @@ public:
                 ((lpDrawItem->itemAction & ODA_SELECT) && (lpDrawItem->itemState & ODS_SELECTED)));  
 
             int nBkMode = dc.SetBkMode(TRANSPARENT);
-            HFONT hOld = dc.SelectFont(skin.fontDefault);
+            HFONT hOld = dc.SelectFont(pskin->fontDefault);
 
             CMenuHandle menu = (HMENU)lpDrawItem->hwndItem;
 
@@ -209,10 +218,8 @@ public:
             rcSeparator.left  += 5;
             rcSeparator.right -= 5;
 
-            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
-
-            COLORREF clrL    = HLS_TRANSFORM( skin.clrFrameWindow, +50, 0 );
-            COLORREF clrS    = HLS_TRANSFORM( skin.clrFrameWindow, -50, 0 );
+            COLORREF clrL    = HLS_TRANSFORM( pskin->clrFrameWindow, +50, 0 );
+            COLORREF clrS    = HLS_TRANSFORM( pskin->clrFrameWindow, -50, 0 );
 
             dc.Draw3dRect( &rcSeparator, clrL, clrS );
         }
@@ -261,22 +268,54 @@ public:
             if ( !bRet )
                 return bRet;
 
-            SetWindowLong( GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_TOPMOST );                
+            //SetWindowLong( GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_TOPMOST );   
 
             return bRet;
 
         }
 
-        BEGIN_MSG_MAP(CDWMenuWindow)
 
+        BEGIN_MSG_MAP_EX(CDWMenuWindow)
+            MESSAGE_HANDLER(WM_PRINT     , OnPrint      )
             MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint    )
-            MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize )
-        
-        END_MSG_MAP();
+            MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd )
+        END_MSG_MAP()
+
+        //////////////////////////////////////////////////////////////////////////
+
+        LRESULT OnPrint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+        {
+            DefWindowProc();
+
+            CDCHandle dc(((HDC)wParam));
+
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return 1L;
+
+            RECT rcWindow;
+            GetWindowRect(&rcWindow);
+
+            rcWindow.right  = rcWindow.right  - rcWindow.left;
+            rcWindow.bottom = rcWindow.bottom - rcWindow.top;
+            rcWindow.top    = rcWindow.left = 0;
+
+            COLORREF clrBorder = HLS_TRANSFORM(pskin->clrFrameWindow, -40, 0);
+            COLORREF clrMenu   = HLS_TRANSFORM(pskin->clrFrameWindow, 80, 0);
+            dc.Draw3dRect( &rcWindow, clrBorder, clrBorder);
+            ::InflateRect(&rcWindow, -1, -1 );                
+            dc.Draw3dRect( &rcWindow, clrMenu, clrMenu);
+            ::InflateRect(&rcWindow, -1, -1 );                
+            dc.Draw3dRect( &rcWindow, clrMenu, clrMenu);
+
+            return 1L;
+        }
 
         LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
         {
-            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return 1L;
 
             CWindowDC wndDC(m_hWnd);
 
@@ -287,8 +326,8 @@ public:
             rcWindow.bottom = rcWindow.bottom - rcWindow.top;
             rcWindow.top    = rcWindow.left = 0;
 
-            COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, -40, 0);
-            COLORREF clrMenu   = HLS_TRANSFORM(skin.clrFrameWindow, 80, 0);
+            COLORREF clrBorder = HLS_TRANSFORM(pskin->clrFrameWindow, -40, 0);
+            COLORREF clrMenu   = HLS_TRANSFORM(pskin->clrFrameWindow, 80, 0);
             wndDC.Draw3dRect( &rcWindow, clrBorder, clrBorder);
             ::InflateRect(&rcWindow, -1, -1 );                
             wndDC.Draw3dRect( &rcWindow, clrMenu, clrMenu);
@@ -298,36 +337,10 @@ public:
             return 0;
         }
 
-        void RepareMenuWindowSize()
+        LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
         {
-            RECT rcClient = { 0 };
-            GetClientRect(&rcClient);
-
-            SetWindowPos( NULL, 
-                0, 0, 
-                rcClient.right  - rcClient.left + 2,
-                rcClient.bottom - rcClient.top + 2,
-                SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
-
+            return 1L;
         }
-
-        LRESULT OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-        {
-            LPNCCALCSIZE_PARAMS pNCParams = (LPNCCALCSIZE_PARAMS)lParam;
-
-            RECT rcWindow = pNCParams->rgrc[0];
-
-            LRESULT lResult = ::DefWindowProc(m_hWnd, uMsg, wParam, lParam);
-            if (wParam)
-            {
-                RECT& rcClient = pNCParams->rgrc[0];
-
-                ::InflateRect(&rcClient, -2, -2 );                
-            }
-
-            return lResult;
-        }
-
 
         virtual void OnFinalMessage(HWND /*hWnd*/)
         {
@@ -337,29 +350,31 @@ public:
 
     static LRESULT CALLBACK DWMenuCreateHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     {
-        const int cchClassName = 7;
-        TCHAR szClassName[cchClassName] = { 0 };
-
-        LRESULT lResult = ::CallNextHookEx(s_hMenuCreateHook, nCode, wParam, lParam);
-
-        if(nCode == HCBT_CREATEWND)
+        if (nCode == HC_ACTION)
         {
-            CWindow wndMenu = (HWND)wParam;
-            
-            ::GetClassName(wndMenu, szClassName, cchClassName);
-            if(!StrCmpI(_T("#32768"), szClassName))
+            CWPSTRUCT *pwp = (CWPSTRUCT*)lParam;
+
+            switch (pwp->message)
             {
-                CDWMenuWindow* pWnd = new CDWMenuWindow();
-                ATLASSERT(pWnd);
-                if ( pWnd )
-                    pWnd->SubclassWindow(wndMenu);            
+            case 0x1e2:
+                {
+                    CWindow wndMenu = (HWND)pwp->hwnd;
+
+                    TCHAR szClassName[128];
+
+                    ::GetClassName(wndMenu, szClassName, 127);
+                    if(!StrCmpI(_T("#32768"), szClassName))
+                    {
+                        CDWMenuWindow* pWnd = new CDWMenuWindow();
+                        ATLASSERT(pWnd);
+                        if ( pWnd )
+                            pWnd->SubclassWindow(wndMenu);            
+                    }
+                }
             }
         }
-        else if(nCode == HCBT_DESTROYWND)
-        {
-        }        
 
-        return lResult;
+        return CallNextHookEx(s_hMenuCreateHook, nCode, wParam, lParam);
     }
 
 };

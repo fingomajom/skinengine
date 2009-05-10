@@ -144,7 +144,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -330,6 +330,10 @@
 					</File>
 					<File
 						RelativePath=".\DWSearchMgt.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWSingleton.h"
 						>
 					</File>
 					<File
@@ -719,6 +723,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\res\dropdown.png"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -24,7 +24,8 @@ public:
         m_nLeftSpace(0),
         m_nTopSpace(0)
     {
-        m_nHotIndex = -1;
+        m_nHotIndex   = -1;
+        m_nClickIndex = -1;
     }
 
     BOOL AddToolBtn( LPCTSTR pszCaption, UINT uID, UINT uResId, LPARAM lParam = 0 )
@@ -176,7 +177,7 @@ public:
             m_nHotIndex = nHotPos;
         }
 
-        return 1L;
+        return DefWindowProc();
     }
 
     LRESULT OnMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -244,7 +245,9 @@ public:
 
     virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         ATLASSERT(info.image);
         if ( info.image == NULL )
@@ -258,16 +261,18 @@ public:
         rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
         rcSrcImage.left  = rcSrcImage.left * nIdex;
 
-        CDCHandle(hDC).FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
+        CDCHandle(hDC).FillSolidRect( &info.rcBtn, pskin->clrFrameWindow );
 
         info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage );
     }
 
     virtual void DoBeforePaint( HDC hDC, const RECT& rcClient) 
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
-        CDCHandle(hDC).FillSolidRect( &rcClient, skin.clrFrameWindow );
+        CDCHandle(hDC).FillSolidRect( &rcClient, pskin->clrFrameWindow );
     }
 
     virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
@@ -302,14 +307,16 @@ public:
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
         return 1L;
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CDCHandle dc = (HDC)wParam;
 
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
         
-        dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
+        dc.FillSolidRect( &rcClient, pskin->clrFrameWindow );
 
         return 1L;
     }

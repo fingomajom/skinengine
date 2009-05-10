@@ -32,20 +32,17 @@ public:
 };
 
 
-class CDWEventSvr
+class CDWEventSvr : public CDWSingleton<CDWEventSvr>
 {
+    friend class CDWSingleton<CDWEventSvr>;
+protected:
     CDWEventSvr( const CDWEventSvr& );
 
     CDWEventSvr()
     {
     }
-public:
 
-    static CDWEventSvr& Instance()
-    {
-        static CDWEventSvr* __CDWEventSvr_Instance__ = new CDWEventSvr();
-        return *__CDWEventSvr_Instance__;
-    }
+public:
 
     void AddCallback( CDWEventCallback* cb )
     {

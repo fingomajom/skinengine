@@ -197,7 +197,9 @@ public:
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CPaintDC dc(*(T*)this);
 
@@ -206,9 +208,9 @@ public:
         RECT rcClient;
         ((T*)this)->GetClientRect(&rcClient);
 
-        dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
+        dc.FillSolidRect( &rcClient, pskin->clrFrameWindow );
 
-        COLORREF clrTemp = HLS_TRANSFORM( skin.clrFrameWindow, 60, 0 );
+        COLORREF clrTemp = HLS_TRANSFORM( pskin->clrFrameWindow, 60, 0 );
         sdc.SkinLine( rcClient.left, rcClient.top, rcClient.right, rcClient.top, clrTemp);
 
         return 0L;
@@ -231,8 +233,9 @@ public:
     {
         CWindowDC wndDC(*(T*)this);
 
-            
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CRgn rgn;
         CRgn rgnNULL;
@@ -261,11 +264,11 @@ public:
 
             rcBorder = rcWindow;
 
-            CPen pen;  pen .CreatePen( PS_SOLID, 1, skin.clrFrameNcBorder );
-            CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, -40, -40 ) );
-            CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  60, 0 ) );
-            CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow,  40, 0 ) );
-            CPen pen4; pen4.CreatePen( PS_SOLID, 1, skin.clrFrameWindow);
+            CPen pen;  pen .CreatePen( PS_SOLID, 1, pskin->clrFrameNcBorder );
+            CPen pen1; pen1.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( pskin->clrFrameWindow, -40, -40 ) );
+            CPen pen2; pen2.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( pskin->clrFrameWindow,  60, 0 ) );
+            CPen pen3; pen3.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( pskin->clrFrameWindow,  40, 0 ) );
+            CPen pen4; pen4.CreatePen( PS_SOLID, 1, pskin->clrFrameWindow );
 
             HPEN   hOldPen   = dc.SelectPen( pen );
             HBRUSH hOldBrush = dc.SelectBrush( (HBRUSH)::GetStockObject(NULL_BRUSH) );
@@ -285,9 +288,9 @@ public:
             dc.RoundRect( rcBorder.left, rcBorder.top, rcBorder.right, rcBorder.bottom, 7, 7);
 
             ::InflateRect( &rcBorder, -1, -1);
-            dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
+            dc.Draw3dRect( &rcBorder, pskin->clrFrameWindow, pskin->clrFrameWindow );
             ::InflateRect( &rcBorder, -1, -1);
-            dc.Draw3dRect( &rcBorder, skin.clrFrameWindow, skin.clrFrameWindow );
+            dc.Draw3dRect( &rcBorder, pskin->clrFrameWindow, pskin->clrFrameWindow );
 
             rcBorder = rcWindow;
             rcBorder.top = rcBorder.bottom - 6;

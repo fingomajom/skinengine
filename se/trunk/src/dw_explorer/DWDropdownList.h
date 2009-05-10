@@ -12,6 +12,23 @@
 
 #pragma once
 
+typedef struct tag_DropListItem
+{
+    tag_DropListItem()
+    {
+        clrLeft  = -1;
+        clrRight = -1;
+    }
+
+    CIconHandle icon;
+
+    ATL::CString strLeft;
+    ATL::CString strRight;
+
+    COLORREF clrLeft;
+    COLORREF clrRight;
+
+} DROPLISTITEM, *LPDROPLISTITEM;
 
 class CDWListBox : public CWindowImpl<CDWListBox, CListBox>
 {
@@ -19,9 +36,10 @@ public:
     DECLARE_WND_CLASS(_T("DWExplorer_DWListBox"));
 
     BEGIN_MSG_MAP(CDWListBox)
-        //MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
-        //MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
-        //MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
+        MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
+        MESSAGE_HANDLER( WM_MOUSEMOVE  , OnMouseMove  )
+        MESSAGE_HANDLER( WM_LBUTTONUP  , OnLButtonUp  )
     END_MSG_MAP()
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -31,16 +49,37 @@ public:
         return 0L;
     }
 
-    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        return 0L;
-    }
-
-
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
-        GetParent().SendMessage(WM_ERASEBKGND, wParam, lParam);
         return 1L;
+    }
+
+    LRESULT OnMouseMove(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+        BOOL bOutSide = FALSE;
+
+        int nIndex = (int)ItemFromPoint( pt, bOutSide );
+
+        if ( !bOutSide && nIndex != GetCurSel() )
+            SetCurSel(nIndex);
+
+        return DefWindowProc();
+    }
+
+    LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        LRESULT lResult = DefWindowProc();
+        
+        int nIndex = GetCurSel();
+
+        if ( nIndex >= 0 )
+        {
+            ::SendMessage(GetParent(), WM_COMMAND, MAKEWPARAM(0,LBN_DBLCLK), 0);
+        }
+
+        return lResult;
     }
 
     void SetItemCount( int nCount )
@@ -52,7 +91,7 @@ public:
             if ( nCount < nItemCount )
                 CListBox::DeleteString(0);
             else
-                CListBox::AddString(L"123123");
+                CListBox::AddString(L"");
 
             nItemCount = GetCount();
         }
@@ -64,21 +103,30 @@ class CDWDropdownList :
     public COwnerDraw<CDWDropdownList>
 {
 public:
-    CDWDropdownList()
+    CDWDropdownList(const ATL::CAtlArray<DROPLISTITEM>& vtDropList) :
+        m_vtDropList(vtDropList)
     {
+    }
+
+
+    void SetItemCount( int nCount )
+    {
+        m_wndListBox.SetItemCount(nCount);
     }
 
     BEGIN_MSG_MAP(CDWMainFrame)
 
-        MESSAGE_HANDLER( WM_CREATE     , OnCreate  )
+        MESSAGE_HANDLER( WM_CREATE     , OnCreate   )
         MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
-        //MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
 
         MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
         MESSAGE_HANDLER( WM_NCPAINT   , OnNcPaint    )
         MESSAGE_HANDLER( WM_NCCALCSIZE, OnNcCalcSize )
         MESSAGE_HANDLER( WM_SIZE      , OnSize       )
+
+        COMMAND_CODE_HANDLER( LBN_DBLCLK, OnLbnDBlick)
 
         CHAIN_MSG_MAP(COwnerDraw<CDWDropdownList>)
 
@@ -91,12 +139,27 @@ public:
 
         m_wndListBox.Create(
             m_hWnd, rcClient, NULL,
-            WS_CHILD | WS_VISIBLE | LBS_HASSTRINGS | LBS_USETABSTOPS | LBS_DISABLENOSCROLL ,//| LBS_OWNERDRAWFIXED | LBS_NODATA | WS_VSCROLL, 
+            WS_CHILD | WS_VISIBLE | WS_VSCROLL | 
+            LBS_USETABSTOPS | LBS_OWNERDRAWFIXED | LBS_NODATA | LBS_NOTIFY,
             0);
 
-        m_wndListBox.SetItemCount(20);
-
         return DefWindowProc();
+    }
+
+    LRESULT OnLbnDBlick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+    {
+        ShowWindow(SW_HIDE);
+
+        int nIndex = m_wndListBox.GetCurSel();
+
+        nIndex = m_vtDropList.GetCount() - nIndex - 1;
+
+        if ( nIndex >= 0 && nIndex < (int)m_vtDropList.GetCount())
+        {
+            m_wndEdit.SendMessage( WM_COMMAND, MAKEWPARAM(nIndex,LBN_DBLCLK) );
+        }
+
+        return 0L;
     }
 
     LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -133,38 +196,62 @@ public:
 
     void DrawItem( LPDRAWITEMSTRUCT lpDrawItemStruct )
     {
-        CSkinDCHandle dc(lpDrawItemStruct->hDC);
+        CMemoryDC dc(lpDrawItemStruct->hDC, lpDrawItemStruct->rcItem);
 
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
-        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 30, 0);
+        COLORREF clrLine = HLS_TRANSFORM(pskin->clrFrameWindow, 30, 0);
 
-        RECT rcText = lpDrawItemStruct->rcItem;
+        RECT rcBox = lpDrawItemStruct->rcItem;
 
-        dc.SkinLine( 
-            rcText.left + 4, 
-            rcText.top,
-            rcText.right - 4 , 
-            rcText.top, 
-            clrBorder);
+        RECT rcText = rcBox;
 
-        skin.iconNull.DrawIconEx(
-            dc,
-            rcText.left + 3, 
-            rcText.top + 3,
+        if ( (lpDrawItemStruct->itemState & ODS_SELECTED) )
+        {
+            dc.FillSolidRect(&rcText, HLS_TRANSFORM(pskin->clrFrameWindow, 60, 0));
+        }
+        else
+        {
+            dc.FillRect(&rcText, 
+                (HBRUSH)m_wndParent.SendMessage( WM_CTLCOLOREDIT, 
+                (WPARAM)dc.m_hDC, 
+                (LPARAM)m_wndEdit.m_hWnd ) );
+
+            CPen pen;
+            pen.CreatePen( PS_SOLID, 1, clrLine );
+            HPEN hFont = dc.SelectPen( pen );
+
+            dc.MoveTo( rcBox.left  + 5, rcBox.top );
+            dc.LineTo( rcBox.right - 5, rcBox.top);
+
+            dc.SelectPen( hFont );
+        }
+
+
+        if ( lpDrawItemStruct->itemID >= m_vtDropList.GetCount() )
+        {
+            return;
+        }
+
+        const DROPLISTITEM& item = m_vtDropList[
+            m_vtDropList.GetCount() - lpDrawItemStruct->itemID - 1];
+
+        pskin->iconNull.DrawIconEx(
+            dc, rcText.left + 3, rcText.top + 3,
             16, 16 );
 
-        rcText.left += 22;
+        rcText.left += 21;
 
         if ( m_wndEdit.GetDlgCtrlID() == ID_TOOL_SERACH_DROPDOWN )
             rcText.left += 5;
 
-        HFONT hOldFont = dc.SelectFont(skin.fontDefault);
+        HFONT hOldFont = dc.SelectFont(pskin->fontDefault);
         dc.SetBkMode(TRANSPARENT);
 
-
-        dc.DrawText( L"about:blank", -1, &rcText,
-            DT_LEFT | DT_SINGLELINE | DT_VCENTER);
+        dc.DrawText( item.strLeft, -1, &rcText,
+            DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
 
         dc.SelectFont(hOldFont);
     }
@@ -183,7 +270,9 @@ public:
     {
         CWindowDC dc(m_hWnd);
 
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CRgn rgn;
         CRgn rgnNULL;
@@ -198,7 +287,7 @@ public:
 
         rcBorder = rcWindow;
 
-        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
+        COLORREF clrBorder = HLS_TRANSFORM(pskin->clrFrameWindow, 60, 0);
 
         CPen pen;  pen .CreatePen( PS_SOLID, 1, clrBorder );
         HPEN   hOldPen   = dc.SelectPen( pen );
@@ -213,9 +302,9 @@ public:
     }
 
 
-
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
+        return 1L;
         CDCHandle dc((HDC)wParam);
 
         RECT rcClient;
@@ -355,6 +444,8 @@ public:
     CWindow    m_wndParent;
     CWindow    m_wndEdit;
     CDWListBox m_wndListBox;
+
+    const ATL::CAtlArray<DROPLISTITEM>& m_vtDropList;
 
     static HHOOK s_hDropdownListHook;
     static HWND  s_hWndDropdownList;

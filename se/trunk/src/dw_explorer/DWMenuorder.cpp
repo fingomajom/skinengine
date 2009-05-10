@@ -116,16 +116,9 @@ int CDWMenuOrder::GetOrder( LPCTSTR pszName ) const
     if (!mois)
         return -1;
 
-    TCHAR szLongPath[MAX_PATH] = L"C:\\";
-    TCHAR szShortPath[MAX_PATH] = { 0 };
-
-    StrNCatW(szLongPath, pszName, 20 );
-    
-    GetShortPathNameW( szLongPath, szShortPath, MAX_PATH );
-
     for ( int i = 0; i < len; i++ )
     {
-        if ( !StrCmpNI(pszName, mois[i].longname, 6)) //lstrlenW(pszName) ) )
+        if ( !StrCmpNI(pszName, mois[i].longname, lstrlenW(pszName))) 
             return mois[i].order;
     }
 

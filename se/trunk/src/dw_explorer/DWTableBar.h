@@ -235,7 +235,9 @@ public:
     void DrawBtnIndex( HDC hDC, CDWImage& pImage, int xPos, int yPos, int nImageIdx, COLORREF clrDest = -1, int nFlags = 1, float fAlpha=1.0f)
     {
         RECT rcSrcImage = { 0 };
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         rcSrcImage.left   = pImage.GetWidth() / 4;
         rcSrcImage.bottom = pImage.GetHeight();
@@ -251,7 +253,9 @@ public:
 
     void DrawTableItemIndex( HDC hDC, int nItemIndex , int nImageIdx )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
         RECT rcSrcImage = { 0 };
         RECT rcSrcImage1 = { 0 };
 
@@ -296,7 +300,7 @@ public:
         CIconHandle icon = tabInfo.icon;
         if ( icon.IsNull() )
         {
-            icon = skin.iconNull;
+            icon = pskin->iconNull;
         }
         icon.DrawIconEx( hDC, tabInfo.rcBtn.left + 15, tabInfo.rcBtn.top + 7, 16, 16 );
         
@@ -323,11 +327,11 @@ public:
                 m_image_close, 
                 m_vtTableBtn[m_nSelectIndex].rcBtn.right-30, 
                 m_vtTableBtn[m_nSelectIndex].rcBtn.top, 
-                nidx , skin.clrFrameWindow, 1, 2.0f);
+                nidx , pskin->clrFrameWindow, 1, 2.0f);
         }
         
         int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
-        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
+        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)pskin->fontDefault );
 
         DrawText( hDC, tabInfo.strCaption, -1, &rcSrcImage1, 
             DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
@@ -638,7 +642,9 @@ public:
 
     LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CPaintDC dc(m_hWnd);
 
@@ -647,7 +653,7 @@ public:
 
         CMemoryDC memDC(dc, rcClient);
 
-        memDC.FillSolidRect( &rcClient, skin.clrFrameWindow );
+        memDC.FillSolidRect( &rcClient, pskin->clrFrameWindow );
         rcClient.top = rcClient.bottom - 2;
         memDC.FillSolidRect( &rcClient, RGB(240,240,240) );
 

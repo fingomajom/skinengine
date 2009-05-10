@@ -5,13 +5,12 @@
 
 class CDWWebView;
 
-class CDWClientMgt
+class CDWClientMgt : public CDWSingleton<CDWClientMgt>
 {
+    friend class CDWSingleton<CDWClientMgt>;
     CDWClientMgt(void);
 public:
     ~CDWClientMgt(void);
-
-    static CDWClientMgt& Instance();
 
     static int RunMainMsgLoop( LPTSTR lpstrCmdLine = NULL );
 

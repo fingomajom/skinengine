@@ -247,7 +247,9 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 {
     if ( m_wndTableBar.GetItemCount() == 1) // 最后一页 不关闭 
     {   
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         OnOpenURL(NULL);
 
@@ -255,7 +257,7 @@ void CDWMainFrame::OnCloseURL( int nIndex )
         m_wndSuperbar.m_address_edit.SetFocus();
 
         CDWEventSvr::Instance().OnMessage( 
-            edi_spr_icon_changed, (WPARAM)skin.iconNull.m_hIcon, 0 );
+            edi_spr_icon_changed, (WPARAM)pskin->iconNull.m_hIcon, 0 );
 
         return ;
     }

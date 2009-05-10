@@ -31,7 +31,11 @@ public:
 
     void OpenSerach( LPCTSTR pszKeyWord )
     {
-        ATL::CString strURL = CDWSearchMgt::Instace().GetSearchURL( pszKeyWord );
+        CDWSearchMgt* psrhMgt = CDWSearchMgt::InstancePtr();
+        if ( psrhMgt == NULL )
+            return;
+
+        ATL::CString strURL = psrhMgt->GetSearchURL( pszKeyWord );
 
         CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)(LPCTSTR)strURL, FALSE);
     }
@@ -59,23 +63,29 @@ public:
         WCHAR* URL = new WCHAR[ nTextLen + 1];
         m_search_edit.GetWindowText( URL, nTextLen + 1);
 
+        m_search_edit.AddDropdownList( URL );
+
         OpenSerach( URL );
 
         delete []URL;
-
     }
 
     BOOL PreTranslateMessage(MSG* pMsg)
     {
-        if ( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN ) 
+        if ( pMsg->message == WM_KEYDOWN )
         {
-            if ( pMsg->hwnd == m_address_edit )
+            switch( pMsg->wParam )
             {
-                GoOpenURL();
-            }
-            else if ( pMsg->hwnd == m_search_edit )
-            {
-                GoSerach();
+            case VK_F2:
+                m_address_edit.SetFocus();
+                break;
+            case VK_F3:
+                m_address_edit.SetFocus();
+                m_address_edit.ShowDropdownList();
+                break;
+            case VK_F4:
+                m_search_edit.SetFocus();
+                break;
             }
         }
 
@@ -99,7 +109,10 @@ public:
 
         MESSAGE_HANDLER(WM_MENUSELECT       , OnMenuSelect)
 
-        COMMAND_CODE_HANDLER(EN_CHANGE, OnEnChange )
+        MESSAGE_HANDLER(WM_EDIT_KEY_RETURN  , OnEditKeyReturn)
+
+        COMMAND_CODE_HANDLER( EN_CHANGE  , OnEnChange )
+        COMMAND_CODE_HANDLER( LBN_DBLCLK , OnLbnDBlick)
 
         CHAIN_MSG_MAP(CDWToolbar)
 
@@ -107,32 +120,49 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         m_address_edit.Create(m_hWnd, &rcDefault, NULL, 
-            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP,
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | ES_NOHIDESEL | WS_TABSTOP,
             0, ID_TOOL_ADDR_DROPDOWN);
         m_search_edit .Create(m_hWnd, &rcDefault, NULL, 
-            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_TABSTOP,
+            WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN | ES_NOHIDESEL | WS_TABSTOP,
             0, ID_TOOL_SERACH_DROPDOWN);
 
-        m_address_edit.SetFont( skin.fontDefault );
-        m_search_edit.SetFont( skin.fontDefault );
+        m_address_edit.SetFont( pskin->fontDefault );
+        m_search_edit.SetFont( pskin->fontDefault );
+
+        m_search_edit.AddDropdownList(L"中国人");
+        m_search_edit.AddDropdownList(L"中国人1");
+        m_search_edit.AddDropdownList(L"中国人2");
+
+        m_address_edit.AddDropdownList(L"http://www.sogou.com");
+        m_address_edit.AddDropdownList(L"http://www.baidu.com");
+        m_address_edit.AddDropdownList(L"http://www.google.com");
+        m_address_edit.AddDropdownList(L"http://www.sina.com");
+        m_address_edit.AddDropdownList(L"http://www.sohu.com");
 
         m_address_edit.m_strBkText = L"请在这里输入网址";
-        m_search_edit.m_strBkText  = CDWSearchMgt::Instace().GetSearchName();
+        m_search_edit.m_strBkText  = CDWSearchMgt::Instance().GetSearchName();
 
         m_icon_search = CDWFavIconMgt::Instance().GetFavIcon( 
-            CDWSearchMgt::Instace().GetSearchURL(), m_hWnd, NULL );
+            CDWSearchMgt::Instance().GetSearchURL(), m_hWnd, NULL );
 
 
         CDWEventSvr::Instance().AddCallback( this );
 
-        AddToolBtn2( _T(""), ID_TOOL_ADDR_DROPDOWN  , &skin.png_dropdown);
-        AddToolBtn2( _T(""), ID_TOOL_SERACH_DROPDOWN, &skin.png_dropdown);
+        AddToolBtn2( _T(""), ID_TOOL_ADDR_DROPDOWN  , &pskin->png_dropdown);
+        AddToolBtn2( _T(""), ID_TOOL_SERACH_DROPDOWN, &pskin->png_dropdown);
 
         bHandled = FALSE;
         return 0L;
+    }
+
+    virtual void OnFinalMessage(HWND /*hWnd*/)
+    {
+        m_vtToolBtn.RemoveAll();
     }
 
     virtual void RePositionBtns()
@@ -156,7 +186,9 @@ public:
 
     virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         ATLASSERT(info.image);
         if ( info.image == NULL )
@@ -189,6 +221,20 @@ public:
         return 0;
     }
 
+    LRESULT OnLbnDBlick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+    {
+        if ( wID == ID_TOOL_ADDR_DROPDOWN )
+        {
+            GoOpenURL();
+        }
+        else if ( wID == ID_TOOL_SERACH_DROPDOWN )
+        {
+            GoSerach();
+        }
+
+        return 0L;
+    }
+
     LRESULT OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         TCHAR szBuffer[MAX_PATH] = { 0 };
@@ -205,15 +251,32 @@ public:
             CMenuHandle menu = HMENU(lParam);
 
             CDWEventSvr::Instance().OnMessage( edi_status_bar, 
-                (WPARAM)(LPCTSTR)CDWSearchMgt::Instace().GetSearchName(wID-10) );
+                (WPARAM)(LPCTSTR)CDWSearchMgt::Instance().GetSearchName(wID-10) );
         }
 
         return 1;
     }
 
+    LRESULT OnEditKeyReturn(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( wParam == ID_TOOL_ADDR_DROPDOWN )
+        {
+            GoOpenURL();
+        }
+        else if ( wParam == ID_TOOL_SERACH_DROPDOWN )
+        {
+            GoSerach();
+        }
+
+        return 0L;
+    }
+
+    
     virtual void DoBeforePaint( HDC hDC, const RECT& rcClient ) 
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         CDCHandle dc(hDC);
 
@@ -221,14 +284,14 @@ public:
 
         CreateBkBrush();
 
-        dc.FillSolidRect( &rcClient, skin.clrFrameWindow );
+        dc.FillSolidRect( &rcClient, pskin->clrFrameWindow );
 
         if ( m_icon_addr.IsNull() )
-            m_icon_addr = skin.iconNull;
+            m_icon_addr = pskin->iconNull;
         if ( m_icon_search.IsNull() )
-            m_icon_search = skin.iconNull;
+            m_icon_search = pskin->iconNull;
 
-        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
+        COLORREF clrBorder = HLS_TRANSFORM(pskin->clrFrameWindow, 60, 0);
 
         CPen pen;
         pen.CreatePen( PS_SOLID, 1, clrBorder );
@@ -245,8 +308,8 @@ public:
 
 
         RECT rcImage = { 0, 0, 0, 0 };
-        rcImage.right  = skin.png_dropdown.GetWidth() / 4;
-        rcImage.bottom = skin.png_dropdown.GetHeight();
+        rcImage.right  = pskin->png_dropdown.GetWidth() / 4;
+        rcImage.bottom = pskin->png_dropdown.GetHeight();
 
         POINT pt = { 3, 3 };
 
@@ -264,7 +327,7 @@ public:
         dc.RoundRect(&rcEdit, pt);
         m_icon_search.DrawIconEx( dc, rcEdit.left + 4, rcEdit.top + 3, 16, 16 );
 
-        skin.png_dropdown.AlphaDraw( dc, rcEdit.left + 18, rcEdit.top + 10, &rcImage, 0, 1.0f );
+        pskin->png_dropdown.AlphaDraw( dc, rcEdit.left + 18, rcEdit.top + 10, &rcImage, 0, 1.0f );
 
         dc.SelectPen(hOldPen);
         dc.SelectBrush(hOldBrush);
@@ -293,15 +356,17 @@ public:
 
         virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
         {
-            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return;
 
             CIconHandle icon;
             
             icon.m_hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
-                CDWSearchMgt::Instace().GetSearchURL( lpDrawItem->itemID - 10 ), NULL, NULL );
+                CDWSearchMgt::Instance().GetSearchURL( lpDrawItem->itemID - 10 ), NULL, NULL, FALSE);
 
             if ( icon.m_hIcon == NULL )
-                icon.m_hIcon = skin.iconNull;
+                icon.m_hIcon = pskin->iconNull;
 
             icon.DrawIconEx( dc,
                 lpDrawItem->rcItem.left + 5,
@@ -313,6 +378,7 @@ public:
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CDWToolbar::OnLButtonDown(uMsg, wParam, lParam, bHandled);
+        
         if ( m_nClickIndex >= 0 )
         {
             switch ( m_vtToolBtn[m_nClickIndex].uID )
@@ -332,6 +398,7 @@ public:
             }
         }
 
+        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
         RECT rcSearchIcon = { 0 };
 
@@ -341,12 +408,10 @@ public:
         rcSearchIcon.left -= 22;
         rcSearchIcon.right = rcSearchIcon.left + 26;
         
-       
-        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
         if ( ::PtInRect(&rcSearchIcon, pt ) )
         {
-            CDWSearchMgt& smgt = CDWSearchMgt::Instace();
+            CDWSearchMgt& smgt = CDWSearchMgt::Instance();
             
             CDWSprMenuT<TRUE> menu;
             
@@ -387,14 +452,16 @@ public:
 
     void CreateBkBrush()
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         if ( m_bkBrush.m_hBrush == NULL )
-            m_bkBrush.CreateSolidBrush( HLS_TRANSFORM(skin.clrFrameWindow, 20, 0) );
+            m_bkBrush.CreateSolidBrush( HLS_TRANSFORM(pskin->clrFrameWindow, 20, 0) );
         
         if ( m_bkSBrush.m_hBrush == NULL )
         {
-            COLORREF clrOld = HLS_TRANSFORM(skin.clrFrameWindow, 40, 0 );
+            COLORREF clrOld = HLS_TRANSFORM(pskin->clrFrameWindow, 40, 0 );
 
             BYTE r,g,b;
             
@@ -466,6 +533,8 @@ public:
     {
         if ( uMsg == eid_addr_changed )
         {
+            if ( StrCmpI((LPCTSTR)wParam, BLANK_URL) )
+                m_address_edit.AddDropdownList( (LPCTSTR)wParam );
             m_address_edit.SetWindowText((LPCTSTR)wParam);
         }
         else if ( uMsg == edi_skin_changed )

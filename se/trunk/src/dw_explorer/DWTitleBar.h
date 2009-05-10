@@ -62,7 +62,9 @@ public:
 
     virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIdex )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         RECT rcSrcImage = { 0 };
 
@@ -72,7 +74,7 @@ public:
         rcSrcImage.right = rcSrcImage.left * (nIdex + 1);
         rcSrcImage.left  = rcSrcImage.left * nIdex;
 
-        CDCHandle(hDC).FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
+        CDCHandle(hDC).FillSolidRect( &info.rcBtn, pskin->clrFrameWindow );
 
         info.image->AlphaDraw( hDC, info.rcBtn.left, info.rcBtn.top, &rcSrcImage, 1, 1.5 );
     }
@@ -88,7 +90,9 @@ public:
 
     virtual void DoAfterPaint ( HDC hDC, const RECT& rcClient ) 
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
         
         RECT rcText = rcClient;
 
@@ -109,8 +113,8 @@ public:
         rcText.top += 1;
 
         int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
-        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
-        ::SetTextColor(hDC, HLS_TRANSFORM(skin.clrFrameWindow, -60, 0));
+        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)pskin->fontDefault );
+        ::SetTextColor(hDC, HLS_TRANSFORM(pskin->clrFrameWindow, -60, 0));
 
         DrawText( hDC, szText, -1, &rcText, 
             DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
@@ -194,7 +198,9 @@ public:
 
     virtual BOOL SendClickMsg( UINT nID )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return FALSE;
         
         if ( !m_clr_dlg.IsWindow() )
             m_clr_dlg.Create( m_hWnd );

@@ -23,12 +23,6 @@ CDWProcessMgt::~CDWProcessMgt(void)
     ::PostThreadMessage(m_dwThreadId, WM_QUIT, 0, 0);
 }
 
-CDWProcessMgt& CDWProcessMgt::Instance()
-{
-    static CDWProcessMgt* __CDWProcessMgt_Instance__ = new CDWProcessMgt();
-    return *__CDWProcessMgt_Instance__;
-}
-
 BOOL CDWProcessMgt::CreateWebWnd(HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL )
 {
     if ( pszOpenURL == NULL )

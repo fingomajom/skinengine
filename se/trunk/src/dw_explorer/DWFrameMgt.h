@@ -17,13 +17,12 @@
 
 class CDWMainFrame;
 
-class CDWFrameMgt
+class CDWFrameMgt : public CDWSingleton<CDWFrameMgt>
 {
+    friend class CDWSingleton<CDWFrameMgt>;
     CDWFrameMgt(void);
 public:
     ~CDWFrameMgt(void);
-
-    static CDWFrameMgt& Instance();
 
     static int RunMainMsgLoop( LPTSTR lpstrCmdLine = NULL );
 

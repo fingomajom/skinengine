@@ -237,9 +237,3 @@ CCookieMgt::~CCookieMgt(void)
     //DetourTransactionCommit();
 }
 
-CCookieMgt& CCookieMgt::Instance()
-{
-    static CCookieMgt* __CCookieMgt_Instance__ = new CCookieMgt();
-    return *__CCookieMgt_Instance__;
-}
-

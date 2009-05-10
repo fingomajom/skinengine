@@ -31,12 +31,6 @@ CDWFrameMgt::~CDWFrameMgt(void)
 {
 }
 
-CDWFrameMgt& CDWFrameMgt::Instance()
-{
-    static CDWFrameMgt* __CDWFrameMgt_Instance__ = new CDWFrameMgt();
-    return *__CDWFrameMgt_Instance__;
-}
-
 
 int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 {
@@ -45,9 +39,11 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     CDWMessageLoop theLoop;
 
     _Module.AddMessageLoop(&theLoop);
-    CDWFrameMgt&   frmmgt = CDWFrameMgt::Instance();
-    CDWProcessMgt& psmgt  = CDWProcessMgt::Instance();
-    CDWFavIconMgt& fimgt  = CDWFavIconMgt::Instance();
+
+    CDWFrameMgt& frmmgt = CDWFrameMgt::Instance();
+
+    CDWProcessMgt::Instance();
+    CDWFavIconMgt::Instance();
 
     g_hMutex = OpenMutex( MUTEX_MODIFY_STATE, TRUE, g_pszMutexName );
     if ( g_hMutex != NULL )
@@ -71,10 +67,15 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     ReleaseMutex ( g_hMutex );
     _Module.RemoveMessageLoop();
 
-    delete &frmmgt;
-    delete &psmgt;
-    delete &fimgt;
-    delete &CDWEventSvr::Instance();
+    
+    CDWFrameMgt::DeleteInstance();
+    CDWFavIconMgt::DeleteInstance();
+    CDWProcessMgt::DeleteInstance();
+    CDWEventSvr ::DeleteInstance();
+    CDWSearchMgt::DeleteInstance();
+    CDWSkinUIMgt::DeleteInstance();
+    CDWSkinUIMgt::DeleteInstance();
+    CDWSearchMgt::DeleteInstance();
 
     return nRet;
 }

@@ -86,9 +86,3 @@ CDWCrashMgt::~CDWCrashMgt(void)
     DetourTransactionCommit();
 }
 
-CDWCrashMgt& CDWCrashMgt::Instance()
-{
-    static CDWCrashMgt* __CDWCrashMgt_Instance__ = new CDWCrashMgt();
-    return *__CDWCrashMgt_Instance__;
-}
-

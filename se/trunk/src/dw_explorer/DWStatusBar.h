@@ -117,15 +117,17 @@ public:
 
     virtual void DoBeforePaint( HDC hDC, const RECT& rcClient) 
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
-        COLORREF clrL = HLS_TRANSFORM( skin.clrFrameWindow, +50, 0 );
+        COLORREF clrL = HLS_TRANSFORM( pskin->clrFrameWindow, +50, 0 );
 
-        CDCHandle(hDC).FillSolidRect( &rcClient, skin.clrFrameWindow );
+        CDCHandle(hDC).FillSolidRect( &rcClient, pskin->clrFrameWindow );
 
         CIconHandle icon = m_iconLeft;
         if ( icon == NULL )
-            icon = CDWSkinUIMgt::Instace().iconNull;
+            icon = pskin->iconNull;
 
         icon.DrawIconEx( hDC, rcClient.left + 2, rcClient.top + 4,
             16, 16);
@@ -136,8 +138,8 @@ public:
         rcText.left += 20;
 
         int nBkMode = ::SetBkMode( hDC, TRANSPARENT );
-        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)skin.fontDefault );
-        ::SetTextColor( hDC, HLS_TRANSFORM( skin.clrFrameWindow, -50, 0 ));
+        HGDIOBJ hOldObj = ::SelectObject( hDC, (HGDIOBJ)pskin->fontDefault );
+        ::SetTextColor( hDC, HLS_TRANSFORM( pskin->clrFrameWindow, -50, 0 ));
 
         DrawText( hDC, m_strStatus, -1, &rcText, 
             DT_LEFT | DT_VCENTER | DT_SINGLELINE );

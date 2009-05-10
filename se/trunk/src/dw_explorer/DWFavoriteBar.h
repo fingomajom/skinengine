@@ -71,13 +71,15 @@ public:
 
     virtual void RePositionBtns()
     {   
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         RECT rcClient = { 0 };
         GetClientRect(&rcClient);
 
         CClientDC dc(m_hWnd);
-        HFONT hOldFont = dc.SelectFont( skin.fontDefault );
+        HFONT hOldFont = dc.SelectFont( pskin->fontDefault );
 
         RECT rcBtn = { m_nLeftSpace, m_nTopSpace, m_nLeftSpace, m_nTopSpace};
 
@@ -101,26 +103,28 @@ public:
 
     virtual void DrawToolBtn( HDC hDC, ToolBtnInfo& info, int nIndex )
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return;
 
         CDCHandle dc = hDC;
         
-        dc.FillSolidRect( &info.rcBtn, skin.clrFrameWindow );
+        dc.FillSolidRect( &info.rcBtn, pskin->clrFrameWindow );
             
         int   nBkMode  = dc.SetBkMode( TRANSPARENT );
-        HFONT hOldFont = dc.SelectFont( skin.fontDefault );
+        HFONT hOldFont = dc.SelectFont( pskin->fontDefault );
         
 
         RECT rcText = info.rcBtn;
         rcText.left += 22;
 
-        COLORREF clrText = HLS_TRANSFORM( skin.clrFrameWindow, -50, 0 );
-        COLORREF clrL    = HLS_TRANSFORM( skin.clrFrameWindow, +50, 0 );
-        COLORREF clrS    = HLS_TRANSFORM( skin.clrFrameWindow, -50, 0 );
+        COLORREF clrText = HLS_TRANSFORM( pskin->clrFrameWindow, -50, 0 );
+        COLORREF clrL    = HLS_TRANSFORM( pskin->clrFrameWindow, +50, 0 );
+        COLORREF clrS    = HLS_TRANSFORM( pskin->clrFrameWindow, -50, 0 );
 
         if ( nIndex == 1 )
         {
-            CPen pen; pen.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( skin.clrFrameWindow, +60, 0 ) );
+            CPen pen; pen.CreatePen( PS_SOLID, 1, HLS_TRANSFORM( pskin->clrFrameWindow, +60, 0 ) );
             CBrush brush; brush.CreateSolidBrush( clrL );
 
             HPEN hOldPen = dc.SelectPen(pen);
@@ -139,10 +143,10 @@ public:
 
         dc.SetTextColor( clrText );
 
-        CIconHandle icon = skin.iconFavDir;
+        CIconHandle icon = pskin->iconFavDir;
         if ( ((IEFavoriteItem*)info.lParam)->pChildList == NULL )
         {
-            icon = skin.iconNull;
+            icon = pskin->iconNull;
 
             HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon( 
                 ((IEFavoriteItem*)info.lParam)->strURL, NULL, NULL, FALSE);
@@ -310,9 +314,11 @@ public:
 
         virtual void _OnDrawMenuIcon( CDCHandle& dc, LPDRAWITEMSTRUCT lpDrawItem, int nSelected )
         {
-            CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return;
 
-            CIconHandle icon = skin.iconNull;
+            CIconHandle icon = pskin->iconNull;
             
             MENUITEMINFO MenuItemInfo = { 0 };
             MenuItemInfo.cbSize = sizeof(MenuItemInfo);
@@ -324,7 +330,7 @@ public:
 
             if ( MenuItemInfo.hSubMenu != NULL )
             {
-                icon = skin.iconFavDir;
+                icon = pskin->iconFavDir;
             }
             else
             {

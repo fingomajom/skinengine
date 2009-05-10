@@ -11,15 +11,13 @@
 *********************************************************************/
 #pragma once
 
-class CCookieMgt
+class CCookieMgt : public CDWSingleton<CCookieMgt>
 {
+    friend class CDWSingleton<CCookieMgt>;
+
     CCookieMgt( const CCookieMgt& );
 
     CCookieMgt(void);
 public:
     ~CCookieMgt(void);
-
-    static CCookieMgt& Instance();
-
-
 };

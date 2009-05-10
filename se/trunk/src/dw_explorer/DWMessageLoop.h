@@ -34,18 +34,21 @@ public:
                 break;   // WM_QUIT, exit message loop
             }
 
+#ifndef _DEBUG
             __try
             {
+#endif
                 if(!PreTranslateMessage(&m_msg))
                 {
                     ::TranslateMessage(&m_msg);
                     ::DispatchMessage(&m_msg);
                 }
+#ifndef _DEBUG
             }
             __except(1)
             {
             }
-
+#endif
             if(IsIdleMessage(&m_msg))
             {
                 bDoIdle = TRUE;

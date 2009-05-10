@@ -347,13 +347,17 @@ public:
 
         if ( ::IsWindow(m_wndClient) )
         {
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return;
+
             CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
                 (WPARAM)(LPCTSTR)m_strURL, 
                 (WPARAM)(LPCTSTR)m_strTitle);
 
             CIconHandle icon = m_icon.m_hIcon;
             if ( icon.m_hIcon == NULL )
-                icon = CDWSkinUIMgt::Instace().iconNull;
+                icon = pskin->iconNull;
 
             CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
                 (WPARAM)icon.m_hIcon, 0 );

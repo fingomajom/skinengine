@@ -23,13 +23,13 @@ struct ProcessInfo
    DWORD               dwPID;
 };
 
-class CDWProcessMgt
+class CDWProcessMgt : public CDWSingleton<CDWProcessMgt>
 {
+    friend class CDWSingleton<CDWProcessMgt>;
+protected:
     CDWProcessMgt(void);
 public:
     ~CDWProcessMgt(void);
-
-    static CDWProcessMgt& Instance();
 
 
     BOOL CreateWebWnd ( HWND hParent, LPARAM lParam, LPCTSTR pszOpenURL );

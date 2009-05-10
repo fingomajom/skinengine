@@ -192,12 +192,6 @@ CDWClientMgt::~CDWClientMgt(void)
 {
 }
 
-CDWClientMgt& CDWClientMgt::Instance()
-{
-    static CDWClientMgt* __CDWClientMgt_Instance__ = new CDWClientMgt();
-    return *__CDWClientMgt_Instance__;
-}
-
 
 int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 {
@@ -207,8 +201,6 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     CDWMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
     CDWClientMgt& cltmgt   = CDWClientMgt::Instance();
-    CCookieMgt&   ckemgt   = CCookieMgt::Instance();
-    //CDWCrashMgt&  crashmgt = CDWCrashMgt::Instance();
 
     cltmgt.m_rpcSvr.SetReceiveFunc(DWCltReceiveRpcMsg);
     if ( !cltmgt.m_rpcSvr.InitRpcServer(lpstrCmdLine+6) )
@@ -226,9 +218,8 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     cltmgt.m_rpcClt.UninitRpcClient();
     _Module.RemoveMessageLoop();
 
-    delete &cltmgt;
-    delete &ckemgt;
-    //delete &crashmgt;
+    CDWClientMgt::DeleteInstance();
+    CCookieMgt::DeleteInstance();
 
     return nRet;
 }

@@ -3,8 +3,10 @@
 #pragma once
 
 
-class CDWSkinUIMgt
+class CDWSkinUIMgt : public CDWSingleton<CDWSkinUIMgt>
 {
+    friend CDWSingleton<CDWSkinUIMgt>;
+protected:
     CDWSkinUIMgt( const CDWSkinUIMgt& );
 
     CDWSkinUIMgt()
@@ -21,13 +23,7 @@ class CDWSkinUIMgt
         png_dropdown.LoadFromResource( IDR_PNG_DROPDOWN );
     }
 public:
-
-    static CDWSkinUIMgt& Instace()
-    {
-        static CDWSkinUIMgt __CDWSkinUIMgt_Instance__;
-        return __CDWSkinUIMgt_Instance__;
-    }
-        
+    
 
     COLORREF clrFrameNcBorder;
     COLORREF clrFrameWindow;

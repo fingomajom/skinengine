@@ -15,14 +15,63 @@
 #include "DWDropdownList.h"
 
 
+#define WM_EDIT_KEY_RETURN  (WM_USER + 1033)
+
+
 class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
 {
 public:
 
     DECLARE_WND_CLASS(_T("DWExplorer_DWEdit"));
 
-    CDWEdit()
+    CDWEdit() :
+        m_wndDropList(m_vtDropList)
     {
+    }
+
+    void ClearDropdownList( BOOL bRePaint = FALSE )
+    {
+        m_vtDropList.RemoveAll();
+        if ( bRePaint && m_wndDropList.IsWindowVisible() )
+        {
+            ResizeDropdownList();
+            m_wndDropList.Invalidate();
+        }
+    }
+
+    void AddDropdownList( const DROPLISTITEM& item, BOOL bRePaint = FALSE )
+    {
+        m_vtDropList.Add( item );
+
+        if ( bRePaint && m_wndDropList.IsWindowVisible() )
+        {
+            ResizeDropdownList();
+            m_wndDropList.Invalidate();
+        }
+    }
+
+    void AddDropdownList( LPCTSTR pszLeft, 
+        LPCTSTR pszRight = NULL, 
+        HICON hIcon = NULL, 
+        COLORREF clrLeft = -1, 
+        COLORREF clrRight = -1,
+        BOOL bRePaint = FALSE )
+    {
+        for ( size_t idx = 0; idx < m_vtDropList.GetCount(); idx++ )
+        {
+            if ( !StrCmpI(pszLeft, m_vtDropList[idx].strLeft) )
+                return;
+        }
+
+        DROPLISTITEM item;
+
+        item.strLeft  = pszLeft;
+        item.strRight = pszRight;
+        item.clrLeft  = clrLeft;
+        item.clrRight = clrRight;
+        item.icon     = hIcon;
+
+        AddDropdownList(item, bRePaint);
     }
 
     BEGIN_MSG_MAP(CDWMainFrame)
@@ -33,9 +82,10 @@ public:
         MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER( WM_KILLFOCUS  , OnKillFocus )
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
-        MESSAGE_HANDLER( WM_COMMAND    , OnCommand  )
 
         MESSAGE_HANDLER( WM_PAINT      , OnPaint    )
+
+        COMMAND_CODE_HANDLER( LBN_DBLCLK, OnLbnDBlick)
 
         REFLECT_NOTIFICATIONS();
 
@@ -48,10 +98,25 @@ public:
         m_wndDropList.Create(
             m_hWnd, rcDefault, NULL,
             WS_POPUP | WS_BORDER, 
-            WS_EX_TOOLWINDOW | WS_EX_TOPMOST);
+            WS_EX_TOOLWINDOW);
 
         return DefWindowProc();
     }
+
+    LRESULT OnLbnDBlick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
+    {
+        int nIndex = wID;
+        if ( nIndex >= 0 && nIndex < (int)m_vtDropList.GetCount())
+        {
+            SetWindowText( m_vtDropList[nIndex].strLeft );
+            SetFocus();
+            
+            GetParent().PostMessage( WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(), LBN_DBLCLK) );
+        }
+
+        return 0L;
+    }
+
 
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
@@ -68,8 +133,8 @@ public:
 
         return m_wndDropList.IsWindowVisible();
     }
-    
-    LRESULT ShowDropdownList()
+
+    void ResizeDropdownList()
     {
         RECT rcWindow;
         GetWindowRect( &rcWindow );
@@ -80,24 +145,77 @@ public:
         if ( GetDlgCtrlID() == ID_TOOL_SERACH_DROPDOWN )
             rcWindow.left -= 5;
 
-        rcWindow.top    = rcWindow.bottom+1;
-        rcWindow.bottom = rcWindow.top + 300;
+        size_t uItemCount = m_vtDropList.GetCount();
+        if ( uItemCount <= 0 )
+            uItemCount = 1;
 
-        SetFocus();
+        m_wndDropList.SetItemCount(uItemCount);
+
+        rcWindow.top    = rcWindow.bottom + 1;
+        rcWindow.bottom = rcWindow.top + 1 + uItemCount * 20;
+
         m_wndDropList.MoveWindow( &rcWindow );
-        return m_wndDropList.ShowWindow( SW_SHOWNOACTIVATE );
+    }
+    
+    LRESULT ShowDropdownList()
+    {
+        ResizeDropdownList();
+
+        if ( !m_wndDropList.IsWindowVisible() )
+        {
+            SetFocus();
+            m_wndDropList.m_wndListBox.SetCurSel(-1);
+            m_wndDropList.ShowWindow( SW_SHOWNOACTIVATE );
+        }
+
+        return TRUE;
     }
 
     LRESULT HideDropdownList()
     {
-        return m_wndDropList.ShowWindow( SW_HIDE );
+        if ( m_wndDropList.IsWindow() && m_wndDropList.IsWindowVisible() )
+            m_wndDropList.ShowWindow( SW_HIDE );
+
+        return TRUE;
     }
 
-    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        LRESULT lResult = DefWindowProc();
+        bHandled = FALSE;
 
-        return lResult;
+        switch ( wParam )
+        {
+        case VK_ESCAPE:
+            HideDropdownList();
+            break;
+        case VK_RETURN:
+            if ( m_wndDropList.IsWindowVisible() )
+                m_wndDropList.SendMessage(WM_COMMAND, MAKEWPARAM(0,LBN_DBLCLK), 0);
+            else
+                ::PostMessage( GetParent(), WM_EDIT_KEY_RETURN, GetDlgCtrlID(), 0 );
+            break;
+        case VK_UP:
+        case VK_DOWN:
+            if ( m_wndDropList.IsWindowVisible() )
+            {
+                if ( m_wndDropList.m_wndListBox.GetCurSel() < 0 )
+                {
+                    if ( wParam == VK_UP )
+                        m_wndDropList.m_wndListBox.SetCurSel(m_wndDropList.m_wndListBox.GetCount()-1);
+                    else
+                        m_wndDropList.m_wndListBox.SetCurSel(0);
+                }
+                else
+                    m_wndDropList.m_wndListBox.PostMessage(uMsg, wParam, lParam );
+            }
+            else
+            {
+                ShowDropdownList();
+            }
+            bHandled = TRUE;
+        }
+
+        return 0L;
     }
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -117,14 +235,13 @@ public:
         HWND hWnd = GetFocus();
 
         if ( (hWnd != m_wndDropList && hWnd != m_wndDropList.m_wndListBox) && IsDropdownList() )
+        {
             HideDropdownList();
-
-        return lResult;
-    }
-
-    LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-    {
-        LRESULT lResult = DefWindowProc();
+        }
+        else
+        {
+            SetSelNone();
+        }
 
         return lResult;
     }
@@ -150,12 +267,14 @@ public:
             return DefWindowProc();
         }
 
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         CPaintDC dc(m_hWnd);
 
 
-        COLORREF clrText = HLS_TRANSFORM(skin.clrFrameWindow, 60, 0);
+        COLORREF clrText = HLS_TRANSFORM(pskin->clrFrameWindow, 60, 0);
 
         RECT rcClient;
         GetClientRect(&rcClient);
@@ -178,4 +297,6 @@ public:
 
     ATL::CString    m_strBkText;
     CDWDropdownList m_wndDropList;
+
+    ATL::CAtlArray<DROPLISTITEM> m_vtDropList;
 };

@@ -13,8 +13,16 @@ public:
     DECLARE_WND_CLASS(_T("DWExplorer_DWTrackBarCtrl"));
 
     BEGIN_MSG_MAP(CDWTrackBarCtrl)
+        //MESSAGE_HANDLER(WM_SETFOCUS  , OnSetFocus )
         MESSAGE_HANDLER(WM_KILLFOCUS , OnKillFocus )
+        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd )
     END_MSG_MAP()
+
+    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        //::SetFocus(NULL);
+        return 0L;
+    }
 
     LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
@@ -23,6 +31,19 @@ public:
         ::ShowWindow(GetParent(), SW_HIDE);
 
         return lResult;
+    }
+    LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
+
+        RECT rcClient;
+        GetClientRect(&rcClient);
+        
+        CDCHandle((HDC)wParam).FillSolidRect(&rcClient, pskin->clrFrameWindow);
+
+        return 1L;
     }
 
 };
@@ -36,10 +57,18 @@ public:
 
     BEGIN_MSG_MAP(CDWColorDialog)
         
-        MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-        MESSAGE_HANDLER(WM_PAINT     , OnPaint     )
+        MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog )
+        MESSAGE_HANDLER(WM_PAINT     , OnPaint      )
+        MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd )
+
         
         MESSAGE_HANDLER(WM_HSCROLL   , OnHScroll   )
+
+        MESSAGE_HANDLER( WM_CTLCOLORBTN   , OnCtlColor )
+        MESSAGE_HANDLER( WM_CTLCOLORSTATIC, OnCtlColor )
+
+        MESSAGE_HANDLER( WM_CTLCOLOREDIT, OnCtlColor )
+        MESSAGE_HANDLER( WM_CTLCOLORDLG , OnCtlColor )
 
     END_MSG_MAP()
 
@@ -58,9 +87,16 @@ public:
         return TRUE;
     }
 
+    LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        return 1L;
+    }
+
     LRESULT OnHScroll(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
 
         int nPos = m_wndClrTrack.GetPos();
 
@@ -68,9 +104,9 @@ public:
 
         COLORREF clrNew = dc.GetPixel(nPos+10, 10);
         
-        if ( clrNew != skin.clrFrameWindow )
+        if ( clrNew != pskin->clrFrameWindow )
         {
-            skin.clrFrameWindow = clrNew;
+            pskin->clrFrameWindow = clrNew;
 
             CDWEventSvr::Instance().OnMessage( edi_skin_changed );
             ::RedrawWindow(GetParent(), NULL, NULL, RDW_FRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
@@ -83,53 +119,105 @@ public:
     {
         CPaintDC dc(m_hWnd);
 
-        CSkinDCHandle skinDC(dc);
-
         RECT rcClient;
         GetClientRect(&rcClient);
 
-        rcClient.top += 5;
-        rcClient.bottom -= 30;
-
-        rcClient.left  += 10;
-        rcClient.right -= 9;
-
-        COLORREF clrs[] = 
         {
-            RGB(0,0,255),
-            RGB(0,255,0),
-            RGB(255,0,0),
-            RGB(0,255,255),
-            RGB(255,255,0),
-            RGB(255,0,255),
-            RGB(0,255,255),
-            RGB(0,128,255),
-            RGB(128,0,128),
-            RGB(255,0,255)
-        };
+            CMemoryDC memDC(dc, rcClient);
 
-        int nCount = sizeof(clrs) / sizeof(clrs[0]);
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return 1L;
 
-        float fwidth = (float)(rcClient.right - rcClient.left) / (nCount - 1);
+            memDC.FillRect(&rcClient, m_bkBrush);
 
-        for ( int i = 0; i < nCount - 1; i++ )
-        {
-            RECT rcBox = rcClient;
-            rcBox.left  += int(i * fwidth);
-            rcBox.right  = int(rcBox.left + fwidth)+1;
+            rcClient.top    += 5;
+            rcClient.bottom -= 30;
+            rcClient.left   += 10;
+            rcClient.right  -= 9;
 
-            skinDC.SkinDrawGradualColorRect( rcBox,
-                clrs[i], clrs[i+1], FALSE );
+            if ( m_imageClr.IsNull() )
+            {
+                RECT rcImage   = rcClient;
+
+                rcImage.right  = rcImage.right  - rcImage.left;
+                rcImage.bottom = rcImage.bottom - rcImage.top;
+
+                rcImage.top = rcImage.left = 0;
+
+                m_imageClr.Create( rcImage.right, rcImage.bottom, 32 );
+
+                COLORREF clrs[] = 
+                {
+                    RGB(0,0,255),
+                    RGB(0,255,0),
+                    RGB(255,0,0),
+                    RGB(0,255,255),
+                    RGB(255,255,0),
+                    RGB(255,0,255),
+                    RGB(0,255,255),
+                    RGB(0,128,255),
+                    RGB(128,0,128),
+                    RGB(255,0,255)
+                };
+
+                int nCount = sizeof(clrs) / sizeof(clrs[0]);
+
+                float fwidth = (float)(rcClient.right - rcClient.left) / (nCount - 1);
+
+                CSkinDCHandle skinDC( m_imageClr.GetDC() );
+
+                for ( int i = 0; i < nCount - 1; i++ )
+                {
+                    RECT rcBox = rcImage;
+                    rcBox.left  += int(i * fwidth);
+                    rcBox.right  = int(rcBox.left + fwidth)+1;
+
+                    skinDC.SkinDrawGradualColorRect( rcBox,
+                        clrs[i], clrs[i+1], FALSE );
+                }
+
+                m_imageClr.ReleaseDC();
+            }
+
+            m_imageClr.BitBlt( memDC, rcClient.left, rcClient.top);
+
         }
 
 
         return 0L;
     }
 
+    LRESULT OnCtlColor(UINT /* uMsg */, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+    {
+        CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+        if ( pskin == NULL )
+            return 1L;
+
+        CDCHandle dc = (HDC)wParam;
+        dc.SetBkMode( TRANSPARENT );
+
+        if ( m_bkBrush.m_hBrush == NULL )
+            m_bkBrush.CreateSolidBrush( pskin->clrFrameWindow );
+
+
+        return (LRESULT)m_bkBrush.m_hBrush;
+    }
+
     BOOL ShowWindow(int nCmdShow) throw()
     {
         if ( nCmdShow != SW_HIDE )
         {
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin == NULL )
+                return 1L;
+
+            if ( m_bkBrush.m_hBrush != NULL )
+                m_bkBrush.DeleteObject();
+
+            m_bkBrush.CreateSolidBrush( pskin->clrFrameWindow );
+
+
             ATLASSERT(s_hColorDialogHook == NULL);
             ATLASSERT(s_hWndColorDialog == NULL);
 
@@ -191,5 +279,7 @@ public:
         return lRet;
     }
 
-
+    WTL::CBrush m_bkBrush;
+    
+    CDWImage m_imageClr;
 };
