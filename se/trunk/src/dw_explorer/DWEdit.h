@@ -243,6 +243,8 @@ public:
             SetSelNone();
         }
 
+        Invalidate();
+
         return lResult;
     }
 

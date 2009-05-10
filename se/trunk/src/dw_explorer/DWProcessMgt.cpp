@@ -152,8 +152,8 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
     }
 
     LSEDataBuffer createParamBuf((pParam[0]-1) * sizeof(WCHAR));
-    WCHAR* pBuffer  = (WCHAR*)createParamBuf.GetDataBuffer();
-    *(HWND*)pBuffer = hParent;
+    WCHAR* pBuffer    = (WCHAR*)createParamBuf.GetDataBuffer();
+    *((HWND*)pBuffer) = hParent;
     StrCpy( pBuffer+2, pParam+3 );
 
     HWND hWnd = NULL;
@@ -224,7 +224,9 @@ BOOL CDWProcessMgt::_WebWndOpenURL( LPARAM lParam )
 
     LSEDataBuffer createParamBuf((pParam[0]-1) * sizeof(WCHAR));
     WCHAR* pBuffer  = (WCHAR*)createParamBuf.GetDataBuffer();
-    memcpy( pBuffer, pParam+1, (pParam[0]-1)*2 );
+    pBuffer[0] = pParam[1];
+    pBuffer[1] = pParam[2];
+    StrCpy( pBuffer+2, pParam+3 );
 
     HWND hWnd = NULL;
     int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_webwnd_openurl, 

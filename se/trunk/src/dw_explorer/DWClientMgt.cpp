@@ -163,22 +163,27 @@ int OnWebWndOpenURL(
     if ( pParameter->GetBufferSize() < 4 )
         return -2;
 
-    HWND hWnd = (HWND)(*((ULONG*)pParameter->GetDataBuffer()));
+    HWND hWnd = *((HWND*)pParameter->GetDataBuffer());
 
-    cltmgt.m_cs.Lock();
+    if ( IsWindow(hWnd) )
+        SendCopyData(hWnd, WM_WEBVIEW_OPENURL, 
+        ((LPBYTE)pParameter->GetDataBuffer()) + 4,
+        pParameter->GetBufferSize() - 2 );
 
-    for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
-    {
-        CDWWebView* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
-        if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
-        {
-            pWebWnd->OpenURL( (WCHAR*)pParameter->GetDataBuffer()+2 );
+    //cltmgt.m_cs.Lock();
 
-            break;
-        }
-    }
+    //for ( POSITION pos = cltmgt.m_listWebWnd.GetHeadPosition(); pos != NULL; )
+    //{
+    //    CDWWebView* pWebWnd = cltmgt.m_listWebWnd.GetNext(pos);
+    //    if ( pWebWnd != NULL && pWebWnd->m_hWnd == hWnd )
+    //    {
+    //        pWebWnd->OpenURL( ((WCHAR*)pParameter->GetDataBuffer())+2 );
 
-    cltmgt.m_cs.Unlock();
+    //        break;
+    //    }
+    //}
+
+    //cltmgt.m_cs.Unlock();
 
     return 0;
 }

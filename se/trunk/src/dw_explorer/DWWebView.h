@@ -44,8 +44,12 @@ public:
 
     BEGIN_MSG_MAP(CDWWebView)
 
-        MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
-        MESSAGE_HANDLER(WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER(WM_COPYDATA         , OnCopyData      )
+
+        MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd    )
+        MESSAGE_HANDLER(WM_SETFOCUS         , OnSetFocus      )
+        MESSAGE_HANDLER(WM_WEBVIEW_OPENURL  , OnWebWndOpenURL )
+
 
         MESSAGE_HANDLER(WM_SHOWWINDOW , OnShowWindow )
 
@@ -88,6 +92,26 @@ public:
 
         return ::DefWindowProc( m_hWnd, uMsg, wParam, lParam );
     }
+
+    LRESULT OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        PCOPYDATASTRUCT pcds = (PCOPYDATASTRUCT)lParam;
+
+        SendMessage( pcds->dwData, (LPARAM)pcds->lpData, 0 );
+
+        return 0;
+    }
+
+    
+    LRESULT OnWebWndOpenURL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LPCTSTR pszURL = (LPCTSTR)wParam;
+
+        OpenURL( pszURL );
+
+        return 0;
+    }
+
 
 };
 
