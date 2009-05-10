@@ -14,8 +14,6 @@
 
 #include "DWDropdownList.h"
 
-#define ID_TOOL_ADDR_DROPDOWN       10
-#define ID_TOOL_SERACH_DROPDOWN     11
 
 class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
 {
@@ -50,7 +48,7 @@ public:
         m_wndDropList.Create(
             m_hWnd, rcDefault, NULL,
             WS_POPUP | WS_BORDER, 
-            WS_EX_TOOLWINDOW);
+            WS_EX_TOOLWINDOW | WS_EX_TOPMOST);
 
         return DefWindowProc();
     }
@@ -82,7 +80,7 @@ public:
         if ( GetDlgCtrlID() == ID_TOOL_SERACH_DROPDOWN )
             rcWindow.left -= 5;
 
-        rcWindow.top    = rcWindow.bottom;
+        rcWindow.top    = rcWindow.bottom+1;
         rcWindow.bottom = rcWindow.top + 300;
 
         SetFocus();
@@ -116,8 +114,10 @@ public:
     {
         LRESULT lResult = DefWindowProc();
 
-        //if ( IsDropdownList() )
-        //    HideDropdownList();
+        HWND hWnd = GetFocus();
+
+        if ( (hWnd != m_wndDropList && hWnd != m_wndDropList.m_wndListBox) && IsDropdownList() )
+            HideDropdownList();
 
         return lResult;
     }

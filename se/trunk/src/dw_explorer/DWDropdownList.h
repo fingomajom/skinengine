@@ -19,13 +19,15 @@ public:
     DECLARE_WND_CLASS(_T("DWExplorer_DWListBox"));
 
     BEGIN_MSG_MAP(CDWListBox)
-        MESSAGE_HANDLER( WM_SETFOCUS  , OnSetFocus )
-        MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
-        MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
+        //MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        //MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
+        //MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
     END_MSG_MAP()
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
+        GetParent().SetFocus();
+
         return 0L;
     }
 
@@ -41,6 +43,20 @@ public:
         return 1L;
     }
 
+    void SetItemCount( int nCount )
+    {
+        int nItemCount = GetCount();
+
+        while ( nItemCount != nCount )
+        {
+            if ( nCount < nItemCount )
+                CListBox::DeleteString(0);
+            else
+                CListBox::AddString(L"123123");
+
+            nItemCount = GetCount();
+        }
+    }
 };
 
 class CDWDropdownList : 
@@ -56,7 +72,7 @@ public:
 
         MESSAGE_HANDLER( WM_CREATE     , OnCreate  )
         MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
-        MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        //MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
 
         MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
@@ -73,12 +89,12 @@ public:
         RECT rcClient = {0};
         GetClientRect(&rcClient);
 
-        //m_wndListBox.Create(
-        //    m_hWnd, rcClient, NULL,
-        //    WS_CHILD | WS_VISIBLE | LBS_OWNERDRAWFIXED, 
-        //    WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW );
+        m_wndListBox.Create(
+            m_hWnd, rcClient, NULL,
+            WS_CHILD | WS_VISIBLE | LBS_HASSTRINGS | LBS_USETABSTOPS | LBS_DISABLENOSCROLL ,//| LBS_OWNERDRAWFIXED | LBS_NODATA | WS_VSCROLL, 
+            0);
 
-        //m_wndListBox.AddString(L"");
+        m_wndListBox.SetItemCount(20);
 
         return DefWindowProc();
     }
@@ -92,7 +108,8 @@ public:
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        return DefWindowProc();
+        m_wndEdit.SetFocus();
+        return 0L;
     }
 
     LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -112,6 +129,54 @@ public:
         CPaintDC dc(m_hWnd);
 
         return 0L;
+    }
+
+    void DrawItem( LPDRAWITEMSTRUCT lpDrawItemStruct )
+    {
+        CSkinDCHandle dc(lpDrawItemStruct->hDC);
+
+        CDWSkinUIMgt& skin = CDWSkinUIMgt::Instace();
+
+        COLORREF clrBorder = HLS_TRANSFORM(skin.clrFrameWindow, 30, 0);
+
+        RECT rcText = lpDrawItemStruct->rcItem;
+
+        dc.SkinLine( 
+            rcText.left + 4, 
+            rcText.top,
+            rcText.right - 4 , 
+            rcText.top, 
+            clrBorder);
+
+        skin.iconNull.DrawIconEx(
+            dc,
+            rcText.left + 3, 
+            rcText.top + 3,
+            16, 16 );
+
+        rcText.left += 22;
+
+        if ( m_wndEdit.GetDlgCtrlID() == ID_TOOL_SERACH_DROPDOWN )
+            rcText.left += 5;
+
+        HFONT hOldFont = dc.SelectFont(skin.fontDefault);
+        dc.SetBkMode(TRANSPARENT);
+
+
+        dc.DrawText( L"about:blank", -1, &rcText,
+            DT_LEFT | DT_SINGLELINE | DT_VCENTER);
+
+        dc.SelectFont(hOldFont);
+    }
+
+    void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+    {
+        if(lpMeasureItemStruct->CtlType != ODT_MENU)
+        {
+            lpMeasureItemStruct->itemHeight = 20;
+        }
+        else
+            lpMeasureItemStruct->itemHeight = ::GetSystemMetrics(SM_CYMENU);
     }
 
     LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -147,24 +212,6 @@ public:
         return 0L;
     }
 
-    void DrawItem(LPDRAWITEMSTRUCT /*lpDrawItemStruct*/)
-    {
-        int i = 0;
-    }
-
-    void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
-    {
-        if(lpMeasureItemStruct->CtlType != ODT_MENU)
-        {
-            CClientDC dc(m_hWnd);
-            TEXTMETRIC tm = { 0 };
-            dc.GetTextMetrics(&tm);
-
-            lpMeasureItemStruct->itemHeight = tm.tmHeight;
-        }
-        else
-            lpMeasureItemStruct->itemHeight = ::GetSystemMetrics(SM_CYMENU);
-    }
 
 
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -268,20 +315,26 @@ public:
         WPARAM wParam,
         LPARAM lParam )
     {
-        LPMSG pMsg = (LPMSG)lParam;
+        LPMSG pMsg = ( LPMSG )lParam;
 
         LRESULT lRet = ::CallNextHookEx( s_hDropdownListHook, nCode, wParam, lParam);
 
         if ( pMsg->message == WM_LBUTTONDOWN || 
              pMsg->message == WM_LBUTTONDBLCLK ||
              pMsg->message == WM_RBUTTONDOWN ||
-             pMsg->message == WM_RBUTTONDBLCLK )
+             pMsg->message == WM_RBUTTONDBLCLK ||
+             pMsg->message == WM_NCLBUTTONDOWN || 
+             pMsg->message == WM_NCLBUTTONDBLCLK ||
+             pMsg->message == WM_NCRBUTTONDOWN ||
+             pMsg->message == WM_NCRBUTTONDBLCLK )
         {
             POINT pt;
             GetCursorPos(&pt);
 
             RECT rcWindow;
             ::GetWindowRect(s_hWndDropdownList, &rcWindow);
+
+            rcWindow.top -= 20;
 
             if ( !::PtInRect( &rcWindow, pt ) )
             {

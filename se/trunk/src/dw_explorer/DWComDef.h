@@ -43,6 +43,10 @@
 #define BLANK_URL                       L"about:blank"
 
 
+
+#define ID_TOOL_ADDR_DROPDOWN       10
+#define ID_TOOL_SERACH_DROPDOWN     11
+
 inline LRESULT SendCopyData( HWND hWnd, UINT uMsg, const void* lpBuf, DWORD dwLen )
 {
     COPYDATASTRUCT cds = { uMsg, dwLen, const_cast<void*>(lpBuf) };

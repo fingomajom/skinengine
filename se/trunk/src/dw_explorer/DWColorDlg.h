@@ -7,6 +7,27 @@
 static HHOOK s_hColorDialogHook = NULL;
 static HWND  s_hWndColorDialog  = NULL;
 
+class CDWTrackBarCtrl : public CWindowImpl<CDWTrackBarCtrl, CTrackBarCtrl>
+{
+public:
+    DECLARE_WND_CLASS(_T("DWExplorer_DWTrackBarCtrl"));
+
+    BEGIN_MSG_MAP(CDWTrackBarCtrl)
+        MESSAGE_HANDLER(WM_KILLFOCUS , OnKillFocus )
+    END_MSG_MAP()
+
+    LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        LRESULT lResult = DefWindowProc();
+
+        ::ShowWindow(GetParent(), SW_HIDE);
+
+        return lResult;
+    }
+
+};
+
+
 class CDWColorDialog : public CDialogImpl<CDWColorDialog>
 {
 public:
@@ -23,11 +44,11 @@ public:
     END_MSG_MAP()
 
     
-    CTrackBarCtrl m_wndClrTrack;
+    CDWTrackBarCtrl m_wndClrTrack;
 
     LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        m_wndClrTrack = GetDlgItem( IDC_COLOR_SLIDER );
+        m_wndClrTrack.SubclassWindow( GetDlgItem( IDC_COLOR_SLIDER ) );
 
         RECT rcClient;
         GetClientRect(&rcClient);
@@ -57,7 +78,6 @@ public:
 
         return TRUE;
     }
-
 
     LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -110,12 +130,26 @@ public:
     {
         if ( nCmdShow != SW_HIDE )
         {
+            ATLASSERT(s_hColorDialogHook == NULL);
+            ATLASSERT(s_hWndColorDialog == NULL);
+
             s_hWndColorDialog = m_hWnd;
             s_hColorDialogHook = ::SetWindowsHookEx(WH_GETMESSAGE, 
                 MsgHookFunc, 
                 _Module.GetModuleInstance(), 
                 GetCurrentThreadId());
             ATLASSERT(s_hColorDialogHook);
+            SetFocus();
+        }
+        else
+        {
+            if ( s_hColorDialogHook != NULL )
+            {
+                UnhookWindowsHookEx( s_hColorDialogHook );
+                s_hColorDialogHook = NULL;
+                s_hWndColorDialog  = NULL;
+            }
+
         }
 
         return CDialogImpl<CDWColorDialog>::ShowWindow( nCmdShow );
@@ -131,9 +165,13 @@ public:
         LRESULT lRet = ::CallNextHookEx( s_hColorDialogHook, nCode, wParam, lParam);
 
         if ( pMsg->message == WM_LBUTTONDOWN || 
-             pMsg->message == WM_LBUTTONDBLCLK ||
-             pMsg->message == WM_RBUTTONDOWN ||
-             pMsg->message == WM_RBUTTONDBLCLK )
+            pMsg->message == WM_LBUTTONDBLCLK ||
+            pMsg->message == WM_RBUTTONDOWN ||
+            pMsg->message == WM_RBUTTONDBLCLK ||
+            pMsg->message == WM_NCLBUTTONDOWN || 
+            pMsg->message == WM_NCLBUTTONDBLCLK ||
+            pMsg->message == WM_NCRBUTTONDOWN ||
+            pMsg->message == WM_NCRBUTTONDBLCLK )
         {
             POINT pt;
             GetCursorPos(&pt);
@@ -145,6 +183,8 @@ public:
             {
                 UnhookWindowsHookEx( s_hColorDialogHook );
                 ::ShowWindow(s_hWndColorDialog, SW_HIDE);
+                s_hColorDialogHook = NULL;
+                s_hWndColorDialog  = NULL;
             }
         }
 
