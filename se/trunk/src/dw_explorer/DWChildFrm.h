@@ -96,9 +96,9 @@ public:
 
         MESSAGE_HANDLER(WM_COPYDATA, OnCopyData)
 
-        MESSAGE_HANDLER(WM_CREATE , OnCreate )
+        MESSAGE_HANDLER(WM_CREATE , OnCreate   )
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy  )
-        MESSAGE_HANDLER(WM_SIZE   , OnSize   )
+        MESSAGE_HANDLER(WM_SIZE   , OnSize     )
 
         MESSAGE_HANDLER(WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
@@ -112,7 +112,10 @@ public:
         MESSAGE_HANDLER(WM_CREATE_WEB_WND   , OnCreateWebWnd   )
         MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
         
-        MESSAGE_HANDLER(WM_WEBVIEW_CREATE   , OnWebViewCreate)
+        MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate)
+        MESSAGE_HANDLER(WM_WEBVIEW_GET        , OnWebViewGet)
+        MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch)
+        
 
     END_MSG_MAP()
 
@@ -145,12 +148,20 @@ public:
 
     LRESULT OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        if ( wParam )
-            return (LRESULT)m_wndClient.m_hWnd;
-
-        return ::SendMessage(GetParent(), WM_WEBVIEW_CREATE, NULL, NULL);
+        return ::SendMessage(GetParent(), WM_WEBVIEW_CREATE, wParam, lParam);
     }
 
+    LRESULT OnWebViewGet(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return (LRESULT)m_wndClient.m_hWnd;
+    }
+
+    LRESULT OnWebViewOpenSearch(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return ::SendMessage(GetParent(), WM_WEBVIEW_OPENSEARCH, wParam, lParam);
+    }
+
+    
 
     LRESULT OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -290,7 +301,7 @@ public:
 
         return 0L;
     }
-
+ 
 
     LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -310,7 +321,7 @@ public:
             return;
 
         if ( !GetClientRect(&rcClient) ||
-            !m_wndClient.GetClientRect(&rcCClient) ||
+             !m_wndClient.GetClientRect(&rcCClient) ||
             (rcClient.right == 0 && rcClient.bottom == 0 ) )
         {
             return;

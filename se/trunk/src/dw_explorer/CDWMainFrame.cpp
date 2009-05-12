@@ -84,18 +84,14 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndTableBar.Create   ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndStatusBar.Create  ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    
+    CDWEventSvr::Instance().AddCallback(this);
+
 #ifdef __TEST_WEB_WND__
     m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
     m_wndClient.OpenURL(L"http://www.sogou.com");
-#endif
-
-    CDWEventSvr::Instance().AddCallback(this);
-    
-#ifndef __TEST_WEB_WND__
+#else
     OnNewURL(NULL);
 #endif
-
 
     return 0L;
 }
@@ -113,6 +109,11 @@ LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     bHandled = FALSE;
+
+    DWORD dwStyle = GetStyle();
+    if ((dwStyle & WS_MINIMIZE) == WS_MINIMIZE)
+        return 1L;
+
     
     RECT rcClient  = { 0 };
     RECT rcToolBar = { 0 };
@@ -162,6 +163,13 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     {
         m_pNowChildFrm->MoveWindow( &rcToolBar );
     }
+
+#ifdef __TEST_WEB_WND__
+
+    if ( m_wndClient.IsWindow() )
+        m_wndClient.MoveWindow( &rcToolBar );
+    
+#endif
 
     return 0L;
 }
@@ -392,9 +400,10 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
     return 1L;
 }
 
-LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-    OnNewURL(NULL);
+    OnNewURL((LPCTSTR)wParam);
+
     ATLASSERT( m_pNowChildFrm != NULL  && m_pNowChildFrm->IsWindow() );
     
     if ( m_pNowChildFrm != NULL )
@@ -402,6 +411,14 @@ LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
     return NULL;
 }
+
+LRESULT CDWMainFrame::OnWebViewOpenSearch(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    m_wndSuperbar.OpenSerach((LPCTSTR)wParam);
+    
+    return 1L;
+}
+
 
 
 LRESULT CDWMainFrame::OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

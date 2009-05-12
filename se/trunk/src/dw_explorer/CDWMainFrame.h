@@ -46,7 +46,8 @@ public:
 
         MESSAGE_HANDLER(WM_TABLE_BAR_MSG, OnTableBarMsg)
 
-        MESSAGE_HANDLER(WM_WEBVIEW_CREATE, OnWebViewCreate)
+        MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate)
+        MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch)
 
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
@@ -78,8 +79,9 @@ protected:
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
-    LRESULT OnTableBarMsg(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-    LRESULT OnWebViewCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnTableBarMsg       (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnWebViewCreate     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnWebViewOpenSearch (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
@@ -99,9 +101,8 @@ protected:
     CDWStatusBar    m_wndStatusBar;
 #ifdef __TEST_WEB_WND__
     CDWWebView      m_wndClient;
-#else
+#endif
     ATL::CAtlList<CDWChildFrm*> m_listChildFrm;
     CDWChildFrm* m_pNowChildFrm;
-#endif
 
 };

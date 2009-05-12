@@ -8,14 +8,20 @@
 #include "DWTitleBar.h"
 #include "DWSysBtnToolbar.h"
 
+
 template<class T>
 class CDWFrameUIImpl
 {
 public:
 
+    enum{
+        WS_FULLSCREEN = 1
+    };
+
     CDWFrameUIImpl()
     {
         m_bActivete = FALSE;
+        m_bMaximize = FALSE;
     }
 
     BEGIN_MSG_MAP(CDWFrameUIImpl)
@@ -26,14 +32,11 @@ public:
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd)
 
         MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint   )
-
-        //MESSAGE_HANDLER(WM_SETFOCUS   , OnSkipMsg    )
-        //MESSAGE_HANDLER(WM_KILLFOCUS  , OnSkipMsg    )
-        //MESSAGE_HANDLER(WM_NCACTIVATE , OnSkipMsg    )
-        //MESSAGE_HANDLER(WM_ACTIVATE   , OnSkipMsg    )
-        
+       
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize  )
         MESSAGE_HANDLER(WM_SIZE      , OnSize        )
+
+        MESSAGE_HANDLER(WM_WINDOWPOSCHANGING, OnWindowPosChanging)
 
         MESSAGE_HANDLER(WM_COMMAND   , OnSysBarCmd)
         MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysBarCmd)
@@ -58,6 +61,10 @@ public:
 
     void ReRgnWindow()
     {
+        DWORD dwStyle = ((T*)this)->GetStyle();
+        if ((dwStyle & WS_MINIMIZE) == WS_MINIMIZE)
+            return;
+
         CRgnHandle rgn;
 
         RECT rcWindow;
@@ -81,6 +88,10 @@ public:
 
     void RePositionCtrls()
     {
+        DWORD dwStyle = ((T*)this)->GetStyle();
+        if ( (dwStyle & WS_MINIMIZE) == WS_MINIMIZE )
+            return;
+
         RECT rcClient   = { 0 };
         RECT rcSysBar   = { 0 };
         RECT rcTitleBar = { 0 };
@@ -129,7 +140,41 @@ public:
         return 0L;
     }
 
-    
+    LRESULT OnWindowPosChanging(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+    {
+        T* pthis = (T*)this;
+
+        bHandled = FALSE;
+        LPWINDOWPOS lpWndPos = (LPWINDOWPOS)lParam;
+        if (pthis->GetStyle() & WS_MAXIMIZE && (lpWndPos->flags & SWP_NOSIZE) == 0)
+        {
+            RECT rc;
+            pthis->GetWindowRect(&rc);
+            HMONITOR hMon = NULL;
+            if (rc.right - rc.left < 320 || rc.bottom - rc.top < 300)
+                hMon = ::MonitorFromRect(&m_rcLastWindowPos, MONITOR_DEFAULTTONEAREST);
+            else
+                hMon = ::MonitorFromWindow(pthis->m_hWnd, MONITOR_DEFAULTTONEAREST);
+
+            RECT rcWork;
+            MONITORINFO mi = { sizeof(MONITORINFO) };
+            ::GetMonitorInfo(hMon, &mi);
+            
+            rcWork = (pthis->GetStyle() & WS_FULLSCREEN) ? mi.rcMonitor : mi.rcWork;
+
+            rcWork.top    -= 2;
+            rcWork.left   -= 4;
+            rcWork.right  += 4;
+            rcWork.bottom += 4;
+
+            lpWndPos->x  = rcWork.left;
+            lpWndPos->y  = rcWork.top;
+            lpWndPos->cx = rcWork.right - rcWork.left;
+            lpWndPos->cy = rcWork.bottom - rcWork.top;
+        }
+        return 0;
+    }
+
     LRESULT OnSysBarCmd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         bHandled = FALSE;
@@ -145,30 +190,17 @@ public:
 
         switch ( nCmdId )
         {
-        case SC_MAXIMIZE:
-            {
-                bHandled = TRUE;
-
-                pthis->SetRedraw(FALSE);
-                ::DefWindowProc( *(T*)this, WM_SYSCOMMAND, nCmdId, 0);
-
-                RECT rcWindow = { 0 };
-                SystemParametersInfo( SPI_GETWORKAREA, 0, &rcWindow, 0 );
-
-                rcWindow.left   -=4;
-                rcWindow.right  +=4;
-                rcWindow.top    -=2;
-                rcWindow.bottom +=4;
-
-                pthis->MoveWindow(&rcWindow);
-                pthis->SetRedraw(TRUE);
-                pthis->Invalidate();
-            }
-            break;
-        case SC_MINIMIZE:
         case SC_RESTORE:
+            pthis->ModifyStyle(WS_FULLSCREEN, 0);
+        case SC_MAXIMIZE:
+        case SC_MINIMIZE:
+            if (!( pthis->GetStyle() & WS_MAXIMIZE))
+                 pthis->GetWindowRect(&m_rcLastWindowPos);
         case SC_CLOSE:
-            ::DefWindowProc( *(T*)this, WM_SYSCOMMAND, nCmdId, 0);
+
+            bHandled = TRUE;
+            pthis->DefWindowProc(WM_SYSCOMMAND, nCmdId | (wParam & 0xffff000f), lParam);
+
             break;
         }
 
@@ -315,8 +347,10 @@ public:
 
 protected:
     
-    BOOL m_bActivete;
+    RECT m_rcLastWindowPos;
+    BOOL m_bMaximize;
 
+    BOOL m_bActivete;
     CRgn m_rgnWindow;
 
     CDWTitleBar      m_sys_title;

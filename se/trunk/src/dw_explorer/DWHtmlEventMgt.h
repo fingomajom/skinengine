@@ -87,6 +87,7 @@ public:
     {
         RegisterDragDrop(m_hWnd, &m_DragDropMgt);
         
+        m_DragDropMgt.m_hNotifyWnd   = m_hNotifyWnd;
         m_DragDropMgt.m_pHtmlView    = this;
         m_DragDropMgt.m_spDropTarget = pDropTarget;
         *ppDropTarget = &m_DragDropMgt;
@@ -157,11 +158,11 @@ public:
             return;
         }
 
-        HWND hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_CREATE, TRUE, 0 );
+        HWND hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_GET, 0, 0 );
         while ( hWnd == NULL )
         {
             Sleep(30);
-            hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_CREATE, TRUE, 0 );
+            hWnd = (HWND)::SendMessage( hWndChildFrm, WM_WEBVIEW_GET, 0, 0 );
         }
 
         DWORD dwPID = 0 ;

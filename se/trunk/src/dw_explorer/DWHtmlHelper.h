@@ -268,4 +268,82 @@ public:
         return hr ;
     }
 
+    static long GetKindOfNavigateUrl(LPCTSTR lpszKey)
+    {
+        if (!lpszKey || !lpszKey[0])
+            return UNKNOWN_URL ;
+        if (::PathIsDirectory(lpszKey))
+            return DIRECTORY_EXIST ;
+        if (::PathIsNetworkPath(lpszKey))
+            return NETWORK_PATH ;
+
+        TCHAR szUrlPath[512] = { 0 };
+        TCHAR szScheme[32] = { 0 };
+        URL_COMPONENTS urlComponents = { 0 };
+        urlComponents.dwStructSize = sizeof(URL_COMPONENTS);
+        urlComponents.lpszUrlPath = szUrlPath;
+        urlComponents.dwUrlPathLength = 512;
+        urlComponents.lpszScheme = szScheme;
+        urlComponents.dwSchemeLength = 32;
+        WIN32_FIND_DATA wfd = { 0 } ; 
+        if (::InternetCrackUrl(lpszKey, 0, 0, &urlComponents) && urlComponents.nScheme == INTERNET_SCHEME_FILE)
+            if (INVALID_HANDLE_VALUE != FindFirstFile(lpszKey, &wfd))
+                return FILE_SCHEME_KEY ;
+            else if (::PathIsDirectory(szUrlPath))
+                return DIRECTORY_EXIST ;
+            else
+                return NOT_FIND ;
+
+            if (!StrCmpNI(L"about:", lpszKey, 6))
+                return ABOUT_BLANK ;
+
+            if (!StrCmpNI(L"javascript:", lpszKey, 11)  ||
+                !StrCmpNI(L"vbscript:", lpszKey, 9)           ||
+                !StrCmpNI(L"mailto:", lpszKey, 7)              )
+                return SCRIPT_SCHEME_KEY ;
+
+            if (!StrCmpNI(L"localhost", lpszKey, 9))
+                return VALID_URL ;
+
+            if (!StrCmpNI(L"ftp", lpszKey, 3))
+                return FTP_SCHEME_KEY ;
+
+            // 如果碰上类似url，要判断成合法url
+            // http://58.251.57.206/down?cid=FC4C689C7851773472C2DB828D267621840B98E9&t=4&fmt=
+            if (!StrCmpNI(L"http", lpszKey, 4))
+                return VALID_URL ;
+
+            BOOL bUsualFix = FALSE ;
+            if (StrStr(lpszKey, L"www.")   ||
+                StrStr(lpszKey, L".com")   ||
+                StrStr(lpszKey, L".cn")    ||
+                StrStr(lpszKey, L".net")   ||
+                StrStr(lpszKey, L".gov")   ||
+                StrStr(lpszKey, L".org")   ||
+                StrStr(lpszKey, L".edu")   ||
+                StrStr(lpszKey, L".ac")     )
+                bUsualFix = TRUE ;
+
+            if (bUsualFix)
+            {
+                return VALID_URL ;
+            }
+            else
+            {
+                CString cstrReplace = lpszKey ;
+                cstrReplace.Replace(L"\\", L"/") ;
+                if ( PathIsDirectoryW(cstrReplace) )
+                {
+                    if (::InternetCrackUrl(cstrReplace, 0, 0, &urlComponents) && urlComponents.nScheme == INTERNET_SCHEME_FILE)
+                        if (INVALID_HANDLE_VALUE != FindFirstFile(cstrReplace, &wfd))
+                            return FILE_SCHEME_KEY ;
+                        else if (::PathIsDirectory(szUrlPath))
+                            return DIRECTORY_EXIST ;
+                        else
+                            return NOT_FIND ;
+                }
+            }
+            return SEARCH_DATA_KEY ;
+    }
+
 };

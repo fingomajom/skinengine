@@ -151,7 +151,7 @@ public:
 	STDMETHOD(GetWindow)(HWND* phwnd)
 	{
 		ATLENSURE_RETURN(phwnd);
-		if (m_hWnd == NULL)
+		//if (m_hWnd == NULL)
 			Create(NULL, NULL, _T("AXWIN UI Window"), WS_OVERLAPPEDWINDOW, 0, (UINT)NULL);
 		*phwnd = m_hWnd;
 		return S_OK;
@@ -469,6 +469,7 @@ public:
 			m_spInPlaceObjectWindowless->SetObjectRects(&m_rcPos, &m_rcPos);
 		if (m_bWindowless)
 			InvalidateRect(NULL, TRUE);
+
 		bHandled = FALSE;
 		return 0;
 	}
@@ -502,8 +503,6 @@ public:
 	{
 		if (m_spViewObject == NULL)
 			return 0;
-
-//		m_spViewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL, hdcCompatible, (RECTL*)&m_rcPos, (RECTL*)&m_rcPos, NULL, NULL); 
 
 		bHandled = FALSE;
 		return 0;

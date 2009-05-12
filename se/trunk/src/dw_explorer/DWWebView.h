@@ -49,6 +49,7 @@ public:
         MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd    )
         MESSAGE_HANDLER(WM_SETFOCUS         , OnSetFocus      )
         MESSAGE_HANDLER(WM_WEBVIEW_OPENURL  , OnWebWndOpenURL )
+        MESSAGE_HANDLER(WM_SIZE             , OnSize)
 
 
         MESSAGE_HANDLER(WM_SHOWWINDOW , OnShowWindow )
@@ -75,9 +76,15 @@ public:
         return 0L;
     }
 
+    
+    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1L;
+    }
+
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return 1;
+        return 1L;
     }
 
     LRESULT OnShowWindow(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
