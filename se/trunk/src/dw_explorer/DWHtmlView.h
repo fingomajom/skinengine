@@ -98,7 +98,7 @@ public:
 
 protected:
 
-    BEGIN_MSG_MAP(CDWWebWnd)
+    BEGIN_MSG_MAP(CDWHtmlView)
         MESSAGE_HANDLER(WM_CREATE  , OnCreate )
         MESSAGE_HANDLER(WM_DESTROY , OnDestroy )
     END_MSG_MAP()

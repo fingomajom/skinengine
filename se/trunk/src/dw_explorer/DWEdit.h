@@ -18,7 +18,9 @@
 #define WM_EDIT_KEY_RETURN  (WM_USER + 1033)
 
 
-class CDWEdit : public CWindowImpl<CDWEdit, CEdit>
+class CDWEdit : 
+    public CWindowImpl<CDWEdit, CEdit>,
+    public IDropTarget
 {
 public:
 
@@ -100,6 +102,9 @@ public:
             WS_POPUP | WS_BORDER, 
             WS_EX_TOOLWINDOW);
 
+        RegisterDragDrop(m_hWnd, this);
+
+
         return DefWindowProc();
     }
 
@@ -122,6 +127,8 @@ public:
     {
         if ( m_wndDropList.IsWindow() )
             m_wndDropList.DestroyWindow();
+
+        RevokeDragDrop(m_hWnd);
 
         return DefWindowProc();
     }
@@ -296,6 +303,76 @@ public:
 
         return 0L;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // IDropTarget
+    ULONG STDMETHODCALLTYPE AddRef()
+    {
+        return 1;
+    }
+
+    ULONG STDMETHODCALLTYPE Release()
+    {
+        return 1;
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(const IID &riid, void **ppvObject)
+    {
+        if (riid == IID_IUnknown) 
+        { 
+            *ppvObject = (IUnknown*)(this); 
+            return S_OK; 
+        } 
+        if (riid == IID_IDropTarget)
+        {
+            *ppvObject = (IDropTarget*)(this); 
+            return S_OK; 
+        }
+
+        return E_NOINTERFACE ;
+    }
+    
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+    {
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+    {
+        *pdwEffect |= DROPEFFECT_COPY ;
+
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE DragLeave()
+    {
+        return S_OK ;
+    }
+
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+    {
+        *pdwEffect = DROPEFFECT_NONE;
+
+
+        FORMATETC FormatEtc = { 0 };
+        STGMEDIUM StgMedium = { 0 };
+
+        FormatEtc.cfFormat = CF_UNICODETEXT;
+        FormatEtc.tymed    = TYMED_HGLOBAL;
+        pDataObj->GetData(&FormatEtc, &StgMedium);
+        if (StgMedium.hGlobal)
+        {
+            LPCTSTR lpcszData = (LPCTSTR)GlobalLock(StgMedium.hGlobal);
+            
+            SetWindowText( lpcszData );
+
+            GlobalUnlock(StgMedium.hGlobal);
+            GlobalFree(StgMedium.hGlobal);
+        }
+
+        return S_OK ;
+    }
+
 
     ATL::CString    m_strBkText;
     CDWDropdownList m_wndDropList;

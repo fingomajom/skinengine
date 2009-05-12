@@ -366,6 +366,10 @@
 				Name="UI"
 				>
 				<File
+					RelativePath=".\DWDragDropMgt.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWHtmlEventMgt.h"
 					>
 				</File>
@@ -378,6 +382,10 @@
 					>
 					<File
 						RelativePath=".\DWAxHost.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWHtmlHelper.h"
 						>
 					</File>
 					<File

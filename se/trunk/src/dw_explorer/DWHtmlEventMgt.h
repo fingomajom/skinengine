@@ -3,7 +3,7 @@
 #pragma once
 
 #include "DWHtmlView.h"
-
+#include "DWDragDropMgt.h"
 
 HWND CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL, IWebBrowser2** ppOut );
 
@@ -11,6 +11,12 @@ HWND CreateWebWnd( HWND hParent, LPCTSTR pszOpenURL, IWebBrowser2** ppOut );
 class CDWHtmlEventMgt : public CDWHtmlView
 {
 public:
+
+    CDWHtmlEventMgt() {}
+
+    ~CDWHtmlEventMgt()
+    {
+    }
 
     BEGIN_MSG_MAP(CDWWebView)
 
@@ -20,6 +26,12 @@ public:
         CHAIN_MSG_MAP(CDWHtmlView);
 
     END_MSG_MAP();
+
+    virtual void OnFinalMessage(HWND /*hWnd*/)
+    {
+        RevokeDragDrop(m_hWnd);
+    }
+
 
     LRESULT OnGetMarshalWebBrowser2CrossThread(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -73,6 +85,12 @@ public:
 
     virtual HRESULT OnGetDropTarget(LPDROPTARGET pDropTarget, LPDROPTARGET* ppDropTarget)
     {
+        RegisterDragDrop(m_hWnd, &m_DragDropMgt);
+        
+        m_DragDropMgt.m_pHtmlView    = this;
+        m_DragDropMgt.m_spDropTarget = pDropTarget;
+        *ppDropTarget = &m_DragDropMgt;
+
         return S_OK;
     }
 
@@ -291,6 +309,8 @@ public:
 
 
 public:
+
+    CDWDragDropMgt m_DragDropMgt;
 
     HWND m_hNotifyWnd;
 
