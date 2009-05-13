@@ -184,9 +184,9 @@ public:
             static size_t lenFilter10 = (sizeof(sFilter10) / sizeof(WCHAR)) - 1;
 
             if ( bstrUrl.m_str != NULL &&
-                ( !_wcsnicmp( bstrUrl.m_str, sFilter1, lenFilter1 ) ||
-                !_wcsnicmp( bstrUrl.m_str, sFilter2, lenFilter2 ) ||
-                !_wcsnicmp( bstrUrl.m_str, sFilter3, lenFilter3 ) ) )
+                ( !StrCmpNI( bstrUrl.m_str, sFilter1, lenFilter1 ) ||
+                  !StrCmpNI( bstrUrl.m_str, sFilter2, lenFilter2 ) ||
+                  !StrCmpNI( bstrUrl.m_str, sFilter3, lenFilter3 ) ) )
             {
                 continue;
             }
@@ -196,10 +196,10 @@ public:
                 continue;
 
             if ( bstrUrl.m_str != NULL &&
-                !_wcsnicmp( bstrUrl.m_str, sFilter10, lenFilter10 ) )
+                !StrCmpNI( bstrUrl.m_str, sFilter10, lenFilter10 ) )
             {
                 if ( bstrName.m_str != NULL &&
-                    !_wcsicmp( bstrName, L"下一页" ) )
+                    !StrCmpI( bstrName, L"下一页" ) )
                 {
                     break;
                 }
