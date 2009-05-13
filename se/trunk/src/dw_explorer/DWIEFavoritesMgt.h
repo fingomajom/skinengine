@@ -49,14 +49,13 @@ struct IEFavoriteItem
 };
 
 
-class CDWIEFavoritesMgt
+class CDWIEFavoritesMgt : public CDWSingleton2<CDWIEFavoritesMgt>
 {
-    CDWIEFavoritesMgt( const CDWIEFavoritesMgt& );
+    friend class CDWSingleton2<CDWIEFavoritesMgt>;
 
+    CDWIEFavoritesMgt( const CDWIEFavoritesMgt& );
     CDWIEFavoritesMgt() {}
 public:
-    
-    static CDWIEFavoritesMgt& Instance();
     
 
     BOOL BuildIEFavorites();
@@ -73,14 +72,6 @@ protected:
 
     CDWFavList m_FavoriteList;
 };
-
-
-
-inline CDWIEFavoritesMgt& CDWIEFavoritesMgt::Instance()
-{
-    static CDWIEFavoritesMgt __CDWIEFavoritesMgt_Instance__;
-    return __CDWIEFavoritesMgt_Instance__;
-}
 
 
 inline BOOL CDWIEFavoritesMgt::BuildIEFavorites()

@@ -33,4 +33,22 @@ private:
     static T* m_p;
 };
 
+
+template<class T>
+class CDWSingleton2
+{
+public:
+
+    static T* InstancePtr()
+    {
+        return &Instance(); 
+    }
+
+    static T& Instance()
+    {
+        static T gs_instance;
+        return gs_instance;
+    }
+};
+
 template<class T> __declspec(selectany) T* CDWSingleton<T>::m_p;

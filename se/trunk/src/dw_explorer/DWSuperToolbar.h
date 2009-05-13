@@ -9,6 +9,7 @@
 #include "DWMenu.h"
 #include "DWEdit.h"
 
+#include "DWSmartAddrMgt.h"
 
 class CDWSuperToolbar : 
     public CDWToolbar, 
@@ -217,6 +218,32 @@ public:
         Invalidate();
 
         ::InvalidateRect(hWndCtl, NULL, TRUE);
+
+        if ( wID == ID_TOOL_ADDR_DROPDOWN && GetFocus() == m_address_edit )
+        {
+            int nTextLen = m_address_edit.GetWindowTextLength();
+
+            WCHAR* pszIText = new WCHAR[ nTextLen + 1];
+            m_address_edit.GetWindowText( pszIText, nTextLen + 1);
+
+
+            CDWSmartAddrMgt& sa = CDWSmartAddrMgt::Instance();
+            
+            AddrDropItemList aList;
+            sa.QueryAddrDropList(m_hWnd, pszIText, aList, 20 );
+            m_address_edit.ClearDropdownList();
+            for ( POSITION pos = aList.GetHeadPosition(); pos != NULL ; )
+            {
+                ADDRDROPLISTITEM& item = aList.GetNext(pos);
+                
+                m_address_edit.AddDropdownList( item.strURL, item.strTitle );
+            }
+
+            if ( m_address_edit.m_vtDropList.GetCount() > 0 || 1 )
+                m_address_edit.ShowDropdownList();
+
+            delete []pszIText;
+        }
         
         return 0;
     }

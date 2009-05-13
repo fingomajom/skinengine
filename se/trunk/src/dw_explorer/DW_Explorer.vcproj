@@ -280,13 +280,29 @@
 							>
 						</File>
 						<File
-							RelativePath=".\DWSmartAddrMgt.h"
-							>
-						</File>
-						<File
 							RelativePath=".\DWSuperToolbar.h"
 							>
 						</File>
+						<Filter
+							Name="SmartAddr"
+							>
+							<File
+								RelativePath=".\DWSmartAddrFavorite.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DWSmartAddrMgt.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DWSmartAddrProvider.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DWSmartAddrSearch.h"
+								>
+							</File>
+						</Filter>
 					</Filter>
 				</Filter>
 				<Filter
@@ -294,6 +310,10 @@
 					>
 					<File
 						RelativePath=".\DWComDef.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWConfigDB.h"
 						>
 					</File>
 					<File

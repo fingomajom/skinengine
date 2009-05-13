@@ -167,13 +167,15 @@ public:
     LRESULT ShowDropdownList()
     {
         ResizeDropdownList();
+        SetFocus();
+        m_wndDropList.m_wndListBox.SetCurSel(-1);
 
         if ( !m_wndDropList.IsWindowVisible() )
         {
-            SetFocus();
-            m_wndDropList.m_wndListBox.SetCurSel(-1);
             m_wndDropList.ShowWindow( SW_SHOWNOACTIVATE );
         }
+        else
+            m_wndDropList.Invalidate();
 
         return TRUE;
     }
