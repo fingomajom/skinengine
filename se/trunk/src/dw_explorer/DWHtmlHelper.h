@@ -88,7 +88,7 @@ public:
                     spParentElement = NULL;
                 hr = pUltimateElementHit->get_parentElement(&spParentElement);
             }
-            else//找到了anchor意味着用户在一个超链接上面发生了点击动作
+            else
             {
                 spAnchorElement->get_href(&bstrUrl);
                 ATL::CStringA strAnsi = CW2AEX<>(bstrUrl);

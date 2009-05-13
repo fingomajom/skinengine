@@ -15,7 +15,6 @@ public:
         m_spDropTarget = NULL ;
         m_bDragTextToInputBox = FALSE;
         m_uDraggingType = DDTYPE_NONE;
-        m_bstrHref = NULL;
     }
 
 
@@ -84,24 +83,25 @@ public:
         ptClient.x = pt.x;
         ptClient.y = pt.y;
 
-        CDWHtmlHelper::GetMouseClicked(m_pHtmlView, ptClient, m_bstrHref);
+        BSTR bstrHref = NULL;
+        CDWHtmlHelper::GetMouseClicked(m_pHtmlView, ptClient, bstrHref);
 
         //std::string szT = Util::URLMisc::UrlDecode(std::string(W2A(cstrText.GetBuffer())));
         //wchar_t wszUrl[1024] = { 0 };
         //::MultiByteToWideChar(CP_ACP, 0, szT.c_str(), -1, wszUrl, 1024);
 
-        if (cstrText.GetLength() < 1 && m_bstrHref != NULL)
+        if (cstrText.GetLength() < 1 && bstrHref != NULL)
             return DDTYPE_IMAGE;
-        if (cstrText.GetLength() > 1 && m_bstrHref != NULL && StrCmpNI(m_bstrHref, cstrText, 512) == 0)
+        if (cstrText.GetLength() > 1 && bstrHref != NULL && StrCmpNI(bstrHref, cstrText, 512) == 0)
         {
-            ::SysFreeString(m_bstrHref);
-            m_bstrHref = ::SysAllocString(cstrText.GetBuffer());
+            m_strHref = bstrHref;
+            ::SysFreeString(bstrHref);
             return DDTYPE_LINK;
         }
         if (cstrText.GetLength() > 1)
         {
-            ::SysFreeString(m_bstrHref);
-            m_bstrHref = ::SysAllocString(cstrText.GetBuffer());
+            m_strHref = bstrHref;
+            ::SysFreeString(bstrHref);
             return DDTYPE_TEXT;
         }
 
@@ -175,14 +175,6 @@ public:
 
         *pdwEffect = DROPEFFECT_NONE;
 
-        CString cstrText = L"";
-        if (m_bstrHref)
-        {
-            cstrText = (LPCWSTR)m_bstrHref;
-            ::SysFreeString(m_bstrHref);
-            m_bstrHref = NULL;
-        }
-
         if (m_uDraggingType == DDTYPE_FILE)
             if (ProcessDropFile(pDataObj))
                 return S_OK;
@@ -190,7 +182,7 @@ public:
         if (m_uDraggingType != DDTYPE_NONE)
         {
             m_uDraggingType = DDTYPE_NONE;
-            if (ProcessDropData(cstrText))
+            if (ProcessDropData(m_strHref))
                 return S_OK;
         }
 
@@ -200,7 +192,7 @@ public:
             hr = m_spDropTarget->Drop(pDataObj, grfKeyState, pt, pdwEffect) ;
         }
 
-        cstrText = L"" ;
+        m_strHref = L"" ;
         CString cstrUrl = L"" ;
         FORMATETC FormatEtc = { 0 } ;
         FormatEtc.cfFormat = CF_UNICODETEXT ;
@@ -210,15 +202,15 @@ public:
         if (StgMedium.hGlobal)
         {
             LPCTSTR lpcszData = (LPCTSTR)GlobalLock(StgMedium.hGlobal);
-            cstrText = lpcszData;
+            m_strHref = lpcszData;
             GlobalUnlock(StgMedium.hGlobal);
             GlobalFree(StgMedium.hGlobal) ;
         }
 
-        if (cstrText.IsEmpty())
+        if (m_strHref.IsEmpty())
             return S_OK ;
 
-        ProcessDropData(cstrText);
+        ProcessDropData(m_strHref);
 
         return S_OK ;
     }
@@ -295,7 +287,7 @@ public:
     CComPtr<IDropTarget> m_spDropTarget ;
     BOOL                 m_bDragTextToInputBox;
     ULONG                m_uDraggingType;
-    BSTR                 m_bstrHref;
+    CString              m_strHref;
     HWND                 m_hNotifyWnd;
 
 };

@@ -127,6 +127,16 @@ public:
         return strURL;
     }
 
+    ATL::CString GetSearchURL( int nSelIndex, LPCTSTR pszKeyWord ) const
+    {
+        ATL::CString strURL;
+        ATL::CString strKeyword = EscapeUrl(pszKeyWord);
+
+        strURL.Format( m_searchList[nSelIndex].strURLFormat, strKeyword);
+
+        return strURL;
+    }
+
     HMENU CreatePopueMenu()
     {
         CMenuHandle menu;

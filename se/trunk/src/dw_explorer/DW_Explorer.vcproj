@@ -280,6 +280,10 @@
 							>
 						</File>
 						<File
+							RelativePath=".\DWSmartAddrMgt.h"
+							>
+						</File>
+						<File
 							RelativePath=".\DWSuperToolbar.h"
 							>
 						</File>
@@ -731,10 +735,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath=".\res\dropdown.png"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
