@@ -3,6 +3,7 @@
 
 #include "DWSmartAddrProvider.h"
 #include "DWSmartAddrFavorite.h"
+#include "DWSmartAddrSearch.h"
 
 class CDWSmartAddrMgt : public CDWSingleton2<CDWSmartAddrMgt>
 {
@@ -10,6 +11,8 @@ class CDWSmartAddrMgt : public CDWSingleton2<CDWSmartAddrMgt>
 
     CDWSmartAddrMgt() 
     {
+        CDWSmartAddrProviderList::AddSmartAddrProvider(&g_DWSmartAddrFavorite);
+        CDWSmartAddrProviderList::AddSmartAddrProvider(&g_CDWSmartAddrSearch);
     }
 
 public:    

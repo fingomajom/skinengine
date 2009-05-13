@@ -364,6 +364,10 @@
 						RelativePath=".\DWSkinUIMgt.h"
 						>
 					</File>
+					<File
+						RelativePath=".\DWThread.h"
+						>
+					</File>
 				</Filter>
 			</Filter>
 		</Filter>

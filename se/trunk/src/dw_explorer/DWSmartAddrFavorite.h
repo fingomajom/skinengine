@@ -7,10 +7,7 @@
 class CDWSmartAddrFavorite : public CDWSmartAddrProvider
 {
 public:
-    CDWSmartAddrFavorite()
-    {
-        CDWSmartAddrProviderList::AddSmartAddrProvider(this);
-    }
+    CDWSmartAddrFavorite() {}
 
     virtual int QueryAddrDropList( HWND hWndN, LPCTSTR pszIText, 
         AddrDropItemList& aList, int nMaxCount )
@@ -43,7 +40,8 @@ public:
                     aList, nleave);
 
             }
-            else if ( StrStr(favitem.strURL, pszIText) != NULL )
+            else if ( StrStrI(favitem.strURL, pszIText) != NULL ||
+                      StrStrI(favitem.strTitle, pszIText) != NULL )
             {
                 ADDRDROPLISTITEM dropItem;
 
@@ -59,5 +57,5 @@ public:
     }
 };
 
-
 __declspec(selectany) CDWSmartAddrFavorite g_DWSmartAddrFavorite;
+

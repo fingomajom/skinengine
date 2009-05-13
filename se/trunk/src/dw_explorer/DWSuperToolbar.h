@@ -27,6 +27,9 @@ public:
             return;
         }
 
+        m_address_edit.HideDropdownList();
+        m_search_edit.HideDropdownList();
+
         CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)URL, FALSE);
     }
 
@@ -35,6 +38,9 @@ public:
         CDWSearchMgt* psrhMgt = CDWSearchMgt::InstancePtr();
         if ( psrhMgt == NULL )
             return;
+
+        m_address_edit.HideDropdownList();
+        m_search_edit.HideDropdownList();
 
         ATL::CString strURL = psrhMgt->GetSearchURL( pszKeyWord );
 
@@ -51,6 +57,7 @@ public:
         m_address_edit.GetWindowText( URL, nTextLen + 1);
 
         OpenURL( URL );
+
 
         delete []URL;
     }
@@ -105,12 +112,13 @@ public:
         MESSAGE_HANDLER( WM_CTLCOLOREDIT, OnCtlColor )
         MESSAGE_HANDLER( WM_CTLCOLORDLG , OnCtlColor )
 
-        MESSAGE_HANDLER(WM_LBUTTONDOWN      , OnLButtonDown)
-        MESSAGE_HANDLER(WM_FAV_ICON_REFLASH , OnFavIconReflash )
+        MESSAGE_HANDLER( WM_LBUTTONDOWN        , OnLButtonDown       )
+        MESSAGE_HANDLER( WM_FAV_ICON_REFLASH   , OnFavIconReflash    )
+        MESSAGE_HANDLER( WM_QUERY_SEARCH_RESULT, OnQuerySearchResult )
 
-        MESSAGE_HANDLER(WM_MENUSELECT       , OnMenuSelect)
+        MESSAGE_HANDLER( WM_MENUSELECT       , OnMenuSelect)
 
-        MESSAGE_HANDLER(WM_EDIT_KEY_RETURN  , OnEditKeyReturn)
+        MESSAGE_HANDLER( WM_EDIT_KEY_RETURN  , OnEditKeyReturn)
 
         COMMAND_CODE_HANDLER( EN_CHANGE  , OnEnChange )
         COMMAND_CODE_HANDLER( LBN_DBLCLK , OnLbnDBlick)
@@ -134,16 +142,6 @@ public:
 
         m_address_edit.SetFont( pskin->fontDefault );
         m_search_edit.SetFont( pskin->fontDefault );
-
-        m_search_edit.AddDropdownList(L"中国人");
-        m_search_edit.AddDropdownList(L"中国人1");
-        m_search_edit.AddDropdownList(L"中国人2");
-
-        m_address_edit.AddDropdownList(L"http://www.sogou.com");
-        m_address_edit.AddDropdownList(L"http://www.baidu.com");
-        m_address_edit.AddDropdownList(L"http://www.google.com");
-        m_address_edit.AddDropdownList(L"http://www.sina.com");
-        m_address_edit.AddDropdownList(L"http://www.sohu.com");
 
         m_address_edit.m_strBkText = L"请在这里输入网址";
         m_search_edit.m_strBkText  = CDWSearchMgt::Instance().GetSearchName();
@@ -224,28 +222,53 @@ public:
             int nTextLen = m_address_edit.GetWindowTextLength();
 
             WCHAR* pszIText = new WCHAR[ nTextLen + 1];
-            m_address_edit.GetWindowText( pszIText, nTextLen + 1);
+            m_address_edit.GetWindowText( pszIText, nTextLen + 1);            
+            m_strIText = pszIText;
+            delete []pszIText;
 
 
             CDWSmartAddrMgt& sa = CDWSmartAddrMgt::Instance();
             
             AddrDropItemList aList;
-            sa.QueryAddrDropList(m_hWnd, pszIText, aList, 20 );
+            sa.QueryAddrDropList(m_hWnd, m_strIText, aList, 20 );
             m_address_edit.ClearDropdownList();
             for ( POSITION pos = aList.GetHeadPosition(); pos != NULL ; )
             {
                 ADDRDROPLISTITEM& item = aList.GetNext(pos);
                 
+                HICON hIcon = CDWFavIconMgt::Instance().GetFavIcon(item.strURL , NULL, NULL, FALSE );
+
+                m_address_edit.AddDropdownList( item.strURL, item.strTitle, hIcon );
+            }
+
+            if ( m_address_edit.m_vtDropList.GetCount() > 0 || 1 )
+                m_address_edit.ShowDropdownList();
+
+        }
+        
+        return 0;
+    }
+
+    LRESULT OnQuerySearchResult(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        AddrDropItemList& aList = *(AddrDropItemList*)wParam;
+        LPCTSTR pszIText        = (LPCTSTR)lParam;
+        
+        if ( !StrCmp(pszIText, m_strIText) )
+        {
+            for ( POSITION pos = aList.GetHeadPosition(); pos != NULL ; )
+            {
+                ADDRDROPLISTITEM& item = aList.GetNext(pos);
+
                 m_address_edit.AddDropdownList( item.strURL, item.strTitle );
             }
 
             if ( m_address_edit.m_vtDropList.GetCount() > 0 || 1 )
                 m_address_edit.ShowDropdownList();
 
-            delete []pszIText;
         }
-        
-        return 0;
+
+        return 1L;
     }
 
     LRESULT OnLbnDBlick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/)
@@ -373,6 +396,9 @@ public:
 
         return 1L;
     }
+
+
+    
 
     template <bool t_bManaged>
     class CDWSprMenuT : public CDWMenuT<t_bManaged>
@@ -560,8 +586,6 @@ public:
     {
         if ( uMsg == eid_addr_changed )
         {
-            if ( StrCmpI((LPCTSTR)wParam, BLANK_URL) )
-                m_address_edit.AddDropdownList( (LPCTSTR)wParam );
             m_address_edit.SetWindowText((LPCTSTR)wParam);
         }
         else if ( uMsg == edi_skin_changed )
@@ -592,6 +616,8 @@ public:
     DECLARE_WND_CLASS(_T("DWExplorer_DWSuperToolbar"));
 
 public:
+
+    ATL::CString m_strIText;
 
     WTL::CBrush m_bkBrush;
     WTL::CBrush m_bkSBrush;

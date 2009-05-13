@@ -152,8 +152,6 @@ public:
 
         int nIndex = m_wndListBox.GetCurSel();
 
-        nIndex = m_vtDropList.GetCount() - nIndex - 1;
-
         if ( nIndex >= 0 && nIndex < (int)m_vtDropList.GetCount())
         {
             m_wndEdit.SendMessage( WM_COMMAND, MAKEWPARAM(nIndex,LBN_DBLCLK) );
@@ -202,7 +200,7 @@ public:
         if ( pskin == NULL )
             return;
 
-        COLORREF clrLine = HLS_TRANSFORM(pskin->clrFrameWindow, 30, 0);
+        //COLORREF clrLine = HLS_TRANSFORM(pskin->clrFrameWindow, 30, 0);
 
         RECT rcBox = lpDrawItemStruct->rcItem;
 
@@ -210,23 +208,36 @@ public:
 
         if ( (lpDrawItemStruct->itemState & ODS_SELECTED) )
         {
-            dc.FillSolidRect(&rcText, HLS_TRANSFORM(pskin->clrFrameWindow, 60, 0));
+            dc.FillSolidRect(&rcText, HLS_TRANSFORM(pskin->clrFrameWindow, 60, 20));
         }
         else
         {
-            dc.FillRect(&rcText, 
-                (HBRUSH)m_wndParent.SendMessage( WM_CTLCOLOREDIT, 
+            CBrushHandle brush = (HBRUSH)m_wndParent.SendMessage( WM_CTLCOLOREDIT, 
                 (WPARAM)dc.m_hDC, 
-                (LPARAM)m_wndEdit.m_hWnd ) );
+                (LPARAM)m_wndEdit.m_hWnd );
 
-            CPen pen;
-            pen.CreatePen( PS_SOLID, 1, clrLine );
-            HPEN hFont = dc.SelectPen( pen );
+            if ( lpDrawItemStruct->itemID % 2 == 0 )
+            {
+                LOGBRUSH logBrush = { 0 };
+                brush.GetLogBrush( &logBrush );
 
-            dc.MoveTo( rcBox.left  + 5, rcBox.top );
-            dc.LineTo( rcBox.right - 5, rcBox.top);
+                CBrush brushNew;
+                brushNew.CreateSolidBrush( HLS_TRANSFORM(logBrush.lbColor, -10, 0) );
+                dc.FillRect(&rcText, brushNew);
+            }
+            else
+            {
+                dc.FillRect(&rcText, brush);
+            }
 
-            dc.SelectPen( hFont );
+            //CPen pen;
+            //pen.CreatePen( PS_SOLID, 1, clrLine );
+            //HPEN hPen = dc.SelectPen( pen );
+
+            //dc.MoveTo( rcBox.left  + 5, rcBox.top );
+            //dc.LineTo( rcBox.right - 5, rcBox.top);
+
+            //dc.SelectPen( hPen );
         }
 
 
@@ -235,10 +246,13 @@ public:
             return;
         }
 
-        const DROPLISTITEM& item = m_vtDropList[
-            m_vtDropList.GetCount() - lpDrawItemStruct->itemID - 1];
+        const DROPLISTITEM& item = m_vtDropList[lpDrawItemStruct->itemID];
 
-        pskin->iconNull.DrawIconEx(
+        CIconHandle icon = item.icon;
+        if ( icon.m_hIcon == NULL )
+            icon = pskin->iconNull;
+
+        icon.DrawIconEx(
             dc, rcText.left + 3, rcText.top + 3,
             16, 16 );
 
@@ -250,8 +264,20 @@ public:
         HFONT hOldFont = dc.SelectFont(pskin->fontDefault);
         dc.SetBkMode(TRANSPARENT);
 
+        if ( item.strRight.GetLength() > 0 )
+            rcText.right = (rcText.right + rcText.left) / 5 * 3;
+
         dc.DrawText( item.strLeft, -1, &rcText,
-            DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+            DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+
+        if ( item.strRight.GetLength() > 0 )
+        {
+            rcText.left  = (rcText.right + 10);
+            rcText.right = rcBox.right - 10;
+
+            dc.DrawText( item.strRight, -1, &rcText,
+                DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+        }
 
         dc.SelectFont(hOldFont);
     }

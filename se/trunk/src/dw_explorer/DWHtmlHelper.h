@@ -346,4 +346,216 @@ public:
             return SEARCH_DATA_KEY ;
     }
 
+
+
+    static BOOL HttpGet( LPCWSTR pszServerName, LPCWSTR pszObjectName, DWORD dwTimeOut = 5000  )
+    {
+        int   nRetult  = 0;
+        int   nRetCode = false;
+
+        HINTERNET   hSession    = NULL;
+        HINTERNET   hConnect    = NULL;
+        HINTERNET   hRequst     = NULL;
+
+        LPCTSTR lpszDumyAgent = L"Mozilla/4.0 (compatible; MSIE 5.00; Windows 98)" ;
+
+        hSession = ::InternetOpen(
+            lpszDumyAgent,
+            INTERNET_OPEN_TYPE_PRECONFIG,
+            NULL,
+            NULL,
+            0);
+        if(!hSession)
+            goto Exit0;
+
+        InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+
+
+        hConnect = ::InternetConnect(
+            hSession,
+            pszServerName,
+            80,
+            _T(""), _T(""),
+            INTERNET_SERVICE_HTTP,
+            0, 0);
+        if(!hConnect)
+            goto Exit0;
+
+        hRequst = ::HttpOpenRequest(
+            hConnect,
+            _T("GET"),
+            pszObjectName,
+            NULL, NULL, 0,
+            INTERNET_FLAG_DONT_CACHE, 0);
+        if(!hRequst)
+            goto Exit0;
+
+        nRetCode = ::HttpSendRequest(hRequst, NULL, 0, NULL, 0);
+        if(!nRetCode)
+            goto Exit0;
+
+        nRetult = TRUE;
+
+
+    Exit0:
+
+        if ( hSession ) InternetCloseHandle( hSession );
+        if ( hConnect ) InternetCloseHandle( hConnect );
+        if ( hRequst  ) InternetCloseHandle( hRequst  );
+
+        return nRetult;
+    }
+
+    static BOOL HttpGetRes( LPCWSTR pszServerName, LPCWSTR pszObjectName, LPBYTE pReadBuffer, DWORD &dwBufLen, DWORD dwTimeOut = 5000 )
+    {
+        int   nRetult  = 0;
+        int   nRetCode = false;
+
+        HINTERNET   hSession    = NULL;
+        HINTERNET   hConnect    = NULL;
+        HINTERNET   hRequst     = NULL;
+
+        LPCTSTR lpszDumyAgent = L"Mozilla/4.0 (compatible; MSIE 5.00; Windows 98)" ;
+
+        hSession = ::InternetOpen(
+            lpszDumyAgent,
+            INTERNET_OPEN_TYPE_PRECONFIG,
+            NULL,
+            NULL,
+            0);
+        if(!hSession)
+            goto Exit0;
+
+        InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+
+
+        hConnect = ::InternetConnect(
+            hSession,
+            pszServerName,
+            80,
+            _T(""), _T(""),
+            INTERNET_SERVICE_HTTP,
+            0, 0);
+        if(!hConnect)
+            goto Exit0;
+
+        hRequst = ::HttpOpenRequest(
+            hConnect,
+            _T("GET"),
+            pszObjectName,
+            NULL, NULL, 0,
+            INTERNET_FLAG_DONT_CACHE, 0);
+        if(!hRequst)
+            goto Exit0;
+
+        nRetCode = ::HttpSendRequest(hRequst, NULL, 0, NULL, 0);
+        if(!nRetCode)
+            goto Exit0;
+
+        if ( pReadBuffer != NULL && dwBufLen > 0 )
+        {
+            DWORD dwReadLen = 0; 
+
+            nRetCode = InternetReadFile(hRequst, 
+                (LPVOID)pReadBuffer, dwBufLen, &dwReadLen);
+
+            dwBufLen = dwReadLen;
+
+            if(!nRetCode)
+                goto Exit0;
+
+        }
+
+        nRetult = TRUE;
+
+    Exit0:
+
+        if ( hSession ) InternetCloseHandle( hSession );
+        if ( hConnect ) InternetCloseHandle( hConnect );
+        if ( hRequst  ) InternetCloseHandle( hRequst  );
+
+        return nRetult;
+    }
+
+    static BOOL HttpGetRes( LPCWSTR pszServerName, LPCWSTR pszObjectName, ATL::CStringA& strBufer, DWORD dwTimeOut = 5000 )
+    {
+        int   nRetult  = 0;
+        int   nRetCode = false;
+
+        HINTERNET   hSession      = NULL;
+        HINTERNET   hConnect      = NULL;
+        HINTERNET   hRequst       = NULL;
+        CHAR        szBuffer[501] = {0};
+
+        LPCTSTR lpszDumyAgent = L"Mozilla/4.0 (compatible; MSIE 5.00; Windows 98)" ;
+
+        hSession = ::InternetOpen(
+            lpszDumyAgent,
+            INTERNET_OPEN_TYPE_PRECONFIG,
+            NULL,
+            NULL,
+            0);
+        if(!hSession)
+            goto Exit0;
+
+        InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &dwTimeOut, sizeof(DWORD));
+        InternetSetOption(hSession, INTERNET_OPTION_SEND_TIMEOUT   , &dwTimeOut, sizeof(DWORD));
+
+
+        hConnect = ::InternetConnect(
+            hSession,
+            pszServerName,
+            80,
+            _T(""), _T(""),
+            INTERNET_SERVICE_HTTP,
+            0, 0);
+        if(!hConnect)
+            goto Exit0;
+
+        hRequst = ::HttpOpenRequest(
+            hConnect,
+            _T("GET"),
+            pszObjectName,
+            NULL, NULL, 0,
+            INTERNET_FLAG_DONT_CACHE, 0);
+        if(!hRequst)
+            goto Exit0;
+
+        nRetCode = ::HttpSendRequest(hRequst, NULL, 0, NULL, 0);
+        if(!nRetCode)
+            goto Exit0;
+
+        strBufer.Empty();
+        while ( true )
+        {
+            DWORD dwReadLen = 0; 
+
+            nRetCode = InternetReadFile(hRequst, 
+                szBuffer, 500, &dwReadLen);
+
+            if ( !nRetCode || dwReadLen <= 0 )
+                break;
+
+            ATLASSERT(dwReadLen <= 500);
+            szBuffer[dwReadLen] = 0;
+
+            strBufer += szBuffer;
+        }
+
+        nRetult = TRUE;
+
+Exit0:
+
+        if ( hSession ) InternetCloseHandle( hSession );
+        if ( hConnect ) InternetCloseHandle( hConnect );
+        if ( hRequst  ) InternetCloseHandle( hRequst  );
+
+        return nRetult;
+    }
+
 };
