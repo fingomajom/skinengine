@@ -177,7 +177,7 @@ public:
     {
         if ( m_wndClient.IsWindow() )
         {
-            m_wndClient.SetFocus();
+            m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
         }
 
         return 0L;
@@ -331,13 +331,13 @@ public:
             rcCClient.right  == rcClient.right  )
             return;
 
-        if ( !bRePaint )
-            m_wndClient.SetRedraw(FALSE);
+        //if ( !bRePaint )
+        //    m_wndClient.SetRedraw(FALSE);
         
-        m_wndClient.MoveWindow(&rcClient);
+        m_wndClient.PostMessage( WM_WEBVIEW_MOVESIZE );
 
-        if ( !bRePaint )
-            m_wndClient.SetRedraw(TRUE);
+        //if ( !bRePaint )
+        //    m_wndClient.SetRedraw(TRUE);
     }
 
     void HideClient()
@@ -346,7 +346,7 @@ public:
 
         if ( ::IsWindow(m_wndClient) )
         {
-            m_wndClient.ShowWindow( SW_HIDE );           
+            m_wndClient.PostMessage( WM_WEBVIEW_SHOW );
         }
     }
 
@@ -373,9 +373,8 @@ public:
             CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
                 (WPARAM)icon.m_hIcon, 0 );
 
-
-            m_wndClient.ShowWindow( SW_SHOWDEFAULT );           
-            m_wndClient.SetFocus();
+            m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
+            //m_wndClient.SetFocus();
         }
     }
 

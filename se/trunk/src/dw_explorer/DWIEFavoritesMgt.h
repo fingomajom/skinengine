@@ -49,12 +49,14 @@ struct IEFavoriteItem
 };
 
 
-class CDWIEFavoritesMgt : public CDWSingleton2<CDWIEFavoritesMgt>
+class CDWIEFavoritesMgt : public CDWSingleton<CDWIEFavoritesMgt>
 {
-    friend class CDWSingleton2<CDWIEFavoritesMgt>;
+    friend class CDWSingleton<CDWIEFavoritesMgt>;
 
     CDWIEFavoritesMgt( const CDWIEFavoritesMgt& );
     CDWIEFavoritesMgt() {}
+    ~CDWIEFavoritesMgt() { FreeFavoriteList(); }
+
 public:
     
 
@@ -65,12 +67,15 @@ public:
         return m_FavoriteList;
     }
     
+    void FreeFavoriteList();
 
 protected:
 
     BOOL _BuildIEFavorites( LPCTSTR pszDirectory, CDWFavList* pList );
+    void _FreeFavoriteList(CDWFavList* pList);
 
     CDWFavList m_FavoriteList;
+
 };
 
 
@@ -185,4 +190,25 @@ inline BOOL CDWIEFavoritesMgt::_BuildIEFavorites( LPCTSTR pszDirectory, CDWFavLi
         FindClose(hFindFile); 
 
     return hFindFile != INVALID_HANDLE_VALUE;
+}
+
+inline void CDWIEFavoritesMgt::FreeFavoriteList()
+{
+    _FreeFavoriteList(&m_FavoriteList);
+}
+
+inline void CDWIEFavoritesMgt::_FreeFavoriteList(CDWFavList* pList)
+{
+    for ( size_t i = 0; i < pList->GetCount(); i++ )
+    {
+        IEFavoriteItem& favItem = pList->GetAt(i);
+        if ( favItem.pChildList != NULL )
+        {
+            _FreeFavoriteList(favItem.pChildList);
+            delete favItem.pChildList;
+            favItem.pChildList = NULL;
+        }
+    }
+
+    pList->RemoveAll();
 }

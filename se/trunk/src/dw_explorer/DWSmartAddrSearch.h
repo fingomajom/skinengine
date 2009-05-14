@@ -19,7 +19,12 @@ public:
 
     ~CDWSmartAddrSearch()
     {
-        SuspendThread();
+    }
+
+    void Stop()
+    {
+        PostThreadMessage(m_dwThreadId, WM_QUIT, 0, 0);
+        WaitForSingleObject( m_hThread, 1000 );
     }
 
     int QueryAddrDropList( HWND hWndN, LPCTSTR pszIText, 
@@ -74,7 +79,12 @@ public:
                 TCHAR szScheme[32]    = { 0 };
                 TCHAR szUrlPath[2049] = { 0 };
 
-                strQueryURL = CDWSearchMgt::InstancePtr()->GetSearchURL( 0, strIText );
+                CDWSearchMgt& serMgt = CDWSearchMgt::Instance();
+
+                if ( serMgt.m_nSelIndex > 2 )
+                    strQueryURL = CDWSearchMgt::InstancePtr()->GetSearchURL( 0, strIText );
+                else 
+                    strQueryURL = CDWSearchMgt::InstancePtr()->GetSearchURL(strIText );
 
                 URL_COMPONENTS urlComponents = { 0 };
                 urlComponents.dwStructSize = sizeof(URL_COMPONENTS);
@@ -119,6 +129,7 @@ public:
                 }
             }
         }
+
     }
 
     int AnalyzeSearchResult( IHTMLDocument2* piHTMLDocument, AddrDropItemList& aList )
@@ -143,11 +154,12 @@ public:
 
         ATL::CString strMsg;
 
-        for (long idx = 10; idx < lLinks; idx++)
+        for (long idx = 0; idx < lLinks; idx++)
         {
             CComPtr<IDispatch> spiLinkDisp;
             CComBSTR		   bstrUrl;
             CComBSTR		   bstrName;
+            CComBSTR		   bstrTarget;
             CComVariant		   index = idx;
 
             hr = spiLinkColleciton->item(index, index, &spiLinkDisp);
@@ -169,45 +181,64 @@ public:
             if (FAILED(hr))
                 continue;
 
-            static WCHAR  sFilter1[] = L"http://ma.baidu.com/ma/";
-            static size_t lenFilter1 = (sizeof(sFilter1) / sizeof(WCHAR)) - 1;
-
-            static WCHAR  sFilter2[] = L"http://post.baidu.com/";
-            static size_t lenFilter2 = (sizeof(sFilter2) / sizeof(WCHAR)) - 1;
-
-            static WCHAR  sFilter3[] = L"http://cache.baidu.com/c?m=";
-            static size_t lenFilter3 = (sizeof(sFilter3) / sizeof(WCHAR)) - 1;
-
-
-            //////////////////////////////////////////////////////////////////////////
-            static WCHAR  sFilter10[] = L"http://www.baidu.com/";
-            static size_t lenFilter10 = (sizeof(sFilter10) / sizeof(WCHAR)) - 1;
-
-            if ( bstrUrl.m_str != NULL &&
-                ( !StrCmpNI( bstrUrl.m_str, sFilter1, lenFilter1 ) ||
-                  !StrCmpNI( bstrUrl.m_str, sFilter2, lenFilter2 ) ||
-                  !StrCmpNI( bstrUrl.m_str, sFilter3, lenFilter3 ) ) )
-            {
-                continue;
-            }
-
             hr = spiElement->get_innerText( &bstrName );
             if (FAILED(hr))
                 continue;
 
-            if ( bstrUrl.m_str != NULL &&
-                !StrCmpNI( bstrUrl.m_str, sFilter10, lenFilter10 ) )
-            {
-                if ( bstrName.m_str != NULL &&
-                    !StrCmpI( bstrName, L"下一页" ) )
-                {
-                    break;
-                }
+            if ( bstrUrl == NULL ||
+                 bstrName == NULL )
+                 continue;
 
-                continue;
+            spiLinkElement->get_target(&bstrTarget);
+
+            if ( !StrCmpI( bstrName, L"下一页" ) )
+            {
+                break;
             }
 
-            if ( bstrUrl.m_str != NULL && !StrCmpNI(bstrUrl.m_str, L"http://", 7) )
+            if ( bstrTarget.m_str == NULL || 
+                 StrCmpI(bstrTarget, L"_blank"))
+                 continue;
+
+            if ( !StrCmpI(bstrName, L"百度快照") ||
+                 !StrCmpI(bstrName, L"网页快照") ||
+                 !StrCmpI(bstrName, L"搜狗快照") ||
+                 !StrCmpNI(bstrName, L"发布/查看关于", 7) )
+            {
+                 continue;
+            }
+
+
+            struct URL_FILTER_ITEM{
+                LPCTSTR pszFilter;
+                DWORD   dwLen;
+            };
+            
+            static URL_FILTER_ITEM filterItems[] = {
+                L"http://ma.baidu.com/ma/"    , 23,
+                L"http://post.baidu.com/"     , 22,
+                L"http://e.baidu.com/"        , 19,
+                L"http://www.baidu.com"       , 20,
+
+                L"http://ditu.google.cn/maps" , 26,
+                L"http://news.google.cn"      , 21,
+                L"http://www.google.cn"       , 20,
+
+                L"http://www.sogou.com"       , 20,
+                L"http://lk.brand.sogou.com"  , 25
+            };
+            
+            int i = 0;
+            for ( i = 0; i < sizeof(filterItems)/sizeof(filterItems[0]); i++ )
+            {
+                if ( !StrCmpNI(bstrUrl, filterItems[i].pszFilter, filterItems[i].dwLen) )
+                    break;
+            }
+
+            if ( i < sizeof(filterItems)/sizeof(filterItems[0]) )
+                continue;
+
+            if ( !StrCmpNI(bstrUrl, L"http://", 7) )
             {
                 ADDRDROPLISTITEM dropItem;
 
@@ -249,6 +280,7 @@ public:
             __try
             {
                 _QuerySearchInfo();
+                break;
             }
             __except(1)
             {

@@ -66,6 +66,29 @@ HANDLE WINAPI MyCreateThread(
         lpThreadId);
 }
 
+BOOL ( WINAPI * OldIsChild)(
+        __in HWND hWndParent,
+        __in HWND hWnd) = IsChild;
+
+
+BOOL WINAPI MyIsChild(
+    __in HWND hWndParent,
+    __in HWND hWnd)
+{
+    return OldIsChild(hWndParent, hWnd);
+}
+
+
+HWND (WINAPI * OldGetWindow)(
+  __in HWND hWnd,
+  __in UINT uCmd) = GetWindow;
+
+HWND WINAPI MyGetWindow(
+    __in HWND hWnd,
+    __in UINT uCmd)
+{
+    return OldGetWindow(hWnd, uCmd);
+}
 
 CDWCrashMgt::CDWCrashMgt(void)
 {
@@ -73,6 +96,8 @@ CDWCrashMgt::CDWCrashMgt(void)
     DetourUpdateThread(GetCurrentThread());
 
     DetourAttach((void**)&OldCreateThread  , MyCreateThread);
+    DetourAttach((void**)&OldIsChild    , MyIsChild);
+    DetourAttach((void**)&OldGetWindow  , MyGetWindow);
 
     DetourTransactionCommit();
 }
@@ -83,6 +108,9 @@ CDWCrashMgt::~CDWCrashMgt(void)
     DetourUpdateThread(GetCurrentThread());
 
     DetourDetach((void**)&OldCreateThread  , MyCreateThread);
+    DetourDetach((void**)&OldIsChild  , MyIsChild);
+    DetourDetach((void**)&OldGetWindow  , MyGetWindow);
+
     DetourTransactionCommit();
 }
 

@@ -29,6 +29,8 @@
 #define WM_WEBVIEW_GET          (WM_USER + 1202)
 #define WM_WEBVIEW_OPENURL      (WM_USER + 1203)
 #define WM_WEBVIEW_OPENSEARCH   (WM_USER + 1204)
+#define WM_WEBVIEW_MOVESIZE     (WM_USER + 1205)
+#define WM_WEBVIEW_SHOW         (WM_USER + 1206)
 
 #define WM_WEBVIEW_SETTITLE     (WM_USER + 1210)
 #define WM_WEBVIEW_SETURL       (WM_USER + 1211)
