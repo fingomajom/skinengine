@@ -12,6 +12,7 @@
 #pragma once
 
 enum {
+    PTYPE_UNKNOWN,
     PTYPE_SOGOU,
     PTYPE_DICT
 };

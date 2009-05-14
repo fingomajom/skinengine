@@ -6,8 +6,11 @@
 
 #include "QuickSearchMgr.h"
 
-class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
-		public CMessageFilter, public CIdleHandler
+class CMainFrame : 
+    public CFrameWindowImpl<CMainFrame>, 
+    public CUpdateUI<CMainFrame>,
+	public CMessageFilter, 
+    public CIdleHandler
 {
 public:
 	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
@@ -31,8 +34,8 @@ public:
              mgt.m_wndQSPopWnd.IsDialogMessage( pMsg ) )
             return TRUE;
 
-        if(CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
-        	return TRUE;
+        //if(CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
+        //	return TRUE;
 
 		return m_view.PreTranslateMessage(pMsg);
 	}
@@ -90,7 +93,7 @@ public:
 		//TODO: Replace with a URL of your choice
 		m_hWndClient = m_view.Create(m_hWnd, 
             rcDefault, 
-            _T("http://www.sogou.com"), 
+            _T("http://www.google.com"), 
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL | WS_VSCROLL, 
             WS_EX_CLIENTEDGE);
 
@@ -125,7 +128,10 @@ public:
 	{
         CQuickSearchMgr& mgt = CQuickSearchMgr::Instance();
 
-        POINT pt = { 0 };
+        RECT rcClient;
+        GetWindowRect(&rcClient);
+
+        POINT pt = { rcClient.left, rcClient.top + 200 };
 
         mgt.m_wndQSPopWnd.ShowQSPopWnd(pt);
 
@@ -155,8 +161,6 @@ public:
 
 	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
-		CAboutDlg dlg;
-		dlg.DoModal();
 		return 0;
 	}
 };

@@ -96,6 +96,8 @@ public:
     void ShowAutoSizeWnd();
     void SetTransparency( BYTE byteTran );
 
+    void ClearSearchResult();
+
 public:
 
 

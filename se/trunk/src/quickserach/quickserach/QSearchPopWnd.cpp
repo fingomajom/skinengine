@@ -158,12 +158,12 @@ public:
             WS_EX_TRANSPARENT, IDC_RESULT_EDIT_BTN);
         if ( ::IsWindow(m_ret_edit) )  m_ret_edit.SetFont( AtlGetDefaultGuiFont() );
 
-        m_ret_edit.AppendText( L"北京天气",  RICHEDIT_TEXT_FONT_BOLD );
-        m_ret_edit.AppendEndOfLine();
-        m_ret_edit.AppendEndOfLine();
-        m_ret_edit.AppendText( L"  时间：2009年04月25日",  0 );
-        m_ret_edit.AppendEndOfLine();
-        m_ret_edit.AppendText( L"  风况：北风3-4级",  0 );
+        //m_ret_edit.AppendText( L"北京天气",  RICHEDIT_TEXT_FONT_BOLD );
+        //m_ret_edit.AppendEndOfLine();
+        //m_ret_edit.AppendEndOfLine();
+        //m_ret_edit.AppendText( L"  时间：2009年04月25日",  0 );
+        //m_ret_edit.AppendEndOfLine();
+        //m_ret_edit.AppendText( L"  风况：北风3-4级",  0 );
 
         return TRUE;
     }
@@ -610,7 +610,7 @@ CQSearchPopWnd::CQSearchPopWnd()
 
 BOOL CQSearchPopWnd::ShowQSPopWnd( POINT pt, LPCTSTR pszQSText )
 {
-    ShowWindow(SW_SHOWDEFAULT);
+    ShowWindow(SW_SHOWNOACTIVATE);
     ShowChildWindow(em_cid_qstoolbar   , TRUE);
     ShowChildWindow(em_cid_sogoutitle  , TRUE);
     ShowChildWindow(em_cid_qsresultview, TRUE);
@@ -620,6 +620,19 @@ BOOL CQSearchPopWnd::ShowQSPopWnd( POINT pt, LPCTSTR pszQSText )
     m_bMouseIn = FALSE;
     SetTransparency( m_byteTran );
     ShowAutoSizeWnd();
+
+    if ( pszQSText != NULL )
+    {
+        SetDlgItemText( IDC_KEYWORD_EDIT, pszQSText );
+        QSearchKeyword(pszQSText);
+    }
+    else
+        SetDlgItemText( IDC_KEYWORD_EDIT, L"" );
+
+    SetWindowPos( NULL, pt.x + 2, pt.y + 2, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOOWNERZORDER );
+
+    m_bMouseIn = TRUE;
+    SetTimer( 1001, 200 );
 
     return TRUE;
 }
@@ -636,6 +649,9 @@ BOOL CQSearchPopWnd::ShowQSPopWnd_ForQSBar( POINT pt )
     m_byteTran = 255;
     m_bMouseIn = FALSE;
     SetTransparency( m_byteTran );
+
+    ClearSearchResult();
+
     ShowAutoSizeWnd();
 
     ((CSogouTitleView*)m_vtChildWindow[em_cid_sogoutitle])->m_strTitle = L"搜狗快搜";
@@ -646,6 +662,7 @@ BOOL CQSearchPopWnd::ShowQSPopWnd_ForQSBar( POINT pt )
     pt.x = pt.x - (rcWindow.right - rcWindow.left);
 
     SetWindowPos( NULL, pt.x, pt.y, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOOWNERZORDER );
+
 
     return TRUE;
 }
@@ -719,8 +736,7 @@ LRESULT CQSearchPopWnd::OnInitDialog(UINT /* uMsg */, WPARAM wParam, LPARAM lPar
 
     SetFont( ::AtlGetDefaultGuiFont() );
 
-    SetWindowLong( GWL_EXSTYLE, GetWindowLong( GWL_EXSTYLE ) | WS_EX_LAYERED );
-    
+   
     m_vtChildWindow[em_cid_qstoolbar]->Create( m_hWnd );
     m_tooltip.Create( m_hWnd );
 
@@ -730,6 +746,10 @@ LRESULT CQSearchPopWnd::OnInitDialog(UINT /* uMsg */, WPARAM wParam, LPARAM lPar
     m_tooltip.AddTool(GetDlgItem(IDC_DOCT_BTN)   , L"固定面板" );
 
     m_tooltip.Activate(TRUE);
+
+    ModifyStyleEx(0, WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE|WS_EX_LAYERED);
+
+    //::UpdateLayeredWindow(m_hWnd, NULL, NULL, NULL, NULL, NULL, 0, NULL, ULW_COLORKEY);
 
     return DefWindowProc();
 }
@@ -792,8 +812,12 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HC_ACTION)
     {
-        if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN
-            || wParam == WM_NCLBUTTONDOWN || wParam == WM_NCRBUTTONDOWN || wParam == WM_NCMBUTTONDOWN)
+        if ( wParam == WM_LBUTTONDOWN || 
+             wParam == WM_RBUTTONDOWN || 
+             wParam == WM_MBUTTONDOWN || 
+             wParam == WM_NCLBUTTONDOWN || 
+             wParam == WM_NCRBUTTONDOWN || 
+             wParam == WM_NCMBUTTONDOWN )
         {
             MOUSEHOOKSTRUCT *pms = (MOUSEHOOKSTRUCT*)lParam;
             RECT rcWindow = { 0 };
@@ -965,13 +989,6 @@ LRESULT CQSearchPopWnd::OnQSearchBtnClicked(WORD /*wNotifyCode*/, WORD /*wID*/, 
 
     QSearchKeyword(szKeyword);
 
-    CQSReaultView* pResultView = static_cast<CQSReaultView*>(m_vtChildWindow[em_cid_qsresultview]);
-    if ( pResultView == NULL )
-        return FALSE;
-
-    CRichEditCtrlEx& edit = pResultView->m_ret_edit;
-    edit.ClearAll();
-
     return 1L;
 }
 
@@ -1042,6 +1059,14 @@ LRESULT CQSearchPopWnd::OnReturnBtnClicked(WORD /*wNotifyCode*/, WORD /*wID*/, H
     return 1L;
 }
 
+void CQSearchPopWnd::ClearSearchResult()
+{
+    CQSReaultView* pResultView = static_cast<CQSReaultView*>(m_vtChildWindow[em_cid_qsresultview]);
+    if ( pResultView == NULL )
+        return;
+    CRichEditCtrlEx& edit = pResultView->m_ret_edit;
+    edit.ClearAll();
+}
 
 HRESULT STDMETHODCALLTYPE CQSearchPopWnd::OnQSearchResult( 
     /* [in ] */ LPCWSTR   pszResult,
@@ -1054,7 +1079,11 @@ HRESULT STDMETHODCALLTYPE CQSearchPopWnd::OnQSearchResult(
     CRichEditCtrlEx& edit = pResultView->m_ret_edit;
     edit.ClearAll();
 
-    if ( pQSInfo->nPType == PTYPE_SOGOU )
+    if ( pQSInfo->nPType == PTYPE_UNKNOWN )
+    {
+        edit.AppendText( L"没有找到结果", RICHEDIT_TEXT_FONT_BOLD, RGB( 128, 0, 128 ) );
+    }
+    else if ( pQSInfo->nPType == PTYPE_SOGOU )
     {
         CMarkup markup;
 
@@ -1081,6 +1110,11 @@ HRESULT STDMETHODCALLTYPE CQSearchPopWnd::OnQSearchResult(
 
             edit.AppendText( strText , 0 );
         }
+        else
+        {
+            edit.AppendEndOfLine();
+            edit.AppendText( L"没有找到。。。" , 0 );
+        }
     }
     else if (pQSInfo->nPType == PTYPE_DICT ) 
     {
@@ -1097,11 +1131,11 @@ HRESULT STDMETHODCALLTYPE CQSearchPopWnd::OnQSearchResult(
             if (!markup.FindElem(_T("dict")) || !markup.IntoElem())
                 break;
 
-            if (!markup.FindElem(_T("key")))
-                break;
-
-            edit.AppendText( markup.GetData().c_str() , RICHEDIT_TEXT_FONT_BOLD, RGB( 0, 128, 0 ) );
-            edit.AppendEndOfLine();
+            if (markup.FindElem(_T("key")))
+            {
+                edit.AppendText( markup.GetData().c_str() , RICHEDIT_TEXT_FONT_BOLD, RGB( 0, 128, 0 ) );
+                edit.AppendEndOfLine();
+            }
 
             markup.ResetMainPos();
             if (!markup.FindElem(_T("def")))

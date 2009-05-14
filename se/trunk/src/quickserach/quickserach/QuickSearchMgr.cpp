@@ -182,7 +182,8 @@ DWORD CQuickSearchMgr::RunThreadFunc()
                 dwLastTick = GetTickCount();
                 m_cs.Unlock();
 
-                for ( int idx = 0; idx < m_vtQSearchProvider.GetSize(); idx++)
+                int idx = 0;
+                for ( idx = 0; idx < m_vtQSearchProvider.GetSize(); idx++)
                 {
                     IQuickSearchProvider* piProvider = m_vtQSearchProvider[idx];
                     if ( piProvider->TestKeyword(strKeyword) == S_OK )
@@ -207,6 +208,14 @@ DWORD CQuickSearchMgr::RunThreadFunc()
                         
                         break;
                     }
+                }
+
+                if ( idx >= m_vtQSearchProvider.GetSize() )
+                {
+                    QSPINFO info;
+                    info.nPType = PTYPE_UNKNOWN;
+                    
+                    OnQSearchResult( L"", &info );
                 }
             }
             break;
