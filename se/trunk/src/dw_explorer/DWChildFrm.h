@@ -378,4 +378,6 @@ public:
         }
     }
 
+    DECLARE_WND_CLASS(_T("DWExplorer_DWChildFrm"));
+
 };

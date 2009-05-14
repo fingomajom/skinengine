@@ -190,7 +190,7 @@ BOOL CDWProcessMgt::_DestryWebWnd( HWND hWnd )
     if ( pPInfo == NULL )
         return FALSE;
 
-    static LSEDataBufferImpl<ULONG> destroyParamBuf;
+    LSEDataBufferImpl<ULONG> destroyParamBuf;
     destroyParamBuf = (ULONG)hWnd;
 
     int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_destroy_webwnd, 
@@ -247,7 +247,7 @@ BOOL CDWProcessMgt::_GetWebWndInfo( HWND hParent, HWND hWnd )
 
     CComPtr<IDataBuffer> spResult;
 
-    static LSEDataBufferImpl<ULONG> wndBuf;
+    LSEDataBufferImpl<ULONG> wndBuf;
     wndBuf = (ULONG)hWnd;
 
     int nRet = pPInfo->rpcClt.SendRpcMsg( s2c_webwnd_info, 

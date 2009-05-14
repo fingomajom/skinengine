@@ -67,14 +67,17 @@ int OnCreateWebWnd(
     if ( pParameter->GetBufferSize() < 4 )
         return -2;
 
-    HWND hParent = cltmgt.CreateWebWnd( 
+    HWND hWnd = cltmgt.CreateWebWnd( 
         (HWND)(*((ULONG*)pParameter->GetDataBuffer())),
         (WCHAR*)pParameter->GetDataBuffer()+2);
 
-    static LSEDataBufferImpl<ULONG> BufResult;
-    BufResult = (ULONG)hParent;
-
-    *ppResult = BufResult.GetDataBuffer();
+    IDataBuffer* piRet = LSECreateDataBuffer(sizeof(ULONG));
+    if ( piRet == NULL )
+        return -1;
+    
+    *((HWND*)piRet->GetDataBuffer()) = hWnd;
+    
+    *ppResult = piRet;
 
     return 0;
 }

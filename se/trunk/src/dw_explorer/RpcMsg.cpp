@@ -117,8 +117,6 @@ DWORD WINAPI CRpcMsgServer::RpcSvrListenThreadProc( LPVOID )
     return 0L;
 }
 
-CComAutoCriticalSection CRpcMsgClient::m_cs;
-
 CRpcMsgClient::CRpcMsgClient()
 {
     m_rpcHandle = NULL;
