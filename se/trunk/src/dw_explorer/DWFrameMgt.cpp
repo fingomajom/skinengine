@@ -126,90 +126,6 @@ void CDWFrameMgt::_RemoveFrame( CDWMainFrame* pf )
         PostThreadMessage(m_dwMainThreadId, WM_QUIT, 0, 0);
 }
 
-
-class CDWMyMessageLoop : public CDWMessageLoop
-{
-public:
-    int Run()
-    {
-        BOOL bDoIdle = TRUE;
-        int nIdleCount = 0;
-        BOOL bRet;
-
-        for(;;)
-        {
-            
-            if ( HIWORD(GetQueueStatus( QS_SENDMESSAGE )) & QS_SENDMESSAGE )
-            {
-                ::PeekMessage(&m_msg, NULL, 0, 0, PM_NOREMOVE);
-
-                DWORD dwPID = 0;
-                ::GetWindowThreadProcessId( m_msg.hwnd, &dwPID );
-
-                if ( dwPID != GetCurrentProcessId() )
-                    ::PeekMessage(&m_msg, NULL, 0, 0, PM_REMOVE);
-            }
-
-            while(bDoIdle && !::PeekMessage(&m_msg, NULL, 0, 0, PM_NOREMOVE))
-            {
-                if(!OnIdle(nIdleCount++))
-                    bDoIdle = FALSE;
-            }
-            
-            bRet = ::GetMessage(&m_msg, NULL, 0, 0);
-
-            if(bRet == -1)
-            {
-                continue;   // error, don't process
-            }
-            else if(!bRet)
-            {
-                break;   // WM_QUIT, exit message loop
-            }
-
-#ifndef _DEBUG
-            __try
-            {
-#endif
-                if(!PreTranslateMessage(&m_msg))
-                {
-                    ::TranslateMessage(&m_msg);
-                    ::DispatchMessage(&m_msg);
-                }
-#ifndef _DEBUG
-            }
-            __except(1)
-            {
-            }
-#endif
-            if(IsIdleMessage(&m_msg))
-            {
-                bDoIdle = TRUE;
-                nIdleCount = 0;
-            }
-        }
-
-        return (int)m_msg.wParam;
-    }
-};
-
-static LRESULT CALLBACK AllMsgHookFunc(
-    int nCode,
-    WPARAM wParam,
-    LPARAM lParam )
-{
-    LPMSG  pMsg = ( LPMSG )lParam;
-
-    return 0 ;
-    LRESULT lRet = ::CallNextHookEx( s_hAllMsgHook, nCode, wParam, lParam);
-
-    return lRet;
-}
-
-WTL::CBrush m_bkBrush;
-
-CDWImage m_imageClr;
-
 DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
 {
     DWORD dwRet = 0;
@@ -232,11 +148,6 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
     wndMain.ShowWindow(SW_SHOWNORMAL);
     
     mgt._AddFrame(&wndMain);
-
-    s_hAllMsgHook = SetWindowsHookEx(WH_GETMESSAGE, 
-        AllMsgHookFunc, 
-        _Module.GetModuleInstance(), 
-        GetCurrentThreadId());
     
     dwRet = theLoop.Run();
 

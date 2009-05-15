@@ -197,11 +197,11 @@ CDWCrashMgt::CDWCrashMgt(void)
     DetourUpdateThread(GetCurrentThread());
 
     DetourAttach((void**)&OldCreateThread  , MyCreateThread);
-    DetourAttach((void**)&OldIsChild       , MyIsChild);
-    DetourAttach((void**)&OldSendMessageW  , MySendMessageW);
-    DetourAttach((void**)&OldSendMessageA  , MySendMessageA);
-    DetourAttach((void**)&OldCallWindowProcA  , MyCallWindowProcA);
-    DetourAttach((void**)&OldCallWindowProcW  , MyCallWindowProcW);
+    //DetourAttach((void**)&OldIsChild       , MyIsChild);
+    //DetourAttach((void**)&OldSendMessageW  , MySendMessageW);
+    //DetourAttach((void**)&OldSendMessageA  , MySendMessageA);
+    //DetourAttach((void**)&OldCallWindowProcA  , MyCallWindowProcA);
+    //DetourAttach((void**)&OldCallWindowProcW  , MyCallWindowProcW);
 
     DetourTransactionCommit();
 }
@@ -212,11 +212,11 @@ CDWCrashMgt::~CDWCrashMgt(void)
     DetourUpdateThread(GetCurrentThread());
 
     DetourDetach((void**)&OldCreateThread  , MyCreateThread);
-    DetourDetach((void**)&OldIsChild  , MyIsChild);
-    DetourDetach((void**)&OldSendMessageW  , MySendMessageW);
-    DetourDetach((void**)&OldSendMessageA  , MySendMessageA);
-    DetourDetach((void**)&OldCallWindowProcA  , MyCallWindowProcA);
-    DetourDetach((void**)&OldCallWindowProcW  , MyCallWindowProcW);
+    //DetourDetach((void**)&OldIsChild  , MyIsChild);
+    //DetourDetach((void**)&OldSendMessageW  , MySendMessageW);
+    //DetourDetach((void**)&OldSendMessageA  , MySendMessageA);
+    //DetourDetach((void**)&OldCallWindowProcA  , MyCallWindowProcA);
+    //DetourDetach((void**)&OldCallWindowProcW  , MyCallWindowProcW);
 
     DetourTransactionCommit();
 }

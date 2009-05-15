@@ -51,7 +51,7 @@ public:
         pNewFrm->m_strURL   = pszURL;
 
         HWND hRet = pNewFrm->Create( hParent, &rcClient, NULL,  
-            WS_CHILD | WS_TABSTOP | WS_CLIPCHILDREN, 0);
+            WS_CHILD | WS_CLIPCHILDREN);
         if ( hRet == NULL )
         {
             delete pNewFrm;
@@ -250,8 +250,8 @@ public:
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        if ( m_wndClient.IsWindow() )
-            return 1L;
+        //if ( m_wndClient.IsWindow() )
+        //    return 1L;
 
         return DefWindowProc();
     }
@@ -305,8 +305,6 @@ public:
 
     LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        bHandled = FALSE;
-
         ResizeClient(FALSE);
 
         return 0L;

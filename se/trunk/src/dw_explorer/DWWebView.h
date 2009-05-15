@@ -17,11 +17,21 @@
 #include "DWHtmlEventMgt.h"
 
 
+class CWebViewBgWnd : public CWindowImpl<CWebViewBgWnd>
+{
+public:
+
+    DECLARE_EMPTY_MSG_MAP()
+    DECLARE_WND_CLASS(_T("DWExplorer_WebViewBgWnd"))
+};
+
 class CDWWebView : 
     public CDWHtmlEventMgt,
     public CMessageFilter
 {
 public:
+
+    CWebViewBgWnd m_wndBk;
     
     BOOL PreTranslateMessage(MSG* pMsg)
     {
@@ -44,27 +54,31 @@ public:
 
     HWND Create(HWND hWndParent)
     {
+        m_wndBk.Create( NULL, rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW  );
 
-        HWND hRet = CDWHtmlEventMgt::Create( hWndParent, 
+        HWND hRet = CDWHtmlEventMgt::Create( m_wndBk, 
             rcDefault, 
             NULL,
-            WS_CHILD | WS_CLIPCHILDREN );
-
-        //HWND hRet = CDWHtmlEventMgt::Create( NULL, 
-        //    rcDefault, 
-        //    NULL,
-        //    WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
+            WS_POPUP, WS_EX_TOOLWINDOW );
 
         SetTimer(1001, 150);
 
         return hRet;
     }
 
+    BOOL DestroyWindow()
+    {
+        CDWHtmlEventMgt::DestroyWindow();
+        return m_wndBk.DestroyWindow();
+    }
+
+
     BEGIN_MSG_MAP(CDWWebView)
 
         MESSAGE_HANDLER(WM_COPYDATA         , OnCopyData      )
 
         MESSAGE_HANDLER(WM_ERASEBKGND       , OnEraseBkGnd    )
+        MESSAGE_HANDLER(WM_DESTROY          , OnDestroy       ) 
         MESSAGE_HANDLER(WM_SETFOCUS         , OnSetFocus      )
         MESSAGE_HANDLER(WM_WEBVIEW_OPENURL  , OnWebWndOpenURL )
         MESSAGE_HANDLER(WM_SIZE             , OnSize          )
@@ -84,17 +98,15 @@ public:
 
     END_MSG_MAP()
 
+        
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return 1L;
+    }
+
     LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        HWND hShellEmbedding = ::GetWindow(m_hWnd, GW_CHILD);
-        if (hShellEmbedding == NULL)
-            return 0L;
-        HWND hDocObj = ::GetWindow(hShellEmbedding, GW_CHILD);
-        if (hDocObj == NULL)
-            return 0L;
-        HWND hIEServer = ::FindWindowEx(hDocObj, NULL, CLASS_NAME_IE_SERVER, NULL);
-
-        ::SetFocus(hIEServer);
+        ::SetFocus(GetSebIeWnd());
 
         return 0L;
     }
@@ -119,10 +131,11 @@ public:
 
         if ( wParam == WA_CLICKACTIVE || wParam == WA_ACTIVE )
         {
-            //HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+            HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
 
-            //::SetWindowPos(hRoot , m_hWnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
-            //SetWindowPos(HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            SetWindowPos(HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            ::SetWindowPos(hRoot , m_wndBk, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
 
             //SetFocus();
         }
@@ -138,16 +151,20 @@ public:
         wndClient.GetWindowRect(&rcClient);
 
         if ( wParam )
-        {
-            //::SetForegroundWindow(m_hWnd);
-            //::SetForegroundWindow(m_hNotifyWnd);
+        {            
+            HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+
+            SetWindowPos(HWND_TOP, 
+                rcClient.left, rcClient.top, 
+                rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
+                SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
+
+            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            ::SetWindowPos(hRoot , m_wndBk, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+
+            //SetFocus();   
+            //MoveFocusToIe(0);
             
-            ShowWindow(SW_SHOWNOACTIVATE);
-            //::SetWindowPos(m_hNotifyWnd, m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
-            //SetWindowPos(HWND_TOP, 
-            //    rcClient.left, rcClient.top, 
-            //    rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-            //    SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
         }
         else 
         {
@@ -162,28 +179,35 @@ public:
         CWindow wndClient = m_hNotifyWnd;
 
         RECT rcClient = { 0 };
-        wndClient.GetClientRect(&rcClient);
-        return MoveWindow(&rcClient);
-        //wndClient.GetWindowRect(&rcClient);
+        wndClient.GetWindowRect(&rcClient);
 
-        //HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+        return SetWindowPos(HWND_TOP, 
+            rcClient.left, rcClient.top, 
+            rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
+            SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
 
-        //return SetWindowPos( hRoot, 
-        //    rcClient.left, rcClient.top, 
-        //    rcClient.right - rcClient.left, rcClient.bottom - rcClient.top,
-        //    SWP_SHOWWINDOW);
     }
 
     LRESULT OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         if ((GetStyle() & WS_CHILD) == 0 && ::IsWindowVisible(m_hNotifyWnd))
         {
-            //HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+            HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+            
+            if ( !CheckWebWndZOrder(m_hWnd, hRoot) )
+            {
+                CWindow wndClient = m_hNotifyWnd;
 
-            //::SetWindowPos(hRoot , m_hWnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
-            //::SetWindowPos(m_hWnd, hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                RECT rcClient = { 0 };
+                wndClient.GetWindowRect(&rcClient);
 
-            //SetWindowPos(HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
+                SetWindowPos(HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                m_wndBk.SetWindowPos(m_hWnd ,
+                    rcClient.left, rcClient.top, 
+                    rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
+                    SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOSENDCHANGING);
+                ::SetWindowPos(hRoot , m_wndBk, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            }
 
         }
 
@@ -198,11 +222,18 @@ public:
                 ShowWindow(SW_HIDE);
             else
             {
-                ShowWindow(SW_SHOWNORMAL);
                 HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
+                if ( !CheckWebWndZOrder(m_hWnd, hRoot) )
+                {
+                    CWindow wndClient = m_hNotifyWnd;
 
-                //::SetWindowPos(hRoot , m_hWnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
-                //::SetWindowPos(m_hWnd, hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                    RECT rcClient = { 0 };
+                    wndClient.GetWindowRect(&rcClient);
+
+                    SetWindowPos(HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                    m_wndBk.SetWindowPos(m_hWnd ,0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                    ::SetWindowPos(hRoot , m_wndBk, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+                }
             }
         }
         return 0;
@@ -225,6 +256,117 @@ public:
         OpenURL( pszURL );
 
         return 0;
+    }
+
+    bool CheckWebWndZOrder(HWND hAx, HWND hRoot)
+    {
+        HWND hWnd = hRoot;
+        while (hWnd = ::GetWindow(hWnd, GW_HWNDNEXT))
+        {
+            if (hWnd == hAx)
+                return true;
+            if (!::IsWindowVisible(hWnd))
+                continue;
+            if (::GetWindowThreadProcessId(hWnd, NULL) == ::GetCurrentThreadId())
+                continue;
+            HWND hOwner = ::GetParent(hWnd);
+            if (hOwner == hAx)
+                continue;
+            return false;
+        }
+        return false;
+    }
+
+    bool IsTabedObject(IHTMLElement * pHtmlElem)
+    {
+        CComQIPtr<IHTMLElement> spHtmlElem = pHtmlElem;
+        if (spHtmlElem)
+        {
+            CComBSTR bstrTagName;
+            if (SUCCEEDED(spHtmlElem->get_tagName(&bstrTagName)) && bstrTagName)
+            {
+                if (StrCmpI(bstrTagName, L"a") == 0 || 
+                    StrCmpI(bstrTagName, L"input") == 0 || 
+                    StrCmpI(bstrTagName, L"button") == 0 || 
+                    StrCmpI(bstrTagName, L"textarea") == 0 || 
+                    StrCmpI(bstrTagName, L"select") == 0 || 
+                    StrCmpI(bstrTagName, L"object") == 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    void MoveFocusToIe(bool bShiftDown)
+    {
+        CComPtr<IDispatch> spDisp;
+        if (SUCCEEDED(m_spWebBrowser->get_Document(&spDisp)) && spDisp)
+        {
+            CComQIPtr<IHTMLDocument2> spDoc2 = spDisp;
+            if (spDoc2)
+            {
+                CComPtr<IHTMLElementCollection> spColl;
+                if (SUCCEEDED(spDoc2->get_all(&spColl)) && spColl)
+                {
+                    long nCnt = 0;
+                    spColl->get_length(&nCnt);
+
+                    if (bShiftDown)
+                    {
+                        for (long i = nCnt - 1; i >= 0; i--)
+                        {
+                            CComVariant varIdx = i;
+                            CComPtr<IDispatch> spTagDisp;
+                            if (SUCCEEDED(spColl->item(varIdx, varIdx, &spTagDisp)) && spTagDisp)
+                            {
+                                CComQIPtr<IHTMLElement> spHtmlElem(spTagDisp);
+                                if (IsTabedObject(spHtmlElem))
+                                {
+                                    CComQIPtr<IHTMLElement2> spHtmlElem2 = spHtmlElem;
+                                    spHtmlElem2->focus();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (long i = 0; i < nCnt; i++)
+                        {
+                            CComVariant varIdx = i;
+                            CComPtr<IDispatch> spTagDisp;
+                            if (SUCCEEDED(spColl->item(varIdx, varIdx, &spTagDisp)) && spTagDisp)
+                            {
+                                CComQIPtr<IHTMLElement> spHtmlElem(spTagDisp);
+                                if (IsTabedObject(spHtmlElem))
+                                {
+                                    CComQIPtr<IHTMLElement2> spHtmlElem2 = spHtmlElem;
+                                    spHtmlElem2->focus();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    spColl.Release();
+                }
+            }
+        }
+    }
+
+
+
+
+    HWND GetSebIeWnd()
+    {
+        HWND hShellEmbedding = ::GetWindow(m_hWnd, GW_CHILD);
+        if (hShellEmbedding == NULL)
+            return NULL;
+        HWND hDocObj = ::GetWindow(hShellEmbedding, GW_CHILD);
+        if (hDocObj == NULL)
+            return NULL;
+        HWND hIEServer = ::FindWindowEx(hDocObj, NULL, CLASS_NAME_IE_SERVER, NULL);
+        return hIEServer;
     }
 
 
