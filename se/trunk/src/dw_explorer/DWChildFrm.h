@@ -275,6 +275,9 @@ public:
         if ( hIcon != NULL )
             m_wndTableBar.SetItemIcon( nTabIndex, hIcon );
 
+        if ( m_wndTableBar. GetSelectIndex() == nTabIndex )
+            SendMessage( GetParent(), WM_TABLE_BAR_MSG, TGM_SELECT_CHANGE, nTabIndex );
+
         if ( IsWindowVisible() )
             ShowClient();
 

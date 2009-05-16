@@ -29,6 +29,7 @@ class CDWMainFrame :
     public CMessageFilter,
     public CDWEventCallback
 {
+    friend class CDWFrameUIImpl<CDWMainFrame>;
 public:
     CDWMainFrame(void);
     ~CDWMainFrame(void);
@@ -63,7 +64,7 @@ protected:
     void RePositionCtrls();
 
 
-    void OnNewURL ( LPCTSTR pszURL );
+    void OnNewURL ( LPCTSTR pszURL, BOOL bActive = TRUE );
     void OnOpenURL( LPCTSTR pszURL );
 
     void OnCloseURL ( int nIndex );

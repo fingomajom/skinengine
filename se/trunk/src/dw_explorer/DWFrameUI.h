@@ -65,9 +65,11 @@ public:
         if ((dwStyle & WS_MINIMIZE) == WS_MINIMIZE)
             return;
 
+        CRgn       rgnCF;
         CRgnHandle rgn;
 
         RECT rcWindow;
+        RECT rcCF;
         ::GetWindowRect(*(T*)this, &rcWindow);
 
         rcWindow.right  = rcWindow.right  - rcWindow.left;
@@ -77,6 +79,17 @@ public:
 
         rgn.CreateRoundRectRgn( rcWindow.left, rcWindow.top, 
             rcWindow.right + 1, rcWindow.bottom + 12, 9, 9);
+
+        ((T*)this)->GetChildFrmRect(rcCF);
+        //((T*)this)->ScreenToClient(&rcCF);
+        rcCF.left   += 5;
+        rcCF.right  += 5;
+        rcCF.top    += 1;
+        rcCF.bottom += 1;
+        rgnCF.CreateRectRgnIndirect( &rcCF );
+
+        rgn.CombineRgn(rgnCF, RGN_DIFF);
+
 
         ::SetWindowRgn(*(T*)this, rgn, TRUE);
 

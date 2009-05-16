@@ -47,15 +47,14 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
     if ( m_wndSuperbar.PreTranslateMessage(pMsg) )
         return TRUE;
 
+
+
     return FALSE;
 
 #else
 
     //return m_wndClient.PreTranslateMessage(pMsg);
 
-    if((pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
-        (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST))
-        return FALSE;
 
     // give HTML page a chance to translate this message
     return (BOOL)m_wndClient.SendMessage(WM_FORWARDMSG, 0, (LPARAM)pMsg);
@@ -110,8 +109,7 @@ LRESULT CDWMainFrame::OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 {
     if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
     {
-        //m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,1),TRUE);
-        m_pNowChildFrm->ShowClient();
+        m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,1),TRUE);
     }
 
     return DefWindowProc();
@@ -202,7 +200,7 @@ void CDWMainFrame::GetChildFrmRect(RECT& rcChildFrm)
 LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
     if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
-        m_pNowChildFrm->SetFocus();
+        m_pNowChildFrm->ShowClient();
 
     return DefWindowProc();
 }
@@ -220,7 +218,7 @@ LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
     return 1L;
 }
 
-void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
+void CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
 {
     int nIdx = m_wndTableBar.GetSelectIndex();
 
@@ -247,8 +245,11 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL )
 
     m_listChildFrm.AddTail(pNewFrm);
 
-    m_wndTableBar.SelectIndex( nIdx );
-    OnSelectURL(nIdx);
+    if ( bActive )
+    {
+        m_wndTableBar.SelectIndex( nIdx );
+        //OnSelectURL(nIdx);
+    }
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
 }
@@ -317,6 +318,14 @@ void CDWMainFrame::OnSelectURL( int nIndex )
 
 #ifndef __TEST_WEB_WND__
     
+
+    RECT rcChildFrm;
+    GetChildFrmRect(rcChildFrm);
+
+    pNextFrm->MoveWindow(&rcChildFrm, FALSE);
+    pNextFrm->ShowClient();
+    pNextFrm->SetFocus();
+
     if ( m_pNowChildFrm != NULL )
     {
         ATLASSERT( m_listChildFrm.Find(m_pNowChildFrm) != NULL );
@@ -326,12 +335,6 @@ void CDWMainFrame::OnSelectURL( int nIndex )
 
     m_pNowChildFrm = pNextFrm;
 
-    RECT rcChildFrm;
-    GetChildFrmRect(rcChildFrm);
-
-    m_pNowChildFrm->MoveWindow(&rcChildFrm, FALSE);
-    m_pNowChildFrm->ShowClient();
-    m_pNowChildFrm->SetFocus();
 
 #endif
 }
