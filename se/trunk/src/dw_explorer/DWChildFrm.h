@@ -116,7 +116,6 @@ public:
         MESSAGE_HANDLER(WM_WEBVIEW_GET        , OnWebViewGet)
         MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch)
         
-
     END_MSG_MAP()
 
 
@@ -177,7 +176,7 @@ public:
     {
         if ( m_wndClient.IsWindow() )
         {
-            m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
+            SendMessageToWebWnd(WM_WEBVIEW_SHOW, TRUE);
         }
 
         return 0L;
@@ -302,40 +301,26 @@ public:
         return 0L;
     }
  
-
     LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        ResizeClient(FALSE);
+        ResizeClient(MAKEWPARAM(0,1));
 
         return 0L;
     }
 
-    void ResizeClient( BOOL bRePaint = TRUE )
+    void ResizeClient( WPARAM wParam = MAKEWPARAM(1,1), LPARAM lParam = FALSE )
     {
         RECT rcClient  = { 0 };
-        RECT rcCClient = { 0 };
 
         if ( !::IsWindow(m_wndClient) )
             return;
 
-        if ( !GetClientRect(&rcClient) ||
-             !m_wndClient.GetClientRect(&rcCClient) ||
-            (rcClient.right == 0 && rcClient.bottom == 0 ) )
+        if ( !GetClientRect(&rcClient) )
         {
             return;
         }
-
-        if ( rcCClient.bottom == rcClient.bottom &&
-            rcCClient.right  == rcClient.right  )
-            return;
-
-        //if ( !bRePaint )
-        //    m_wndClient.SetRedraw(FALSE);
-        
-        m_wndClient.PostMessage( WM_WEBVIEW_MOVESIZE );
-
-        //if ( !bRePaint )
-        //    m_wndClient.SetRedraw(TRUE);
+       
+        SendMessageToWebWnd(WM_WEBVIEW_MOVESIZE, wParam, lParam);
     }
 
     void HideClient()
@@ -344,7 +329,7 @@ public:
 
         if ( ::IsWindow(m_wndClient) )
         {
-            m_wndClient.PostMessage( WM_WEBVIEW_SHOW );
+            SendMessageToWebWnd(WM_WEBVIEW_SHOW);
         }
     }
 
@@ -372,8 +357,15 @@ public:
                 (WPARAM)icon.m_hIcon, 0 );
 
             m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
-            //m_wndClient.SetFocus();
         }
+    }
+
+    LRESULT SendMessageToWebWnd( UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0)
+    {
+        return ::SendMessageTimeout( m_wndClient, 
+            uMsg, 
+            wParam, lParam, 
+            SMTO_ABORTIFHUNG, 100, 0);
     }
 
     DECLARE_WND_CLASS(_T("DWExplorer_DWChildFrm"));

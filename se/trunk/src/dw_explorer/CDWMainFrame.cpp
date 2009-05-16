@@ -106,6 +106,17 @@ LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
     return 1;
 }
 
+LRESULT CDWMainFrame::OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
+    {
+        //m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,1),TRUE);
+        m_pNowChildFrm->ShowClient();
+    }
+
+    return DefWindowProc();
+}
+
 LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
     bHandled = FALSE;

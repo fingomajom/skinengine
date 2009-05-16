@@ -44,10 +44,10 @@ public:
         MESSAGE_HANDLER(WM_SIZE    , OnSize     )
         MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
 
-        MESSAGE_HANDLER(WM_TABLE_BAR_MSG, OnTableBarMsg)
-
+        MESSAGE_HANDLER(WM_TABLE_BAR_MSG      , OnTableBarMsg)
         MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate)
         MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch)
+        MESSAGE_HANDLER(WM_WINDOWPOSCHANGED   , OnWndPosChanged )
 
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
         COMMAND_ID_HANDLER( ID_FILE_NEW          , OnFileNew       )
@@ -79,6 +79,7 @@ protected:
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
+    LRESULT OnWndPosChanged     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnTableBarMsg       (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewCreate     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewOpenSearch (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
