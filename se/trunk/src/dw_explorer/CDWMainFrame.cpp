@@ -23,7 +23,7 @@ HWND CDWMainFrame::CreateEx()
     rcClient.bottom = rcClient.top * 7;
 
     return Create( NULL, &rcClient, _T("¿Õ°×Ò³ - ¾«Áéä¯ÀÀÆ÷"), 
-         WS_POPUPWINDOW | WS_SIZEBOX | 
+         WS_POPUP | WS_SYSMENU | WS_SIZEBOX | 
          WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
 }
 
