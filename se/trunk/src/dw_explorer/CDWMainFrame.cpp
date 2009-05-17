@@ -38,7 +38,9 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
         else if ( m_wndSuperbar.m_search_edit == hFWnd )
         {
             if ( m_pNowChildFrm != NULL )
-                 m_pNowChildFrm->SetFocus();
+            {
+                m_pNowChildFrm->SetFocus();
+            }
         }
     }
     
@@ -46,8 +48,6 @@ BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
 
     if ( m_wndSuperbar.PreTranslateMessage(pMsg) )
         return TRUE;
-
-
 
     return FALSE;
 
@@ -109,7 +109,7 @@ LRESULT CDWMainFrame::OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 {
     if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
     {
-        m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,1),TRUE);
+        m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,0),TRUE);
     }
 
     return DefWindowProc();
@@ -200,25 +200,14 @@ void CDWMainFrame::GetChildFrmRect(RECT& rcChildFrm)
 LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
     if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
-        m_pNowChildFrm->ShowClient();
-
-    return DefWindowProc();
-}
-
-
-LRESULT CDWMainFrame::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
-{
-    if ( !IsZoomed() && GET_Y_LPARAM(lParam) < 20 )
     {
-        PostMessage( WM_NCLBUTTONDOWN, HTCAPTION, lParam );
+        //m_pNowChildFrm->SetFocus();
     }
 
-    bHandled = FALSE;
-
-    return 1L;
+    return 0L;
 }
 
-void CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
+CDWChildFrm* CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
 {
     int nIdx = m_wndTableBar.GetSelectIndex();
 
@@ -239,7 +228,7 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
         m_wndTableBar,
         strTitle, pszURL);
     if ( pNewFrm == NULL )
-        return;
+        return NULL;
 
     m_wndTableBar.InsertTableItem( ++nIdx, strTitle, 0, (LPARAM)pNewFrm );
 
@@ -251,7 +240,8 @@ void CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
         //OnSelectURL(nIdx);
     }
     CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
-
+    
+    return pNewFrm;
 }
 
 
@@ -416,12 +406,12 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 
 LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-    OnNewURL((LPCTSTR)wParam);
+    CDWChildFrm* pNew = OnNewURL((LPCTSTR)wParam);
 
-    ATLASSERT( m_pNowChildFrm != NULL  && m_pNowChildFrm->IsWindow() );
+    ATLASSERT( pNew != NULL  && pNew->IsWindow() );
     
-    if ( m_pNowChildFrm != NULL )
-        return (LRESULT)m_pNowChildFrm->m_hWnd;
+    if ( pNew != NULL )
+        return (LRESULT)pNew->m_hWnd;
 
     return NULL;
 }

@@ -198,10 +198,15 @@ public:
             HideDropdownList();
             break;
         case VK_RETURN:
-            if ( m_wndDropList.IsWindowVisible() )
-                m_wndDropList.SendMessage(WM_COMMAND, MAKEWPARAM(0,LBN_DBLCLK), 0);
-            else
-                ::PostMessage( GetParent(), WM_EDIT_KEY_RETURN, GetDlgCtrlID(), 0 );
+            if ( m_wndDropList.IsWindowVisible() && m_vtDropList.GetCount() > 0 )
+            {
+                if ( m_wndDropList.GetSelIndex() > 0 )
+                {
+                    m_wndDropList.SendMessage(WM_COMMAND, MAKEWPARAM(0,LBN_DBLCLK), 0);
+                    break;
+                }
+            }
+            ::PostMessage( GetParent(), WM_EDIT_KEY_RETURN, GetDlgCtrlID(), 0 );
             break;
         case VK_UP:
         case VK_DOWN:

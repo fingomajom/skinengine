@@ -64,7 +64,7 @@ protected:
     void RePositionCtrls();
 
 
-    void OnNewURL ( LPCTSTR pszURL, BOOL bActive = TRUE );
+    CDWChildFrm* OnNewURL ( LPCTSTR pszURL, BOOL bActive = TRUE );
     void OnOpenURL( LPCTSTR pszURL );
 
     void OnCloseURL ( int nIndex );
@@ -84,8 +84,6 @@ protected:
     LRESULT OnTableBarMsg       (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewCreate     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewOpenSearch (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-
-    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnFileNew (WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

@@ -114,6 +114,14 @@ public:
         m_wndListBox.SetItemCount(nCount);
     }
 
+    int GetSelIndex() const
+    {
+        if ( !m_wndListBox.IsWindow() )
+            return -1;
+
+        return m_wndListBox.GetCurSel();
+    }
+
     BEGIN_MSG_MAP(CDWMainFrame)
 
         MESSAGE_HANDLER( WM_CREATE     , OnCreate   )

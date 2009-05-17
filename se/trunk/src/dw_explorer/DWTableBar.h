@@ -46,6 +46,7 @@ public:
         m_nSelectIndex     =  sys_tbi_count;
         m_nHotCloseIndex   = -1;
         m_nCloseClickIndex = -1;
+        m_nSysClickIndex   = -1;
     }
 
     BOOL AddTableItem( LPCTSTR pszCaption, UINT uID, LPARAM lParam )
@@ -534,6 +535,13 @@ public:
             bReflashWnd = TRUE;
         }
 
+        if ( m_nSysClickIndex >= 0 )
+        {
+            m_nSysClickIndex = -1;
+            bReflashWnd = TRUE;
+        }
+
+
         if ( bReflashWnd )
             CWindow::Invalidate();
 
@@ -588,16 +596,16 @@ public:
 
             if ( m_nHotIndex >= 0 && m_nHotIndex < (int)m_vtTableBtn.GetCount() )
                 m_nSelectIndex = m_nHotIndex;
-            SendMessage(WM_MOUSEMOVE, 0, lParam);
+            //SendMessage(WM_MOUSEMOVE, 0, lParam);
             bReflashWnd = TRUE;
         }
         else if ( m_nHotIndex >= 0 )
         {
-            m_nHotCloseIndex = m_nHotIndex;
+            m_nSysClickIndex = m_nHotIndex;
             bReflashWnd = TRUE;
         }
 
-        if ( m_nHotCloseIndex>= sys_tbi_count )
+        if ( m_nHotCloseIndex >= sys_tbi_count )
         {
             m_nCloseClickIndex = m_nHotCloseIndex;
             bReflashWnd = TRUE;
@@ -615,19 +623,21 @@ public:
         BOOL bReflashWnd = TRUE;
 
         ReleaseCapture();
-        if ( m_nCloseClickIndex >=sys_tbi_count && m_nCloseClickIndex == m_nHotCloseIndex )
+        if ( m_nCloseClickIndex >= sys_tbi_count && m_nCloseClickIndex == m_nHotCloseIndex )
         {
             SendMsgToParent( WM_TABLE_BAR_MSG, 
                 TGM_ITEM_CLOSE_CLICK, 
                 m_nCloseClickIndex - sys_tbi_count );
         }
-        else if (  m_nHotCloseIndex >= 0 && m_nHotCloseIndex == m_nHotIndex )
+        
+        if (  m_nSysClickIndex >= 0 && m_nSysClickIndex == m_nHotIndex )
         {
-            OnSysBtnClick(m_nHotCloseIndex);
+            OnSysBtnClick(m_nSysClickIndex);
         }
 
+        m_nSysClickIndex   = -1;
         m_nCloseClickIndex = -1;
-        m_nHotCloseIndex = -1;
+        m_nHotCloseIndex   = -1;
 
         if ( bReflashWnd )
             CWindow::Invalidate();
@@ -709,6 +719,7 @@ protected:
     int m_nHotIndex;
     int m_nSelectIndex;
 
+    int m_nSysClickIndex;
     int m_nHotCloseIndex;
     int m_nCloseClickIndex;
 

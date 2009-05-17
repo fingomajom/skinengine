@@ -88,7 +88,7 @@ public:
 
         psmgt.WebWndOpenURL( m_wndClient, pszURL );
 
-        SetFocus();
+        ::SetForegroundWindow(m_wndClient);
     }
 
 
@@ -176,7 +176,7 @@ public:
     {
         if ( m_wndClient.IsWindow() )
         {
-            SendMessageToWebWnd(WM_WEBVIEW_SHOW, TRUE);
+            ::SetForegroundWindow(m_wndClient);
         }
 
         return 0L;
@@ -249,8 +249,8 @@ public:
 
     LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        //if ( m_wndClient.IsWindow() )
-        //    return 1L;
+        if ( m_wndClient.IsWindow() )
+            return 1L;
 
         return DefWindowProc();
     }
@@ -322,8 +322,16 @@ public:
         {
             return;
         }
-       
+
+        //m_wndClient.PostMessage( WM_WEBVIEW_MOVESIZE, wParam, lParam);
+
         SendMessageToWebWnd(WM_WEBVIEW_MOVESIZE, wParam, lParam);
+
+        //::SendMessageTimeout( m_wndClient, 
+        //    WM_WEBVIEW_MOVESIZE, 
+        //    wParam, lParam, 
+        //    SMTO_ABORTIFHUNG, 1, 0);
+
     }
 
     void HideClient()
@@ -360,6 +368,7 @@ public:
                 (WPARAM)icon.m_hIcon, 0 );
 
             m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
+            ::SetForegroundWindow(m_wndClient);
         }
     }
 

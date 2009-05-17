@@ -32,6 +32,8 @@ class CDWWebView :
 public:
 
     CWebViewBgWnd m_wndBk;
+    CRgn          m_wndRgn;
+
     
     BOOL PreTranslateMessage(MSG* pMsg)
     {
@@ -54,7 +56,7 @@ public:
 
     HWND Create(HWND hWndParent)
     {
-        m_wndBk.Create( NULL, rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW  );
+        m_wndBk.Create( NULL, rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW );
 
         HWND hRet = CDWHtmlEventMgt::Create( m_wndBk, 
             rcDefault, 
@@ -91,11 +93,8 @@ public:
         MESSAGE_HANDLER(WM_WINDOWPOSCHANGED , OnWndPosChanged )
 
         MESSAGE_HANDLER(WM_TIMER            , OnTimer )
-
-        MESSAGE_HANDLER(WM_USER_GET_WEBBROWSER2_CROSS_THREAD , OnGetMarshalWebBrowser2CrossThread)
-        MESSAGE_HANDLER(WM_USER_GET_WEBBROWSER2_CROSS_PROCESS, OnGetMarshalWebBrowser2CrossProcess)
-        
-        CHAIN_MSG_MAP(CDWHtmlView);
+       
+        CHAIN_MSG_MAP(CDWHtmlEventMgt);
 
     END_MSG_MAP()
 
@@ -111,7 +110,7 @@ public:
 
         ::SetFocus(GetWebIeWnd());
 
-        return 0;
+        return 0L;
     }
 
     
@@ -135,6 +134,7 @@ public:
         return 1L;
     }
 
+
     LRESULT OnActivate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         bHandled = FALSE;
@@ -148,8 +148,9 @@ public:
 
             ::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
             SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE  | SWP_NOSENDCHANGING);
-            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
+            ::SetFocus( GetWebIeWnd() );
         }
 
         return 0;
@@ -169,12 +170,10 @@ public:
             SetWindowPos(hRoot, 
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
-            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+                SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_NOACTIVATE);
+            m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
-            ::SetActiveWindow(m_hWnd);
-            ::SetForegroundWindow(m_hWnd);
-            ::SetFocus( GetWebIeWnd() );   
+            ::SetFocus( GetWebIeWnd() );
         }
         else 
         {
@@ -188,8 +187,10 @@ public:
     {
         CWindow wndClient = m_hNotifyWnd;
 
-        RECT rcClient = { 0 };
-        wndClient.GetWindowRect(&rcClient);
+        RECT rcOldWindow = { 0 };
+        RECT rcWindow = { 0 };
+        wndClient.GetWindowRect(&rcWindow);
+        GetWindowRect(&rcOldWindow);
 
         BOOL bSize = HIWORD(wParam);
         BOOL bMove = LOWORD(wParam);
@@ -198,18 +199,39 @@ public:
         
         if ( !bSize )
             nFlags |= SWP_NOSIZE;
+        else
+            nFlags |= (SWP_NOREDRAW | SWP_DEFERERASE);
         if ( !bMove )
             nFlags |= SWP_NOMOVE;
 
-        LRESULT lRet = SetWindowPos(NULL, 
-            rcClient.left, rcClient.top, 
-            rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-            nFlags);
+        if ( rcOldWindow.left == rcWindow.left &&
+             rcOldWindow.top == rcWindow.top &&
+             rcOldWindow.right == rcWindow.right &&
+             rcOldWindow.bottom == rcWindow.bottom )
+             return Invalidate();
 
-        if ( lParam )
+        if ( bSize )
         {
-            RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ERASENOW);
+            RECT rcClient = rcWindow;
+
+            rcClient.right  = rcClient.right - rcClient.left;
+            rcClient.bottom = rcClient.bottom - rcClient.top;
+            rcClient.top = rcClient.left = 0;
+
+            CRgnHandle rgn;
+            rgn.CreateRectRgnIndirect(&rcClient);
+
+            SetWindowRgn(rgn, TRUE);
+
+            if (m_wndRgn.m_hRgn != NULL)
+                m_wndRgn.DeleteObject();
+            m_wndRgn.m_hRgn = rgn;
         }
+
+        LRESULT lRet = SetWindowPos(NULL, 
+            rcWindow.left, rcWindow.top, 
+            rcWindow.right-rcWindow.left, rcWindow.bottom-rcWindow.top, 
+            nFlags);
 
         return lRet;
     }
@@ -225,11 +247,11 @@ public:
             RECT rcClient = { 0 };
             wndClient.GetWindowRect(&rcClient);
 
-            SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+            //SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
             m_wndBk.SetWindowPos(m_hWnd ,
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                SWP_NOSIZE | SWP_NOSENDCHANGING);
+                SWP_NOSIZE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
         }
 

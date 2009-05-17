@@ -183,8 +183,6 @@ public:
             {
                 spWebBrowser2->get_Application(ppDisp);
             }
-
-            ::SetFocus(hWnd);
         }
     }
 

@@ -226,6 +226,9 @@ public:
             m_strIText = pszIText;
             delete []pszIText;
 
+            if ( m_strIText == BLANK_URL )
+                return 0;
+
 
             CDWSmartAddrMgt& sa = CDWSmartAddrMgt::Instance();
             
