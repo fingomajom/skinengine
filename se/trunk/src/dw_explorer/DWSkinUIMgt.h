@@ -11,8 +11,8 @@ protected:
 
     CDWSkinUIMgt()
     {
-        clrFrameNcBorder = RGB( 90 , 90, 90);
-        clrFrameWindow   = RGB( 60, 130, 255 );
+        clrFrameNcBorder = RGB( 90 , 90 , 90  );
+        clrFrameWindow   = RGB( 127, 127, 255 );
 
         fontDefault.CreatePointFont( 90, L"Tahoma" );
 
