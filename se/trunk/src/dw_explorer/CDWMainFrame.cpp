@@ -263,6 +263,7 @@ void CDWMainFrame::OnCloseURL( int nIndex )
 
         OnOpenURL(NULL);
 
+        ::SetForegroundWindow(m_hWnd);
         m_wndSuperbar.m_address_edit.SetSel(0,-1);
         m_wndSuperbar.m_address_edit.SetFocus();
 
@@ -313,8 +314,8 @@ void CDWMainFrame::OnSelectURL( int nIndex )
     GetChildFrmRect(rcChildFrm);
 
     pNextFrm->MoveWindow(&rcChildFrm, FALSE);
-    pNextFrm->ShowClient();
     pNextFrm->SetFocus();
+    pNextFrm->ShowClient();
 
     if ( m_pNowChildFrm != NULL )
     {
@@ -404,9 +405,9 @@ LRESULT CDWMainFrame::OnTableBarMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
     return 1L;
 }
 
-LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT CDWMainFrame::OnWebViewCreate(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-    CDWChildFrm* pNew = OnNewURL((LPCTSTR)wParam);
+    CDWChildFrm* pNew = OnNewURL((LPCTSTR)wParam, lParam);
 
     ATLASSERT( pNew != NULL  && pNew->IsWindow() );
     

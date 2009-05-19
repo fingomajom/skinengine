@@ -4,6 +4,7 @@
 #include "DWSmartAddrProvider.h"
 #include "DWSmartAddrFavorite.h"
 #include "DWSmartAddrSearch.h"
+#include "DWSmartAddrHistroy.h"
 
 class CDWSmartAddrMgt : public CDWSingleton2<CDWSmartAddrMgt>
 {
@@ -11,6 +12,7 @@ class CDWSmartAddrMgt : public CDWSingleton2<CDWSmartAddrMgt>
 
     CDWSmartAddrMgt() 
     {
+        CDWSmartAddrProviderList::AddSmartAddrProvider(&g_DWSmartAddrHistroy);
         CDWSmartAddrProviderList::AddSmartAddrProvider(&g_DWSmartAddrFavorite);
         CDWSmartAddrProviderList::AddSmartAddrProvider(&g_CDWSmartAddrSearch);
     }

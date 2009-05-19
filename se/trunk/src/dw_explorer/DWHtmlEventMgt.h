@@ -151,7 +151,7 @@ public:
     }
     virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel)
     {
-        HWND hWndChildFrm = (HWND)::SendMessage( m_hNotifyWnd, WM_WEBVIEW_CREATE, 0, 0 ); 
+        HWND hWndChildFrm = (HWND)::SendMessage( m_hNotifyWnd, WM_WEBVIEW_CREATE, 0, TRUE ); 
         if ( hWndChildFrm == NULL || !::IsWindow(hWndChildFrm) )
         {
             *bCancel = TRUE;

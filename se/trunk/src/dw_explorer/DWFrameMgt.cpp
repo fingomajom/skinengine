@@ -4,6 +4,7 @@
 #include "DWProcessMgt.h"
 #include "DWEventSvr.h"
 #include "DWFavIconMgt.h"
+#include "DWURLHistoryMgt.h"
 
 DWORD CDWFrameMgt::m_dwMainThreadId = NULL;
 
@@ -46,6 +47,7 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     CDWProcessMgt::Instance();
     CDWFavIconMgt::Instance();
+    CDWURLHistoryMgt::Instance();
 
     g_hMutex = OpenMutex( MUTEX_MODIFY_STATE, TRUE, g_pszMutexName );
     if ( g_hMutex != NULL )
@@ -79,6 +81,7 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     CDWSkinUIMgt::DeleteInstance();
     CDWSearchMgt::DeleteInstance();
     CDWIEFavoritesMgt::DeleteInstance();
+    CDWURLHistoryMgt::DeleteInstance();
 
     g_CDWSmartAddrSearch.Stop();
 

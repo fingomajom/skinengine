@@ -610,6 +610,7 @@ public:
         }
         else if ( uMsg == edi_addr_setfocus )
         {
+            m_address_edit.SetSel(0,-1);
             m_address_edit.SetFocus();
         }
 

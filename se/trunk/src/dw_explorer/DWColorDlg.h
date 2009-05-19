@@ -3,9 +3,13 @@
 
 #include "DWGDI.h"
 #include "DWEventSvr.h"
+#include "DWConfigDB.h"
 
-static HHOOK s_hColorDialogHook = NULL;
-static HWND  s_hWndColorDialog  = NULL;
+
+class CDWColorDialog;
+
+static HHOOK            s_hColorDialogHook = NULL;
+static CDWColorDialog*  s_pWndColorDialog  = NULL;
 
 class CDWTrackBarCtrl : public CWindowImpl<CDWTrackBarCtrl, CTrackBarCtrl>
 {
@@ -219,9 +223,9 @@ public:
 
 
             ATLASSERT(s_hColorDialogHook == NULL);
-            ATLASSERT(s_hWndColorDialog == NULL);
+            ATLASSERT(s_pWndColorDialog  == NULL);
 
-            s_hWndColorDialog = m_hWnd;
+            s_pWndColorDialog = this;
             s_hColorDialogHook = ::SetWindowsHookEx(WH_GETMESSAGE, 
                 MsgHookFunc, 
                 _Module.GetModuleInstance(), 
@@ -235,8 +239,16 @@ public:
             {
                 UnhookWindowsHookEx( s_hColorDialogHook );
                 s_hColorDialogHook = NULL;
-                s_hWndColorDialog  = NULL;
+                s_pWndColorDialog  = NULL;
             }
+
+            CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
+            if ( pskin != NULL )
+            {
+                CDWBaseConfig cfg;
+                cfg.set_Window_Color( pskin->clrFrameWindow );
+            }
+
 
         }
 
@@ -265,14 +277,14 @@ public:
             GetCursorPos(&pt);
 
             RECT rcWindow;
-            ::GetWindowRect(s_hWndColorDialog, &rcWindow);
+            s_pWndColorDialog->GetWindowRect(&rcWindow);
 
             if ( !::PtInRect( &rcWindow, pt ) )
             {
                 UnhookWindowsHookEx( s_hColorDialogHook );
-                ::ShowWindow(s_hWndColorDialog, SW_HIDE);
+                s_pWndColorDialog->ShowWindow(SW_HIDE);
                 s_hColorDialogHook = NULL;
-                s_hWndColorDialog  = NULL;
+                s_pWndColorDialog  = NULL;
             }
         }
 

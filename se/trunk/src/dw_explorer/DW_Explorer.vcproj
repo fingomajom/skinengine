@@ -291,6 +291,10 @@
 								>
 							</File>
 							<File
+								RelativePath=".\DWSmartAddrHistroy.h"
+								>
+							</File>
+							<File
 								RelativePath=".\DWSmartAddrMgt.h"
 								>
 							</File>
@@ -366,6 +370,10 @@
 					</File>
 					<File
 						RelativePath=".\DWThread.h"
+						>
+					</File>
+					<File
+						RelativePath=".\DWURLHistoryMgt.h"
 						>
 					</File>
 				</Filter>

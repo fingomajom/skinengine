@@ -16,6 +16,7 @@
 #include "DWProcessMgt.h"
 #include "DWEventSvr.h"
 #include "DWFavIconMgt.h"
+#include "DWURLHistoryMgt.h"
 
 
 class CDWChildFrm : public CWindowImpl<CDWChildFrm>
@@ -209,6 +210,11 @@ public:
                 return 0L;
             
             m_wndTableBar.SetItemCaption(nTabIndex, pszTitle);
+
+            CDWURLHistoryMgt::Instance().AddURLHistory(
+                m_strTitle,
+                m_strURL);
+
         }
 
         return 0;
@@ -241,6 +247,9 @@ public:
                     (WPARAM)m_icon.m_hIcon, 0 );
             }
 
+            CDWURLHistoryMgt::Instance().AddURLHistory(
+                m_strTitle,
+                m_strURL);
         }
 
         return 0;
@@ -356,7 +365,8 @@ public:
             if ( pskin == NULL )
                 return;
 
-            CDWEventSvr::Instance().OnMessage( eid_addr_changed, 
+            CDWEventSvr& evt = CDWEventSvr::Instance();
+            evt.OnMessage( eid_addr_changed, 
                 (WPARAM)(LPCTSTR)m_strURL, 
                 (WPARAM)(LPCTSTR)m_strTitle);
 
@@ -364,11 +374,18 @@ public:
             if ( icon.m_hIcon == NULL )
                 icon = pskin->iconNull;
 
-            CDWEventSvr::Instance().OnMessage( edi_spr_icon_changed, 
+            evt.OnMessage( edi_spr_icon_changed, 
                 (WPARAM)icon.m_hIcon, 0 );
 
             m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
-            ::SetForegroundWindow(m_wndClient);
+
+            if ( !StrCmpI(m_strURL, BLANK_URL) )
+            {
+                evt.OnMessage( edi_addr_setfocus );
+                ::SetForegroundWindow(GetParent());
+            }
+            else
+                ::SetForegroundWindow(m_wndClient);
         }
     }
 
