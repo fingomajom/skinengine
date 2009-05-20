@@ -188,11 +188,15 @@ BOOL CMenuOrder::LoadMenuOrder(LPCSTR sFolderPath)
 					mois[i].filetype = GetWORD(lpData, lpend);
 					if((mois[i].itemtype & 4) != 0)
 					{
-						mois[i].longname = Get_StringW(lpData, lpend);
+						mois[i].shortname = Get_StringW(lpData, lpend);
 					}
 					else
-						mois[i].longname = Get_String(lpData, lpend);
+						mois[i].shortname = Get_String(lpData, lpend);
+
+                    WORD isub1 = *(WORD*)(lpbt + (len1 - 8))
+
 					mois[i].shortname = Get_String(lpData, lpend);
+
 					if(mois[i].order>=0 && mois[i].order<len)
 						index[mois[i].order] = i;
 
