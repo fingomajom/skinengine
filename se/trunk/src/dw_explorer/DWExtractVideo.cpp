@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "DWExtractVideo.h"
+#include "resource.h"
+#include "DWFrameUI.h"
+
 #include "detours/detours.h"
 #import  "c:\\windows\\system32\\macromed\\flash\\Flash10b.ocx"
 
@@ -138,27 +141,105 @@ public:
 
 };
 
-class CAudioAxWindow : public CWindowImpl< CAudioAxWindow, CAxWindow , CFrameWinTraits>
+
+class CMyAxWindow : public CWindowImpl< CMyAxWindow, CAxWindow >
+{
+public:
+
+    ~CMyAxWindow()
+    {
+        if ( IsWindow() )
+            DestroyWindow();
+        m_hWnd = NULL;
+    }
+
+    BEGIN_MSG_MAP(CMyAxWindow)
+        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy  )
+    END_MSG_MAP()
+
+    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        CWindow wndParent;
+        
+        if ( IsWindow() )
+            wndParent = GetParent();
+
+        LRESULT lRet = DefWindowProc();
+
+        if ( wndParent.IsWindow() )
+            wndParent.DestroyWindow();
+        
+        return lRet;
+    }
+
+};
+
+class CAudioAxWindow : 
+    public CWindowImpl< CAudioAxWindow, CWindow , CFrameWinTraits>,
+    public CDWFrameUIImpl<CAudioAxWindow>
 {
 public:
     CAudioAxWindow()
     {
     }
 
+    ~CAudioAxWindow()
+    {
+        if ( IsWindow() )
+            DestroyWindow();
+
+        m_sys_title.m_hWnd = NULL;
+        m_sys_bar.m_hWnd = NULL;        
+        m_hWnd = NULL;
+    }
+
     BEGIN_MSG_MAP(CAudioAxWindow)
-        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy)
+        CHAIN_MSG_MAP(CDWFrameUIImpl<CAudioAxWindow>)
+        MESSAGE_HANDLER(WM_CREATE   , OnCreate   )
+        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy  )
+        MESSAGE_HANDLER(WM_SIZE     , OnSize     )
     END_MSG_MAP()
+
+    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        m_wndAxFlash.Create( m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE );
+
+        return DefWindowProc();
+    }
 
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        if ( m_wndAxFlash.IsWindow() )
+            m_wndAxFlash.DestroyWindow();
         return DefWindowProc();
     }
+
+    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        RECT rcClient;
+        GetClientRect(&rcClient);
+
+        rcClient.top += 22;
+
+        if ( m_wndAxFlash.IsWindow() )
+            m_wndAxFlash.MoveWindow(&rcClient);
+
+        return DefWindowProc();
+    }
+
+    void GetChildFrmRect(RECT& rcChildFrm)
+    {
+        memset(&rcChildFrm, 0, sizeof(rcChildFrm));
+    }
+
 
     virtual void OnFinalMessage(HWND /*hWnd*/)
     {
         m_pflashEvent->OnEndPopupFlash();
         m_hWnd = NULL;
     }
+
+    CMyAxWindow m_wndAxFlash;
 
     HWND m_hWndParent;
     IPopupFlashEvent* m_pflashEvent;
@@ -384,6 +465,31 @@ public:
           return FALSE;
       }
 
+      BOOL FixPlayingFlash()
+      {
+          CComQIPtr<ShockwaveFlashObjects::IShockwaveFlash> spShockwaveFlash(m_p);
+          if ( spShockwaveFlash.p != NULL )
+          {
+              spShockwaveFlash->put_Loop(VARIANT_TRUE);
+          }
+          return TRUE;
+      }
+
+      ATL::CString GetAudioTitle()
+      {
+          ATL::CString strRet;
+
+          CComQIPtr<ShockwaveFlashObjects::IShockwaveFlash> spShockwaveFlash(m_p);
+          if ( spShockwaveFlash.p != NULL )
+          {
+              CComBSTR bstrRet;
+              spShockwaveFlash->get_Movie(&bstrRet);
+              strRet = bstrRet;
+          }
+            
+          return strRet;
+      }
+
       STDMETHOD(GetWindow)(HWND* phwnd)
       {
           CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
@@ -499,7 +605,7 @@ public:
 
           m_spOleClientSite.Detach();
           m_wndBtn.m_bPopupFlash = FALSE;
-
+          FixPlayingFlash();
           return hr;
       }
 
@@ -512,19 +618,23 @@ public:
               ::ClientToScreen(m_hWndParent, (LPPOINT)&rcWndFlash);
               ::ClientToScreen(m_hWndParent, ((LPPOINT)&rcWndFlash)+1);
 
-              rcWndFlash.right  += 5;
-              rcWndFlash.bottom += 24;
+              rcWndFlash.right  += 10;
+              rcWndFlash.bottom += 28;
 
               m_wndPopupFlash.m_hWndParent  = m_hWnd;
               m_wndPopupFlash.m_pflashEvent = this;
-              m_wndPopupFlash.Create(m_hWnd, &rcWndFlash, NULL, 
-                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, WS_EX_TOPMOST);
+
+              m_wndPopupFlash.Create(m_hWnd, &rcWndFlash, GetAudioTitle(), 
+                  WS_POPUP | WS_SIZEBOX | WS_CLIPCHILDREN |
+                  WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_VISIBLE, 
+                  WS_EX_TOPMOST);
 
               ReleaseWebFlash();
 
               ::SetForegroundWindow(m_wndPopupFlash);
-              m_wndPopupFlash.AttachControl(m_p, NULL);
+              m_wndPopupFlash.m_wndAxFlash.AttachControl(m_p, NULL);
               m_wndPopupFlash.SetFocus();
+              FixPlayingFlash();
           }
       }
 

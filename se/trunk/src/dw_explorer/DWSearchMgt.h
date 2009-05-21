@@ -4,6 +4,7 @@
 
 #include "DWComDef.h"
 #include "DWFavIconMgt.h"
+#include "DWConfigDB.h"
 
 struct SearchItem
 {
@@ -75,6 +76,14 @@ protected:
 
                 
         m_nSelIndex = 0;
+        CDWBaseConfig cfg;
+        m_nSelIndex = cfg.get_Default_Search(m_nSelIndex);
+        if ( m_nSelIndex < 0 || 
+             m_nSelIndex >= m_searchList.GetSize() || 
+             m_searchList[m_nSelIndex].strName == L"-" )
+        {
+            m_nSelIndex = 0;
+        }
 
         CDWFavIconMgt& fimgt = CDWFavIconMgt::Instance();
 
@@ -82,6 +91,12 @@ protected:
         {
             fimgt.GetFavIcon( m_searchList[i].strURL, NULL, NULL );
         }
+    }
+
+    ~CDWSearchMgt()
+    {
+        CDWBaseConfig cfg;
+        cfg.set_Default_Search(m_nSelIndex);
     }
 
 public:

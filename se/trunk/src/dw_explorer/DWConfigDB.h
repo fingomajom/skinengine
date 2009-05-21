@@ -101,9 +101,22 @@ public:
         return clrRet;
     }
 
-    COLORREF set_Window_Color(COLORREF clr)  
+    BOOL set_Window_Color(COLORREF clr)  
     { 
         return SetConfig(L"WindowColor", clr);
+    }
+
+    int get_Default_Search(int nDef)  
+    { 
+        int nRet = nDef; 
+        if ( !GetConfig( L"DefaultSearch", nRet, nDef ) )
+            return nRet;
+        return nRet;
+    }
+
+    BOOL set_Default_Search(int nDef)  
+    { 
+        return SetConfig(L"DefaultSearch", nDef);
     }
 
 };

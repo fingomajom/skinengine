@@ -158,6 +158,8 @@ public:
 
         m_wndDropList.SetItemCount(uItemCount);
 
+        if ( uItemCount > 30 )
+            uItemCount = 30;
         rcWindow.top    = rcWindow.bottom + 1;
         rcWindow.bottom = rcWindow.top + 1 + uItemCount * 20;
 

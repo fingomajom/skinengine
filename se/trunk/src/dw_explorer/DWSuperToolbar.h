@@ -233,7 +233,7 @@ public:
             CDWSmartAddrMgt& sa = CDWSmartAddrMgt::Instance();
             
             AddrDropItemList aList;
-            sa.QueryAddrDropList(m_hWnd, m_strIText, aList, 20 );
+            sa.QueryAddrDropList(m_hWnd, m_strIText, aList, 15 );
             m_address_edit.ClearDropdownList();
             for ( POSITION pos = aList.GetHeadPosition(); pos != NULL ; )
             {

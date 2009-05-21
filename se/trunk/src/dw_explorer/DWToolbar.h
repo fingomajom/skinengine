@@ -118,6 +118,8 @@ public:
             
             delete info.image;
         }
+
+        m_vtToolBtn.RemoveAll();
     }
 
 

@@ -37,6 +37,7 @@ public:
 
     BEGIN_MSG_MAP(CDWListBox)
         MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER( WM_KILLFOCUS  , OnKillFocus )
         MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
         MESSAGE_HANDLER( WM_MOUSEMOVE  , OnMouseMove  )
         MESSAGE_HANDLER( WM_LBUTTONUP  , OnLButtonUp  )
@@ -44,15 +45,22 @@ public:
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        GetParent().SetFocus();
+        //GetParent().SetFocus();
 
-        return 0L;
+        return DefWindowProc();
+    }
+
+    LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+    {
+        GetParent().SendMessage(WM_KILLFOCUS, 0, 10);
+        return 1L;
     }
 
     LRESULT OnEraseBkGnd(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
         return 1L;
     }
+
 
     LRESULT OnMouseMove(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
     {
@@ -127,6 +135,8 @@ public:
         MESSAGE_HANDLER( WM_CREATE     , OnCreate   )
         MESSAGE_HANDLER( WM_KEYDOWN    , OnKeyDown  )
         MESSAGE_HANDLER( WM_SETFOCUS   , OnSetFocus )
+        MESSAGE_HANDLER( WM_KILLFOCUS  , OnKillFocus )
+
         MESSAGE_HANDLER( WM_LBUTTONDOWN, OnLButtonDown )
 
         MESSAGE_HANDLER( WM_ERASEBKGND, OnEraseBkGnd )
@@ -177,9 +187,21 @@ public:
 
     LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
-        m_wndEdit.SetFocus();
+        //m_wndEdit.SetFocus();
+        m_wndListBox.SetFocus();
         return 0L;
     }
+
+    LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( lParam == 10 )
+        {
+            //m_wndEdit.SetFocus();
+            m_wndEdit.SendMessage(WM_KILLFOCUS);
+        }
+        return 0L;
+    }
+
 
     LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
     {
@@ -467,6 +489,22 @@ public:
                 s_hWndDropdownList  = NULL;
             }
         }
+        else if ( pMsg->message == WM_MOUSEWHEEL )
+        {
+            POINT pt;
+            GetCursorPos(&pt);
+
+            RECT rcWindow;
+            ::GetWindowRect(s_hWndDropdownList, &rcWindow);
+
+            if ( ::PtInRect( &rcWindow, pt ) )
+            {
+                ::SendMessage(::GetWindow(s_hWndDropdownList,GW_CHILD),
+                    WM_MOUSEWHEEL, pMsg->wParam, pMsg->lParam);
+            }
+
+        }
+
 
         return lRet;
     }

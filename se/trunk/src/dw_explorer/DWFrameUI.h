@@ -81,7 +81,6 @@ public:
             rcWindow.right + 1, rcWindow.bottom + 12, 9, 9);
 
         ((T*)this)->GetChildFrmRect(rcCF);
-        //((T*)this)->ScreenToClient(&rcCF);
         rcCF.left   += 5;
         rcCF.right  += 5;
         rcCF.top    += 1;
