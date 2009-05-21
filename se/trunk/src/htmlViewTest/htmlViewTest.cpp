@@ -58,8 +58,13 @@ protected:
     DWORD m_dwRef;
 };
 
-#define WM_POPUPFLASH  (WM_USER+1000)
-#define WM_ENDFLASH    (WM_USER+1001)
+
+class IPopupFlashEvent
+{
+public:
+    virtual void OnPopupFlash() = 0;
+    virtual void OnEndPopupFlash() = 0;
+};
 
 class CTopButWindow : public CWindowImpl< CTopButWindow, CButton , CControlWinTraits>
 {
@@ -82,13 +87,14 @@ public:
 
         if ( ::PtInRect(&rcWindow, pt) )
         {
-            ::SendMessage(m_hWndParent, WM_POPUPFLASH, 0,0);
+            m_pflashEvent->OnPopupFlash();
         }
 
         return DefWindowProc();
     }
 
     HWND m_hWndParent;
+    IPopupFlashEvent* m_pflashEvent;
 
 };
 
@@ -110,10 +116,12 @@ public:
 
     virtual void OnFinalMessage(HWND /*hWnd*/)
     {
-        ::SendMessage(m_hWndParent, WM_ENDFLASH, 0,0);
+        m_pflashEvent->OnEndPopupFlash();
     }
 
     HWND m_hWndParent;
+    IPopupFlashEvent* m_pflashEvent;
+
 };
 
 
@@ -125,7 +133,8 @@ class CMyShockwaveFlash :
     public IViewObjectExImpl<CMyShockwaveFlash>,
     public IOleInPlaceObjectWindowlessImpl<CMyShockwaveFlash>,
     public CComControl<CMyShockwaveFlash>,
-    public CComCoClass<CMyShockwaveFlash>
+    public CComCoClass<CMyShockwaveFlash>,
+    public IPopupFlashEvent
 {
     IUnknown* m_p;
     DWORD m_dwRef;
@@ -133,10 +142,12 @@ class CMyShockwaveFlash :
     CTopButWindow  m_wndBtn;
     HWND           m_hWndParent;
 
-    CComObject<CAxHostWindow>*  m_pHostFlash;
     CFlashAxWindow m_wndPopupFlash;
 
     BOOL bCreated;
+
+    RECT m_rcWndFlash;
+    CComPtr<IOleClientSite> m_spOleClientSite;
 
 public:
 
@@ -144,289 +155,160 @@ public:
         m_p(p)
     {
         m_dwRef = 1;
-        m_pHostFlash = 0;
         bCreated = FALSE;
     }
 
     ~CMyShockwaveFlash()
     {
+        if ( m_wndBtn.IsWindow() )
+            m_wndBtn.DestroyWindow();
     }
 
     STDMETHOD(DoVerb)(LONG iVerb, LPMSG pMsg , IOleClientSite* pActiveSite, LONG  lindex ,
         HWND hwndParent, LPCRECT lprcPosRect)
     {
         m_spClientSite = pActiveSite;
+        m_hWndParent = hwndParent;
 
-        if ( !bCreated )
-        {
-            bCreated = TRUE;
-            m_hWndParent = hwndParent;
+        //if ( !bCreated )
+        //{
+        //    bCreated = TRUE;
+        //    m_hWndParent = hwndParent;
 
-            int nWidth  = lprcPosRect->right - lprcPosRect->left;
-            int nHeight = lprcPosRect->bottom - lprcPosRect->top;
+        //    int nWidth  = lprcPosRect->right - lprcPosRect->left;
+        //    int nHeight = lprcPosRect->bottom - lprcPosRect->top;
 
-            CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
+        //    CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
 
-            _bstr_t bstrM = spShockwaveFlash->GetMovie();
+        //    _bstr_t bstrM = spShockwaveFlash->GetMovie();
 
-            VARIANT_BOOL b = VARIANT_TRUE;
-            spShockwaveFlash->get_Playing(&b);
+        //    VARIANT_BOOL b = VARIANT_TRUE;
+        //    spShockwaveFlash->get_Playing(&b);
 
-            BOOL bGood = 
-                StrStrI(bstrM, L"youku.com") != NULL ||
-                StrStrI(bstrM, L"56.com") != NULL ||
-                StrStrI(bstrM, L"video.sina.com") != NULL;
+        //    BOOL bGood = 
+        //        StrStrI(bstrM, L"youku.com") != NULL ||
+        //        StrStrI(bstrM, L"56.com") != NULL ||
+        //        StrStrI(bstrM, L"video.sina.com") != NULL;
 
-            if ( m_pHostFlash == NULL && 
-                ((nWidth > 280 && nHeight >200 && b == VARIANT_TRUE ) || bGood ) )
-            {
-                m_pHostFlash = new CComObject<CAxHostWindow>;
-                ATLASSERT(m_pHostFlash != NULL);
-                if ( m_pHostFlash == NULL )
-                    return S_FALSE;
+        //    //if ( ((nWidth > 280 && nHeight >200 && b == VARIANT_TRUE ) || bGood ) )
+        //    if ( (b == VARIANT_TRUE ) || bGood  )
+        //    {
+        //        RECT rcClient = *lprcPosRect;
 
-                RECT rcClient = *lprcPosRect;
+        //        m_wndBtn.m_hWndParent = m_hWnd;
+        //        m_wndBtn.m_pflashEvent = this;
+        //        m_wndBtn.Create( hwndParent, &rcClient, L"Google", 
+        //            WS_POPUP , WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
 
-                Create( hwndParent, &rcClient, NULL, WS_CHILD | WS_VISIBLE );
+        //    }
+        //}
 
-                m_pHostFlash->AttachControl(m_p, m_hWnd);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
 
-                m_wndBtn.m_hWndParent = m_hWnd;
-                m_wndBtn.Create( hwndParent, &rcClient, L"Google", 
-                    WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
+        return spIOleObject->DoVerb(iVerb, pMsg, pActiveSite,lindex,hwndParent,lprcPosRect);
 
-            }
-        }
-
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-
-            return spIOleObject->DoVerb(iVerb, pMsg, pActiveSite,lindex,hwndParent,lprcPosRect);
-        }
-
-        return IOleObjectImpl<CMyShockwaveFlash>::DoVerb( iVerb, pMsg, pActiveSite, lindex, hwndParent, lprcPosRect);
     }
 
     STDMETHOD(SetClientSite)(IOleClientSite *pClientSite)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->SetClientSite(pClientSite);
-        }
-
-        return IOleObject_SetClientSite(pClientSite);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->SetClientSite(pClientSite);
     }
     STDMETHOD(GetClientSite)(IOleClientSite **ppClientSite)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetClientSite(ppClientSite);
-        }
-
-        return IOleObject_GetClientSite(ppClientSite);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetClientSite(ppClientSite);
     }
     STDMETHOD(SetHostNames)(LPCOLESTR szContainerApp , LPCOLESTR szContainerObj)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->SetHostNames(szContainerApp,szContainerObj);
-        }
-
-        return S_OK;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->SetHostNames(szContainerApp,szContainerObj);
     }
     STDMETHOD(Close)(DWORD dwSaveOption)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->Close(dwSaveOption);
-        }
-
-        return IOleObject_Close(dwSaveOption);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->Close(dwSaveOption);
     }
     STDMETHOD(SetMoniker)(DWORD dwWhichMoniker , IMoniker* pmk )
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->SetMoniker(dwWhichMoniker, pmk);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleObjectImpl::SetMoniker"));
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->SetMoniker(dwWhichMoniker, pmk);
     }
     STDMETHOD(GetMoniker)(DWORD  dwAssign , DWORD  dwWhichMoniker , IMoniker**  ppmk )
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetMoniker(dwAssign, dwWhichMoniker, ppmk);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleObjectImpl::GetMoniker"));
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetMoniker(dwAssign, dwWhichMoniker, ppmk);
     }
     STDMETHOD(InitFromData)(IDataObject*  pDataObject , BOOL  fCreation , DWORD  dwReserved)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->InitFromData(pDataObject, fCreation, dwReserved);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleObjectImpl::InitFromData"));
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->InitFromData(pDataObject, fCreation, dwReserved);
     }
     STDMETHOD(GetClipboardData)(DWORD dwReserved , IDataObject** ppDataObject)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetClipboardData(dwReserved, ppDataObject);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleObjectImpl::GetClipboardData"));
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetClipboardData(dwReserved, ppDataObject);
     }
 
     STDMETHOD(EnumVerbs)(IEnumOLEVERB **ppEnumOleVerb)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->EnumVerbs(ppEnumOleVerb);
-        }
-
-        if (!ppEnumOleVerb)
-            return E_POINTER;
-        return OleRegEnumVerbs(GetObjectCLSID(), ppEnumOleVerb);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->EnumVerbs(ppEnumOleVerb);
     }
     STDMETHOD(Update)(void)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->Update();
-        }
-
-        return S_OK;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->Update();
     }
     STDMETHOD(IsUpToDate)(void)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->IsUpToDate();
-        }
-
-        return S_OK;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->IsUpToDate();
     }
     STDMETHOD(GetUserClassID)(CLSID *pClsid)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetUserClassID(pClsid);
-        }
-
-        if (!pClsid)
-            return E_POINTER;
-        *pClsid = GetObjectCLSID();
-        return S_OK;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetUserClassID(pClsid);
     }
     STDMETHOD(GetUserType)(DWORD dwFormOfType, LPOLESTR *pszUserType)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetUserType(dwFormOfType,pszUserType);
-        }
-
-        return OleRegGetUserType(GetObjectCLSID(), dwFormOfType, pszUserType);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetUserType(dwFormOfType,pszUserType);
     }
     STDMETHOD(SetExtent)(DWORD dwDrawAspect, SIZEL *psizel)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->SetExtent(dwDrawAspect,psizel);
-        }
-
-        return IOleObject_SetExtent(dwDrawAspect, psizel);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->SetExtent(dwDrawAspect,psizel);
     }
     STDMETHOD(GetExtent)(DWORD dwDrawAspect, SIZEL *psizel)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetExtent(dwDrawAspect,psizel);
-        }
-
-        if (dwDrawAspect != DVASPECT_CONTENT)
-            return E_FAIL;
-        if (psizel == NULL)
-            return E_POINTER;
-        *psizel = m_sizeExtent;
-        return S_OK;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetExtent(dwDrawAspect,psizel);
     }
     STDMETHOD(Advise)(IAdviseSink *pAdvSink, DWORD *pdwConnection)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->Advise(pAdvSink,pdwConnection);
-        }
-
-        return IOleObject_Advise(pAdvSink, pdwConnection);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->Advise(pAdvSink,pdwConnection);
     }
     STDMETHOD(Unadvise)(DWORD dwConnection)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->Unadvise(dwConnection);
-        }
-
-        HRESULT hRes = E_FAIL;
-        if (m_spOleAdviseHolder != NULL)
-            hRes = m_spOleAdviseHolder->Unadvise(dwConnection);
-        return hRes;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->Unadvise(dwConnection);
     }
     STDMETHOD(EnumAdvise)(IEnumSTATDATA **ppenumAdvise)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->EnumAdvise(ppenumAdvise);
-        }
-
-        if (ppenumAdvise == NULL)
-            return E_POINTER;
-        *ppenumAdvise = NULL;
-        HRESULT hRes = E_FAIL;
-        if (m_spOleAdviseHolder != NULL)
-            hRes = m_spOleAdviseHolder->EnumAdvise(ppenumAdvise);
-        return hRes;
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->EnumAdvise(ppenumAdvise);
     }
     STDMETHOD(GetMiscStatus)(DWORD dwAspect, DWORD *pdwStatus)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->GetMiscStatus(dwAspect,pdwStatus);
-        }
-
-        return OleRegGetMiscStatus(GetObjectCLSID(), dwAspect, pdwStatus);
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->GetMiscStatus(dwAspect,pdwStatus);
     }
     STDMETHOD(SetColorScheme)(LOGPALETTE* pLogpal)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-            return spIOleObject->SetColorScheme(pLogpal);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleObjectImpl::SetColorScheme"));
+        CComQIPtr<IOleObject> spIOleObject(m_p);
+        return spIOleObject->SetColorScheme(pLogpal);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -436,41 +318,15 @@ public:
         if (prcPos == NULL || prcClip == NULL)
             return E_POINTER;
 
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        memcpy(&m_rcWndFlash, prcPos, sizeof(m_rcWndFlash));
 
-            return spOleInPlaceObject->SetObjectRects(prcPos, prcClip);
-        }
-
-        m_rcPos = *prcPos;
-        if ( IsWindow() )
-        {
-            if ( GetStyle() & WS_CHILD )
-            {
-                RECT rcIXect;
-                BOOL b = IntersectRect(&rcIXect, prcPos, prcClip);
-                HRGN tempRgn = NULL;
-                if (b && !EqualRect(&rcIXect, prcPos))
-                {
-                    OffsetRect(&rcIXect, -(prcPos->left), -(prcPos->top));
-                    tempRgn = CreateRectRgnIndirect(&rcIXect);
-                }
-
-                SetWindowRgn( tempRgn, TRUE);
-
-                SIZEL size = {prcPos->right - prcPos->left, prcPos->bottom - prcPos->top};
-
-                SetWindowPos( NULL, prcPos->left,
-                    prcPos->top, size.cx, size.cy, 
-                    SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW);
-            }
-        }
-
-        if ( m_pHostFlash != NULL )
+        while ( TRUE )
         {
             RECT rcBtn    = *prcPos;
             RECT rcParent = { 0 };
+
+            int nWidth  = rcBtn.right - rcBtn.left;
+            int nHeight = rcBtn.bottom - rcBtn.top;
 
             CWindow wndParent = m_hWndParent;       
 
@@ -489,185 +345,191 @@ public:
             rcBtn.bottom = rcBtn.top   + 20;
             rcBtn.left   = rcBtn.right - 100;
 
-            if ( m_wndBtn.IsWindow() )
+
+            if ( nWidth < 100 || nHeight < 80 )
+            {
+                if ( m_wndBtn.IsWindow() )
+                    m_wndBtn.ShowWindow(SW_HIDE);
+            }
+            else
+            {
+                if ( !m_wndBtn.IsWindow() )
+                {
+                    CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
+
+                    VARIANT_BOOL b = VARIANT_TRUE;
+                    spShockwaveFlash->get_Playing(&b);
+
+
+                    //if ( b != VARIANT_TRUE )
+                    //    break;
+
+                    m_wndBtn.m_pflashEvent = this;
+                    m_wndBtn.Create( m_hWndParent, &rcBtn, L"Google", 
+                        WS_POPUP , WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
+
+                }
+
                 m_wndBtn.MoveWindow( &rcBtn );
+                m_wndBtn.ShowWindow(SW_SHOWNOACTIVATE);
+            }
+
+            break;
         }
 
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
 
-        return S_OK;
+        return spOleInPlaceObject->SetObjectRects(prcPos, prcClip);
+
     }
 
 
     STDMETHOD(GetWindow)(HWND* phwnd)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->GetWindow(phwnd);
-        }
-
-        HRESULT hRes = E_POINTER;
-
-        if (m_bWasOnceWindowless)
-            return E_FAIL;
-
-        if (phwnd != NULL)
-        {
-            *phwnd = m_hWnd;
-            hRes = (*phwnd == NULL) ? E_UNEXPECTED : S_OK;
-        }
-        return hRes;
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->GetWindow(phwnd);
     }
     STDMETHOD(ContextSensitiveHelp)(BOOL  fEnterMode )
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->ContextSensitiveHelp(fEnterMode);
-        }
-
-        ATLTRACENOTIMPL(_T("IOleInPlaceObjectWindowlessImpl::ContextSensitiveHelp"));
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->ContextSensitiveHelp(fEnterMode);
     }
 
     STDMETHOD(InPlaceDeactivate)(void)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->InPlaceDeactivate();
-        }
-
-        return IOleInPlaceObject_InPlaceDeactivate();
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->InPlaceDeactivate();
     }
     STDMETHOD(UIDeactivate)(void)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->UIDeactivate();
-        }
-
-        return IOleInPlaceObject_UIDeactivate();
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->UIDeactivate();
     }
     STDMETHOD(ReactivateAndUndo)(void)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->ReactivateAndUndo();
-        }
-
-        ATLTRACENOTIMPL(_T("IOleInPlaceObjectWindowlessImpl::ReactivateAndUndo"));
+        CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->ReactivateAndUndo();
     }
 
     // IOleInPlaceObjectWindowless
     //
     STDMETHOD(OnWindowMessage)(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *plResult)
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObjectWindowless> spOleInPlaceObject(m_p);
-
-            return spOleInPlaceObject->OnWindowMessage(msg,wParam,lParam,plResult);
-        }
-
-        _ATL_MSG message(NULL, msg, wParam, lParam);
-        const _ATL_MSG* pOldMsg = m_pCurrentMsg;
-        m_pCurrentMsg = &message;
-        BOOL b = ProcessWindowMessage(m_hWnd, msg, wParam, lParam, *plResult);
-        // restore saved value for the current message
-        ATLASSERT(m_pCurrentMsg == &message);
-        m_pCurrentMsg = pOldMsg;
-        return b ? S_OK : S_FALSE;
+        CComQIPtr<IOleInPlaceObjectWindowless> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->OnWindowMessage(msg,wParam,lParam,plResult);
     }
 
     STDMETHOD(GetDropTarget)(IDropTarget** ppDropTarget )
     {
-        if ( m_pHostFlash == NULL )
-        {
-            CComQIPtr<IOleInPlaceObjectWindowless> spOleInPlaceObject(m_p);
+        CComQIPtr<IOleInPlaceObjectWindowless> spOleInPlaceObject(m_p);
+        return spOleInPlaceObject->GetDropTarget(ppDropTarget);
+    }
 
-            return spOleInPlaceObject->GetDropTarget(ppDropTarget);
+    void ReleaseWebFlash()
+    {
+        ATLASSERT(m_spOleClientSite == NULL);
+
+        CComQIPtr<IViewObject>      spViewObject(m_p);
+        CComQIPtr<IOleObject>       spOleObject(m_p);
+        CComQIPtr<IObjectWithSite>  spSite(m_p);
+
+        if (spViewObject != NULL)
+            spViewObject->SetAdvise(DVASPECT_CONTENT, 0, NULL);
+
+        if (spOleObject)
+        {
+            spOleObject->GetClientSite(&m_spOleClientSite);
+            spOleObject->Close(OLECLOSE_NOSAVE);
+            spOleObject->SetClientSite(NULL);
         }
 
-        ATLTRACENOTIMPL(_T("IOleInPlaceObjectWindowlessImpl::GetDropTarget"));
-    }
-
-    virtual HRESULT OnDrawAdvanced(ATL_DRAWINFO& di)
-    {
-        return S_OK;
+        if (spSite != NULL)
+            spSite->SetSite(NULL);
     }
 
 
-    BEGIN_MSG_MAP(thisClass)
-        MESSAGE_HANDLER(WM_SETFOCUS     , CComControlBase::OnSetFocus)
-        MESSAGE_HANDLER(WM_KILLFOCUS    , CComControlBase::OnKillFocus)
-        MESSAGE_HANDLER(WM_MOUSEACTIVATE, CComControlBase::OnMouseActivate)
-        MESSAGE_HANDLER(WM_DESTROY      , OnDestroy)
-
-        MESSAGE_HANDLER(WM_POPUPFLASH  , OnPopupFlash )
-        MESSAGE_HANDLER(WM_ENDFLASH    , OnEndPopupFlash )
-
-    END_MSG_MAP()
-
-    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    HRESULT ActivateAxToWeb()
     {
-        if ( m_wndBtn.IsWindow() )
-            m_wndBtn.DestroyWindow();
-        return DefWindowProc();
-    }
+        HRESULT hr = S_OK;
 
-    LRESULT OnPopupFlash(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-    {
-        if ( m_pHostFlash != NULL )
+        if( m_spOleClientSite == NULL )
+            return E_FAIL;
+
+        CComQIPtr<IViewObject>      spViewObject(m_p);
+        CComQIPtr<IOleObject>       spOleObject(m_p);
+        CComQIPtr<IObjectWithSite>  spSite(m_p);
+
+        if (spOleObject)
         {
-            if ( !m_wndPopupFlash.IsWindow() )
+            DWORD dwMiscStatus = 0;
+
+            spOleObject->GetMiscStatus(DVASPECT_CONTENT, &dwMiscStatus);
+            if (dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST)
             {
-                RECT rcWindow;
-                GetWindowRect(&rcWindow);
+                spOleObject->SetClientSite(m_spOleClientSite);
+            }
 
-                m_wndPopupFlash.m_hWndParent = m_hWnd;
-                m_wndPopupFlash.Create(m_hWnd, rcWindow, NULL, 
-                    WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0);
-                
-                CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
 
-                m_pHostFlash->GetControllingUnknown()->AddRef();
-                m_pHostFlash->ReleaseAll();
+            if (0 == (dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST))
+            {
+                spOleObject->SetClientSite(m_spOleClientSite);
+            }
 
-                m_wndPopupFlash.AttachControl(m_p, NULL);
-                ::SetForegroundWindow(m_wndPopupFlash);
-                m_wndPopupFlash.SetFocus();
-                m_wndPopupFlash.SendMessage(WM_MOUSEACTIVATE, 0,0);
+            if ((dwMiscStatus & OLEMISC_INVISIBLEATRUNTIME) == 0)
+            {
+                SIZE xSize, mSize;
+                RECT rcPos = m_rcWndFlash;
+                xSize.cx = rcPos.right - rcPos.left;
+                xSize.cy = rcPos.bottom - rcPos.top;
+                AtlPixelToHiMetric(&xSize, &mSize);
+                spOleObject->SetExtent(DVASPECT_CONTENT, &mSize);
+                spOleObject->GetExtent(DVASPECT_CONTENT, &mSize);
+                AtlHiMetricToPixel(&mSize, &xSize);
+                m_rcPos.right = m_rcPos.left + xSize.cx;
+                m_rcPos.bottom = m_rcPos.top + xSize.cy;
 
+                hr = spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, m_spOleClientSite, 0, m_hWnd, &rcPos);
             }
         }
 
-        return 0L;
+        if (spSite != NULL)
+            spSite->SetSite(m_spOleClientSite);
+
+        m_spOleClientSite.Detach();
+
+        return hr;
     }
 
-    LRESULT OnEndPopupFlash(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    virtual void OnPopupFlash()
     {
-        if ( m_pHostFlash != NULL )
+        if ( !m_wndPopupFlash.IsWindow() )
         {
-            ATLASSERT(IsWindow());
-            CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
+            RECT rcWndFlash = m_rcWndFlash;
+
+            ::ClientToScreen(m_hWndParent, (LPPOINT)&rcWndFlash);
+            ::ClientToScreen(m_hWndParent, ((LPPOINT)&rcWndFlash)+1);
+
+            rcWndFlash.right += 5;
+            rcWndFlash.bottom += 20;
+
+            m_wndPopupFlash.m_hWndParent  = m_hWnd;
+            m_wndPopupFlash.m_pflashEvent = this;
+            m_wndPopupFlash.Create(m_hWnd, &rcWndFlash, NULL, 
+                WS_OVERLAPPEDWINDOW | WS_VISIBLE, WS_EX_TOPMOST);
             
-            m_pHostFlash->AttachControl( m_p, m_hWnd );
+            ReleaseWebFlash();
 
-            CComQIPtr<IOleObject> spIOleObject(m_p);
-
-            ::SetForegroundWindow(m_hWndParent);
-            SetFocus();
-            SendMessage(WM_MOUSEACTIVATE, 0,0);
-
+            ::SetForegroundWindow(m_wndPopupFlash);
+            m_wndPopupFlash.AttachControl(m_p, NULL);
+            m_wndPopupFlash.SetFocus();
         }
-        return 0;
+    }
+
+    virtual void OnEndPopupFlash()
+    {
+        ::SetForegroundWindow(m_hWndParent);
+        ActivateAxToWeb();
+        ::SetFocus(m_hWndParent);
     }
 
     virtual ULONG STDMETHODCALLTYPE AddRef( void)
@@ -695,24 +557,6 @@ public:
         /* [iid_is][out] */ void **ppvObject)
     {
 
-        //if (riid == __uuidof(IViewObjectEx)) 
-        //{
-        //    *ppvObject = (IViewObjectEx*)this;
-        //    AddRef();
-        //    return S_OK;
-        //}
-        //else if (riid == __uuidof(IViewObject2)) 
-        //{
-        //    *ppvObject = (IViewObject2*)this;
-        //    AddRef();
-        //    return S_OK;
-        //}
-        //else if (riid == __uuidof(IViewObject)) 
-        //{
-        //    *ppvObject = (IViewObject*)this;
-        //    AddRef();
-        //    return S_OK;
-        //}
         if (riid == __uuidof(IOleInPlaceObjectWindowless)) 
         {
             *ppvObject = (IOleInPlaceObjectWindowless*)this;
@@ -725,18 +569,6 @@ public:
             AddRef();
             return S_OK;
         }
-        //else if (riid == __uuidof(IOleInPlaceActiveObject)) 
-        //{
-        //    *ppvObject = (IOleInPlaceActiveObject*)this;
-        //    AddRef();
-        //    return S_OK;
-        //}
-        //else if (riid == __uuidof(IOleControl)) 
-        //{
-        //    *ppvObject = (IOleControl*)this;
-        //    AddRef();
-        //    return S_OK;
-        //}
         else if (riid == __uuidof(IOleObject)) 
         {
             *ppvObject = (IOleObject*)this;
