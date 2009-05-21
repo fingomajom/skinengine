@@ -74,8 +74,59 @@ public:
     }
 
     BEGIN_MSG_MAP(CTopButWindow)
+        MESSAGE_HANDLER(WM_CREATE   , OnCreate   )
+        MESSAGE_HANDLER(WM_TIMER    , OnTimer    )
         MESSAGE_HANDLER(WM_LBUTTONUP, OnLButtonUp)
     END_MSG_MAP()
+
+    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        SetTimer( 1001, 500 );
+        return DefWindowProc();
+    }
+
+    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        POINT pt;
+        RECT  rcWindow = { 0 };
+        RECT  rcBtnWindow = { 0 };
+
+        ::GetWindowRect(m_hWndParent, &rcWindow);
+        GetWindowRect(&rcBtnWindow);
+        ::GetCursorPos(&pt);
+
+        POINT pt1 = { rcBtnWindow.left, rcBtnWindow.top };
+        POINT pt2 = { rcBtnWindow.right, rcBtnWindow.bottom };;
+
+        if ( PtInRect(&rcWindow, pt) && PtInRect(&m_rcFlash, pt) && !m_bPopupFlash)
+        {
+            RECT rcBtn = m_rcFlash;
+
+            if ( rcBtn.top < rcWindow.top )
+                rcBtn.top = rcWindow.top;
+            if ( rcBtn.left < rcWindow.left )
+                rcBtn.left = rcWindow.left;
+            if ( rcBtn.right > rcWindow.right )
+                rcBtn.right = rcWindow.right;
+            if ( rcBtn.bottom > rcWindow.bottom )
+                rcBtn.bottom = rcWindow.bottom;
+
+            rcBtn.top   += 1;
+            rcBtn.right -= 1;
+
+            rcBtn.bottom = rcBtn.top   + 20;
+            rcBtn.left   = rcBtn.right - 100;
+
+            MoveWindow(&rcBtn);
+            ShowWindow(SW_SHOWNOACTIVATE);
+        }
+        else
+        {
+            ShowWindow(SW_HIDE);
+        }
+
+        return DefWindowProc();
+    }
 
     LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
@@ -93,7 +144,9 @@ public:
         return DefWindowProc();
     }
 
+    BOOL m_bPopupFlash;
     HWND m_hWndParent;
+    RECT m_rcFlash;
     IPopupFlashEvent* m_pflashEvent;
 
 };
@@ -117,6 +170,7 @@ public:
     virtual void OnFinalMessage(HWND /*hWnd*/)
     {
         m_pflashEvent->OnEndPopupFlash();
+        m_hWnd = NULL;
     }
 
     HWND m_hWndParent;
@@ -144,8 +198,6 @@ class CMyShockwaveFlash :
 
     CFlashAxWindow m_wndPopupFlash;
 
-    BOOL bCreated;
-
     RECT m_rcWndFlash;
     CComPtr<IOleClientSite> m_spOleClientSite;
 
@@ -155,7 +207,6 @@ public:
         m_p(p)
     {
         m_dwRef = 1;
-        bCreated = FALSE;
     }
 
     ~CMyShockwaveFlash()
@@ -167,44 +218,9 @@ public:
     STDMETHOD(DoVerb)(LONG iVerb, LPMSG pMsg , IOleClientSite* pActiveSite, LONG  lindex ,
         HWND hwndParent, LPCRECT lprcPosRect)
     {
-        m_spClientSite = pActiveSite;
         m_hWndParent = hwndParent;
 
-        //if ( !bCreated )
-        //{
-        //    bCreated = TRUE;
-        //    m_hWndParent = hwndParent;
-
-        //    int nWidth  = lprcPosRect->right - lprcPosRect->left;
-        //    int nHeight = lprcPosRect->bottom - lprcPosRect->top;
-
-        //    CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
-
-        //    _bstr_t bstrM = spShockwaveFlash->GetMovie();
-
-        //    VARIANT_BOOL b = VARIANT_TRUE;
-        //    spShockwaveFlash->get_Playing(&b);
-
-        //    BOOL bGood = 
-        //        StrStrI(bstrM, L"youku.com") != NULL ||
-        //        StrStrI(bstrM, L"56.com") != NULL ||
-        //        StrStrI(bstrM, L"video.sina.com") != NULL;
-
-        //    //if ( ((nWidth > 280 && nHeight >200 && b == VARIANT_TRUE ) || bGood ) )
-        //    if ( (b == VARIANT_TRUE ) || bGood  )
-        //    {
-        //        RECT rcClient = *lprcPosRect;
-
-        //        m_wndBtn.m_hWndParent = m_hWnd;
-        //        m_wndBtn.m_pflashEvent = this;
-        //        m_wndBtn.Create( hwndParent, &rcClient, L"Google", 
-        //            WS_POPUP , WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
-
-        //    }
-        //}
-
         CComQIPtr<IOleObject> spIOleObject(m_p);
-
         return spIOleObject->DoVerb(iVerb, pMsg, pActiveSite,lindex,hwndParent,lprcPosRect);
 
     }
@@ -320,31 +336,18 @@ public:
 
         memcpy(&m_rcWndFlash, prcPos, sizeof(m_rcWndFlash));
 
-        while ( TRUE )
+        while ( TRUE && ::IsWindow(m_hWndParent))
         {
             RECT rcBtn    = *prcPos;
             RECT rcParent = { 0 };
+            RECT rcFlash  = *prcPos;
+
+            CWindow wndParent = m_hWndParent;
+            wndParent.ClientToScreen(&rcFlash);
+            m_wndBtn.m_rcFlash = rcFlash;
 
             int nWidth  = rcBtn.right - rcBtn.left;
             int nHeight = rcBtn.bottom - rcBtn.top;
-
-            CWindow wndParent = m_hWndParent;       
-
-            wndParent.GetClientRect(&rcParent);
-
-            if ( rcBtn.left < rcParent.left )
-                rcBtn.left = rcParent.left;
-            if ( rcBtn.right > rcParent.right )
-                rcBtn.right = rcParent.right;
-
-            wndParent.ClientToScreen( &rcBtn );
-
-            rcBtn.top   += 1;
-            rcBtn.right -= 1;
-
-            rcBtn.bottom = rcBtn.top   + 20;
-            rcBtn.left   = rcBtn.right - 100;
-
 
             if ( nWidth < 100 || nHeight < 80 )
             {
@@ -355,23 +358,14 @@ public:
             {
                 if ( !m_wndBtn.IsWindow() )
                 {
-                    CComQIPtr<IShockwaveFlash> spShockwaveFlash(m_p);
-
-                    VARIANT_BOOL b = VARIANT_TRUE;
-                    spShockwaveFlash->get_Playing(&b);
-
-
-                    //if ( b != VARIANT_TRUE )
-                    //    break;
-
+                    m_wndBtn.m_bPopupFlash = FALSE;
+                    m_wndBtn.m_hWndParent  = m_hWndParent;
                     m_wndBtn.m_pflashEvent = this;
-                    m_wndBtn.Create( m_hWndParent, &rcBtn, L"Google", 
+                    m_wndBtn.Create( m_hWndParent, &rcDefault, L"Ã·»°≤•∑≈", 
                         WS_POPUP , WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
+                    m_wndBtn.SetFont(::AtlGetDefaultGuiFont());
 
                 }
-
-                m_wndBtn.MoveWindow( &rcBtn );
-                m_wndBtn.ShowWindow(SW_SHOWNOACTIVATE);
             }
 
             break;
@@ -380,9 +374,7 @@ public:
         CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
 
         return spOleInPlaceObject->SetObjectRects(prcPos, prcClip);
-
     }
-
 
     STDMETHOD(GetWindow)(HWND* phwnd)
     {
@@ -445,6 +437,8 @@ public:
 
         if (spSite != NULL)
             spSite->SetSite(NULL);
+
+        m_wndBtn.m_bPopupFlash = TRUE;
     }
 
 
@@ -496,6 +490,7 @@ public:
             spSite->SetSite(m_spOleClientSite);
 
         m_spOleClientSite.Detach();
+        m_wndBtn.m_bPopupFlash = FALSE;
 
         return hr;
     }
@@ -610,6 +605,23 @@ public:
 };
 
 
+MIDL_INTERFACE("F3E70CEA-956E-49CC-B444-73AFE593AD7F")
+IXPPlayer : public IUnknown
+{
+};
+
+MIDL_INTERFACE("C728DAB8-FDF5-4CD7-89DD-879D25794C77")
+IKooPlayer : public IUnknown
+{
+};
+
+MIDL_INTERFACE("6BF52A52-394A-11d3-B153-00C04F79FAA6")
+IWindowsMediaPlayer : public IUnknown
+{
+};
+
+
+
 static HRESULT (WINAPI * OldCoGetClassObject)(IN REFCLSID rclsid, IN DWORD dwClsContext, IN LPVOID pvReserved,
                                               IN REFIID riid, OUT LPVOID FAR* ppv) = CoGetClassObject;
 
@@ -620,7 +632,11 @@ HRESULT WINAPI  MyCoGetClassObject(IN REFCLSID rclsid, IN DWORD dwClsContext, IN
 
     HRESULT hResult = OldCoGetClassObject(rclsid, dwClsContext, pvReserved, riid, ppv);
 
-    if ( rclsid == __uuidof(ShockwaveFlash) && riid == __uuidof(IClassFactory) )
+    if ( ( rclsid == __uuidof(ShockwaveFlash) || 
+           rclsid == __uuidof(IXPPlayer) ||
+           rclsid == __uuidof(IKooPlayer) 
+           /*rclsid == __uuidof(IWindowsMediaPlayer)*/ ) && 
+           riid == __uuidof(IClassFactory) )
     {
         *ppv = new MyClassFactory((IClassFactory*)(*ppv));
     }

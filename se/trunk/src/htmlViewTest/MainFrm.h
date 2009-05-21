@@ -83,7 +83,8 @@ public:
 
 		//TODO: Replace with a URL of your choice
         //m_hWndClient = m_view.Create(m_hWnd, rcDefault, _T("http://bai.sohu.com/app/flashgame/#/app/flashgame/play/play.do?gameid=1501"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL | WS_VSCROLL, WS_EX_CLIENTEDGE);
-        m_hWndClient = m_view.Create(m_hWnd, rcDefault, _T("http://www.youku.com/"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL | WS_VSCROLL, WS_EX_CLIENTEDGE);
+        //m_hWndClient = m_view.Create(m_hWnd, rcDefault, _T("http://www.youku.com/"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL | WS_VSCROLL, WS_EX_CLIENTEDGE);
+        m_hWndClient = m_view.Create(m_hWnd, rcDefault, _T("http://sports.cctv.com/live/index.shtml"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL | WS_VSCROLL, WS_EX_CLIENTEDGE);
 
 		//UIAddToolBar(hWndToolBar);
 		UISetCheck(ID_VIEW_TOOLBAR, 1);
