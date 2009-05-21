@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DWExtractVideo.h"
 #include "detours/detours.h"
+#import  "c:\\windows\\system32\\macromed\\flash\\Flash10b.ocx"
 
 #include <atlctl.h>
 
@@ -101,7 +102,7 @@ public:
             rcBtn.right -= 1;
 
             rcBtn.bottom = rcBtn.top   + 20;
-            rcBtn.left   = rcBtn.right - 100;
+            rcBtn.left   = rcBtn.right - 80;
 
             MoveWindow(&rcBtn);
             ShowWindow(SW_SHOWNOACTIVATE);
@@ -137,14 +138,14 @@ public:
 
 };
 
-class CFlashAxWindow : public CWindowImpl< CFlashAxWindow, CAxWindow , CFrameWinTraits>
+class CAudioAxWindow : public CWindowImpl< CAudioAxWindow, CAxWindow , CFrameWinTraits>
 {
 public:
-    CFlashAxWindow()
+    CAudioAxWindow()
     {
     }
 
-    BEGIN_MSG_MAP(CFlashAxWindow)
+    BEGIN_MSG_MAP(CAudioAxWindow)
         MESSAGE_HANDLER(WM_DESTROY  , OnDestroy)
     END_MSG_MAP()
 
@@ -165,15 +166,15 @@ public:
 };
 
 
-class CMyShockwaveFlash :
+class CDWExtractVideoProxy :
     public CComObjectRootEx<CComSingleThreadModel>,
-    public IOleControlImpl<CMyShockwaveFlash>,
-    public IOleObjectImpl<CMyShockwaveFlash>,
-    public IOleInPlaceActiveObjectImpl<CMyShockwaveFlash>,
-    public IViewObjectExImpl<CMyShockwaveFlash>,
-    public IOleInPlaceObjectWindowlessImpl<CMyShockwaveFlash>,
-    public CComControl<CMyShockwaveFlash>,
-    public CComCoClass<CMyShockwaveFlash>,
+    public IOleControlImpl<CDWExtractVideoProxy>,
+    public IOleObjectImpl<CDWExtractVideoProxy>,
+    public IOleInPlaceActiveObjectImpl<CDWExtractVideoProxy>,
+    public IViewObjectExImpl<CDWExtractVideoProxy>,
+    public IOleInPlaceObjectWindowlessImpl<CDWExtractVideoProxy>,
+    public CComControl<CDWExtractVideoProxy>,
+    public CComCoClass<CDWExtractVideoProxy>,
     public IPopupFlashEvent
 {
     IUnknown* m_p;
@@ -182,20 +183,20 @@ class CMyShockwaveFlash :
     CTopButWindow  m_wndBtn;
     HWND           m_hWndParent;
 
-    CFlashAxWindow m_wndPopupFlash;
+    CAudioAxWindow m_wndPopupFlash;
 
     RECT m_rcWndFlash;
     CComPtr<IOleClientSite> m_spOleClientSite;
 
 public:
 
-    CMyShockwaveFlash( IUnknown * p = 0) :
+    CDWExtractVideoProxy( IUnknown * p = 0) :
       m_p(p)
-      {
+    {
           m_dwRef = 1;
-      }
+    }
 
-      ~CMyShockwaveFlash()
+      ~CDWExtractVideoProxy()
       {
           if ( m_wndBtn.IsWindow() )
               m_wndBtn.DestroyWindow();
@@ -342,11 +343,12 @@ public:
               }
               else
               {
-                  if ( !m_wndBtn.IsWindow() )
+                  if ( !m_wndBtn.IsWindow() && !FilterAudio() )
                   {
                       m_wndBtn.m_bPopupFlash = FALSE;
                       m_wndBtn.m_hWndParent  = m_hWndParent;
                       m_wndBtn.m_pflashEvent = this;
+
                       m_wndBtn.Create( m_hWndParent, &rcDefault, L"Ã·»°≤•∑≈", 
                           WS_POPUP , WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
                       m_wndBtn.SetFont(::AtlGetDefaultGuiFont());
@@ -360,6 +362,26 @@ public:
           CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
 
           return spOleInPlaceObject->SetObjectRects(prcPos, prcClip);
+      }
+
+      BOOL FilterAudio()
+      {
+          CComQIPtr<ShockwaveFlashObjects::IShockwaveFlash> spShockwaveFlash(m_p);
+          if ( spShockwaveFlash.p != NULL )
+          {
+              VARIANT_BOOL bPlaying = VARIANT_FALSE;
+              CComBSTR bstrMovie;
+              spShockwaveFlash->get_Movie(&bstrMovie);
+              spShockwaveFlash->raw_IsPlaying(&bPlaying);
+
+              if ( bPlaying == VARIANT_FALSE && 
+                   StrStrI(bstrMovie, L"s2.bai.itc.cn") != NULL)
+              {
+                  return TRUE;
+              }
+          }
+
+          return FALSE;
       }
 
       STDMETHOD(GetWindow)(HWND* phwnd)
@@ -490,8 +512,8 @@ public:
               ::ClientToScreen(m_hWndParent, (LPPOINT)&rcWndFlash);
               ::ClientToScreen(m_hWndParent, ((LPPOINT)&rcWndFlash)+1);
 
-              rcWndFlash.right += 5;
-              rcWndFlash.bottom += 20;
+              rcWndFlash.right  += 5;
+              rcWndFlash.bottom += 24;
 
               m_wndPopupFlash.m_hWndParent  = m_hWnd;
               m_wndPopupFlash.m_pflashEvent = this;
@@ -578,7 +600,7 @@ public:
           HRESULT hr = m_p->CreateInstance(pUnkOuter, riid, ppvObject);
 
           if ( SUCCEEDED(hr) ) //&& riid == __uuidof(IShockwaveFlash) )
-              *ppvObject = new CMyShockwaveFlash((IUnknown*)(*ppvObject));
+              *ppvObject = new CDWExtractVideoProxy((IUnknown*)(*ppvObject));
 
           return hr;
       }

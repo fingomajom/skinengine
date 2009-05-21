@@ -36,6 +36,8 @@ public:
     {
         m_bmodify = FALSE;
         CloseHandle(CreateThread());
+        m_hThread = NULL;
+        m_dwThreadId = 0;
     }
 
     ~CDWURLHistoryMgt()

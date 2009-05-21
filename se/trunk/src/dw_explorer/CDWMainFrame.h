@@ -44,6 +44,7 @@ public:
         MESSAGE_HANDLER(WM_DESTROY , OnDestroy  )
         MESSAGE_HANDLER(WM_SIZE    , OnSize     )
         MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
+        MESSAGE_HANDLER(WM_ACTIVATE, OnActivate )
 
         MESSAGE_HANDLER(WM_TABLE_BAR_MSG      , OnTableBarMsg)
         MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate)
@@ -79,6 +80,7 @@ protected:
     LRESULT OnDestroy   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnActivate  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnWndPosChanged     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnTableBarMsg       (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

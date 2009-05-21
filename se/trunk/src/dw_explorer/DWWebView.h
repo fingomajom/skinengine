@@ -247,7 +247,9 @@ public:
             RECT rcClient = { 0 };
             wndClient.GetWindowRect(&rcClient);
 
-            //SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+            ::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+
+            SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
             m_wndBk.SetWindowPos(m_hWnd ,
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 

@@ -204,7 +204,23 @@ LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         //m_pNowChildFrm->SetFocus();
     }
 
-    return 0L;
+    return DefWindowProc();
+}
+
+LRESULT CDWMainFrame::OnActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    WORD fActive    = LOWORD(wParam); 
+    BOOL fMinimized = (BOOL)HIWORD(wParam);
+
+    if ( fActive != WA_INACTIVE && !fMinimized )
+    {
+        if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
+        {
+            m_pNowChildFrm->ShowClient();
+        }
+    }
+
+    return DefWindowProc();
 }
 
 CDWChildFrm* CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
