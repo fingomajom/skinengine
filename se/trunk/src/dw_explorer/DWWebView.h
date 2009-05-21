@@ -146,11 +146,11 @@ public:
         {
             HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
 
-            ::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
-            SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE  | SWP_NOSENDCHANGING);
+            //::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
+            //SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE  | SWP_NOSENDCHANGING);
             m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
-            ::SetFocus( GetWebIeWnd() );
+            //::SetFocus( GetWebIeWnd() );
         }
 
         return 0;
@@ -247,7 +247,7 @@ public:
             RECT rcClient = { 0 };
             wndClient.GetWindowRect(&rcClient);
 
-            ::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
+            //::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
 
             SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
             m_wndBk.SetWindowPos(m_hWnd ,
@@ -271,7 +271,7 @@ public:
                 if ( IsWindowVisible() )
                     ShowWindow(SW_HIDE);
             }
-            else if ( !IsWindowVisible() )
+            else if ( !IsWindowVisible() || !CheckWebWndZOrder(m_hWnd, hRoot) )
             {
                 CWindow wndClient = m_hNotifyWnd;
 

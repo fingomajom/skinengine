@@ -204,7 +204,7 @@ LRESULT CDWMainFrame::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         //m_pNowChildFrm->SetFocus();
     }
 
-    return DefWindowProc();
+    return 0L;
 }
 
 LRESULT CDWMainFrame::OnActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -216,7 +216,7 @@ LRESULT CDWMainFrame::OnActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
     {
         if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
         {
-            m_pNowChildFrm->ShowClient();
+            //m_pNowChildFrm->ShowClient();
         }
     }
 
