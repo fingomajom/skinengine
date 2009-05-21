@@ -75,6 +75,7 @@ protected:
             L"http://images.google.com/images?hl=zh-CN&q=%s&gbv=2&aq=f&oq=");
 
                 
+        m_bChanged  = FALSE;
         m_nSelIndex = 0;
         CDWBaseConfig cfg;
         m_nSelIndex = cfg.get_Default_Search(m_nSelIndex);
@@ -83,6 +84,7 @@ protected:
              m_searchList[m_nSelIndex].strName == L"-" )
         {
             m_nSelIndex = 0;
+            m_bChanged  = TRUE;
         }
 
         CDWFavIconMgt& fimgt = CDWFavIconMgt::Instance();
@@ -95,8 +97,11 @@ protected:
 
     ~CDWSearchMgt()
     {
-        CDWBaseConfig cfg;
-        cfg.set_Default_Search(m_nSelIndex);
+        if ( m_bChanged )
+        {
+            CDWBaseConfig cfg;
+            cfg.set_Default_Search(m_nSelIndex);
+        }
     }
 
 public:
@@ -165,6 +170,7 @@ public:
                 menu.AppendMenu( MF_STRING, 10+i, m_searchList[i].strName );
         }
 
+        m_bChanged = TRUE;
         return menu;
     }
 
@@ -196,6 +202,7 @@ public:
 
 
 
-    int m_nSelIndex;
+    BOOL m_bChanged;
+    int  m_nSelIndex;
     ATL::CSimpleArray<SearchItem> m_searchList;
 };
