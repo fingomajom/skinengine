@@ -406,6 +406,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\DWExtractVideo.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\DWExtractVideo.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWHtmlEventMgt.h"
 					>
 				</File>

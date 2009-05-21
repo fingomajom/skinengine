@@ -2,6 +2,7 @@
 #include "DWClientMgt.h"
 #include "DWWebView.h"
 #include "CookieMgt.h"
+#include "DWExtractVideo.h"
 
 DWORD CDWClientMgt::m_dwMainThreadId = NULL;
 
@@ -200,11 +201,12 @@ CDWClientMgt::~CDWClientMgt(void)
 {
 }
 
-
 int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 {
     int   nRet = 0;
     DWORD dwThreadId = 0;
+
+    InitExtractVideo();
 
     CDWMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
@@ -228,6 +230,8 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     CDWClientMgt::DeleteInstance();
     CCookieMgt::DeleteInstance();
+
+    UninitExtractVideo();
 
     return nRet;
 }
