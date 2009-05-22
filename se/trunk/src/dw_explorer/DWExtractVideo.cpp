@@ -2,7 +2,7 @@
 #include "DWExtractVideo.h"
 #include "resource.h"
 #include "DWFrameUI.h"
-
+#include "DWAxHost.h"
 #include "detours/detours.h"
 #import  "c:\\windows\\system32\\macromed\\flash\\Flash10b.ocx"
 
@@ -65,6 +65,7 @@ public:
 
     BEGIN_MSG_MAP(CTopButWindow)
         MESSAGE_HANDLER(WM_CREATE   , OnCreate   )
+        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy  )
         MESSAGE_HANDLER(WM_TIMER    , OnTimer    )
         MESSAGE_HANDLER(WM_LBUTTONUP, OnLButtonUp)
     END_MSG_MAP()
@@ -74,6 +75,12 @@ public:
         SetTimer( 1001, 500 );
         return DefWindowProc();
     }
+
+    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {       
+        return DefWindowProc();
+    }
+
 
     LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
@@ -141,37 +148,141 @@ public:
 
 };
 
-
-class CMyAxWindow : public CWindowImpl< CMyAxWindow, CAxWindow >
+class CFlashHostWindow : public DWAxHost::CDWAxHost
 {
 public:
 
+    ~CFlashHostWindow()
+    {
+        int a = 0;
+    }
+
+    HRESULT ActivateAx(IUnknown* pUnkControl, bool bInited, IStream* pStream)
+    {
+        if (pUnkControl == NULL)
+            return S_OK;
+
+        m_spUnknown = pUnkControl;
+
+        HRESULT hr = S_OK;
+        pUnkControl->QueryInterface(__uuidof(IOleObject), (void**)&m_spOleObject);
+        if (m_spOleObject)
+        {
+            CComQIPtr<IOleClientSite> spClientSite(GetControllingUnknown());
+            m_spOleObject->SetClientSite(spClientSite);
+
+            GetClientRect(&m_rcPos);
+            m_pxSize.cx = m_rcPos.right - m_rcPos.left;
+            m_pxSize.cy = m_rcPos.bottom - m_rcPos.top;
+            AtlPixelToHiMetric(&m_pxSize, &m_hmSize);
+            m_spOleObject->SetExtent(DVASPECT_CONTENT, &m_hmSize);
+            m_spOleObject->GetExtent(DVASPECT_CONTENT, &m_hmSize);
+            AtlHiMetricToPixel(&m_hmSize, &m_pxSize);
+            m_rcPos.right = m_rcPos.left + m_pxSize.cx;
+            m_rcPos.bottom = m_rcPos.top + m_pxSize.cy;
+
+            CComQIPtr<IAdviseSink> spAdviseSink(GetControllingUnknown());
+            m_spOleObject->Advise(spAdviseSink, &m_dwOleObject);
+
+            hr = m_spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, spClientSite, 0, m_hWnd, &m_rcPos);
+            RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_INTERNALPAINT | RDW_FRAME);
+        }
+
+
+        return hr;
+    }
+
+    STDMETHOD(AttachControl)(IUnknown* pUnkControl, HWND hWnd)
+    {
+        HRESULT hr = S_FALSE;
+
+        ReleaseAll();
+
+        bool bReleaseWindowOnFailure = false; // Used to keep track of whether we subclass the window
+
+        if ((m_hWnd != NULL) && (m_hWnd != hWnd)) // Don't release the window if it's the same as the one we already subclass/own
+        {
+            RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_INTERNALPAINT | RDW_FRAME);
+            ReleaseWindow();
+        }
+
+        if (::IsWindow(hWnd))
+        {
+            if (m_hWnd != hWnd) // Don't need to subclass the window if we already own it
+            {
+                SubclassWindow(hWnd);
+                bReleaseWindowOnFailure = true;
+            }
+
+            hr = ActivateAx(pUnkControl, true, NULL);
+
+            if (FAILED(hr))
+            {
+                ReleaseAll();
+
+                if (m_hWnd != NULL)
+                {
+                    RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_INTERNALPAINT | RDW_FRAME);
+                    if (bReleaseWindowOnFailure) // We subclassed the window in an attempt to create this control, so we unsubclass on failure
+                        ReleaseWindow();
+                }
+            }
+        }
+        return hr;
+    }
+
+};
+
+class CMyAxWindow : public CWindowImpl< CMyAxWindow, CWindow >
+{
+public:
+
+    CMyAxWindow()
+    {
+        m_pHostAx = NULL;
+    }
+
+
     ~CMyAxWindow()
     {
-        if ( IsWindow() )
-            DestroyWindow();
-        m_hWnd = NULL;
     }
 
     BEGIN_MSG_MAP(CMyAxWindow)
-        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy  )
+        MESSAGE_HANDLER(WM_CREATE   , OnCreate   )
+        MESSAGE_HANDLER(WM_DESTROY  , OnDestroy )
     END_MSG_MAP()
 
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-    {
-        CWindow wndParent;
-        
-        if ( IsWindow() )
-            wndParent = GetParent();
-
-        LRESULT lRet = DefWindowProc();
-
-        if ( wndParent.IsWindow() )
-            wndParent.DestroyWindow();
-        
-        return lRet;
+    {       
+        return 0L;
     }
 
+    virtual void OnFinalMessage(HWND /*hWnd*/)
+    {
+        if ( m_wndParent.IsWindow() )
+            m_wndParent.DestroyWindow();
+
+        m_pHostAx = NULL;
+    }
+
+
+    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+    {
+        return DefWindowProc();
+    }
+
+    HRESULT AttachControl(IUnknown* pUnkControl)
+    {
+        ATLASSERT(m_pHostAx == NULL);
+        m_pHostAx = new CComObject<CFlashHostWindow>;
+        ATLASSERT(m_pHostAx != NULL);
+
+        return m_pHostAx->AttachControl(pUnkControl, m_hWnd);
+    }
+
+    CWindow m_wndParent;
+
+    CComObject<CFlashHostWindow>* m_pHostAx;
 };
 
 class CAudioAxWindow : 
@@ -181,16 +292,15 @@ class CAudioAxWindow :
 public:
     CAudioAxWindow()
     {
+        m_pflashEvent = NULL;
+        m_hWndParent  = NULL;
     }
 
     ~CAudioAxWindow()
     {
+        m_pflashEvent = NULL;
         if ( IsWindow() )
             DestroyWindow();
-
-        m_sys_title.m_hWnd = NULL;
-        m_sys_bar.m_hWnd = NULL;        
-        m_hWnd = NULL;
     }
 
     BEGIN_MSG_MAP(CAudioAxWindow)
@@ -202,7 +312,7 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        m_wndAxFlash.m_hWnd = NULL;
+        m_wndAxFlash.m_wndParent = m_hWnd;
         m_wndAxFlash.Create( m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
         return DefWindowProc();
@@ -210,8 +320,8 @@ public:
 
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        if ( m_wndAxFlash.IsWindow() )
-            m_wndAxFlash.DestroyWindow();
+        m_wndAxFlash.m_wndParent.m_hWnd = NULL;
+
         return DefWindowProc();
     }
 
@@ -223,7 +333,7 @@ public:
         rcClient.top += 22;
 
         if ( m_wndAxFlash.IsWindow() )
-            m_wndAxFlash.MoveWindow(&rcClient);
+            m_wndAxFlash.MoveWindow(&rcClient, FALSE);
 
         return DefWindowProc();
     }
@@ -236,8 +346,8 @@ public:
 
     virtual void OnFinalMessage(HWND /*hWnd*/)
     {
-        m_pflashEvent->OnEndPopupFlash();
-        m_hWnd = NULL;
+        if ( m_pflashEvent != NULL )
+            m_pflashEvent->OnEndPopupFlash();
     }
 
     CMyAxWindow m_wndAxFlash;
@@ -274,9 +384,9 @@ public:
 
     CDWExtractVideoProxy( IUnknown * p = 0) :
       m_p(p)
-    {
+      {
           m_dwRef = 1;
-    }
+      }
 
       ~CDWExtractVideoProxy()
       {
@@ -465,7 +575,7 @@ public:
               spShockwaveFlash->raw_IsPlaying(&bPlaying);
 
               if ( bPlaying == VARIANT_FALSE && 
-                   StrStrI(bstrMovie, L"s2.bai.itc.cn") != NULL)
+                  StrStrI(bstrMovie, L"s2.bai.itc.cn") != NULL)
               {
                   return TRUE;
               }
@@ -495,7 +605,7 @@ public:
               spShockwaveFlash->get_Movie(&bstrRet);
               strRet = bstrRet;
           }
-            
+
           return strRet;
       }
 
@@ -546,25 +656,24 @@ public:
 
           CComQIPtr<IViewObject>      spViewObject(m_p);
           CComQIPtr<IOleObject>       spOleObject(m_p);
-          CComQIPtr<IObjectWithSite>  spSite(m_p);
 
-          if (spViewObject != NULL)
-              spViewObject->SetAdvise(DVASPECT_CONTENT, 0, NULL);
-
-          //CAxHostWindow
           if (spOleObject)
           {
               spOleObject->GetClientSite(&m_spOleClientSite);
+
+              //m_spOleClientSite->OnShowWindow(FALSE);
+              //CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
+              //spOleInPlaceObject->InPlaceDeactivate();
+              //spOleInPlaceObject->UIDeactivate();
+
               spOleObject->Close(OLECLOSE_NOSAVE);
+              //spOleObject->DoVerb(OLEIVERB_DISCARDUNDOSTATE, NULL, NULL, 0, NULL, NULL);
               spOleObject->SetClientSite(NULL);
           }
 
-          if (spSite != NULL)
-              spSite->SetSite(NULL);
-
           m_wndBtn.m_bPopupFlash = TRUE;
       }
-
+        
 
       HRESULT ActivateAxToWeb()
       {
@@ -575,43 +684,24 @@ public:
 
           CComQIPtr<IViewObject>      spViewObject(m_p);
           CComQIPtr<IOleObject>       spOleObject(m_p);
-          CComQIPtr<IObjectWithSite>  spSite(m_p);
 
           if (spOleObject)
           {
-              DWORD dwMiscStatus = 0;
+              spOleObject->SetClientSite(m_spOleClientSite);
 
-              spOleObject->GetMiscStatus(DVASPECT_CONTENT, &dwMiscStatus);
-              if (dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST)
-              {
-                  spOleObject->SetClientSite(m_spOleClientSite);
-              }
+              SIZE xSize, mSize;
+              RECT rcPos = m_rcWndFlash;
+              xSize.cx = rcPos.right - rcPos.left;
+              xSize.cy = rcPos.bottom - rcPos.top;
+              AtlPixelToHiMetric(&xSize, &mSize);
+              spOleObject->SetExtent(DVASPECT_CONTENT, &mSize);
+              spOleObject->GetExtent(DVASPECT_CONTENT, &mSize);
+              AtlHiMetricToPixel(&mSize, &xSize);
+              m_rcPos.right = m_rcPos.left + xSize.cx;
+              m_rcPos.bottom = m_rcPos.top + xSize.cy;
 
-
-              if (0 == (dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST))
-              {
-                  spOleObject->SetClientSite(m_spOleClientSite);
-              }
-
-              if ((dwMiscStatus & OLEMISC_INVISIBLEATRUNTIME) == 0)
-              {
-                  SIZE xSize, mSize;
-                  RECT rcPos = m_rcWndFlash;
-                  xSize.cx = rcPos.right - rcPos.left;
-                  xSize.cy = rcPos.bottom - rcPos.top;
-                  AtlPixelToHiMetric(&xSize, &mSize);
-                  spOleObject->SetExtent(DVASPECT_CONTENT, &mSize);
-                  spOleObject->GetExtent(DVASPECT_CONTENT, &mSize);
-                  AtlHiMetricToPixel(&mSize, &xSize);
-                  m_rcPos.right = m_rcPos.left + xSize.cx;
-                  m_rcPos.bottom = m_rcPos.top + xSize.cy;
-
-                  hr = spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, m_spOleClientSite, 0, m_hWnd, &rcPos);
-              }
+              hr = spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, m_spOleClientSite, 0, m_hWnd, &rcPos);
           }
-
-          if (spSite != NULL)
-              spSite->SetSite(m_spOleClientSite);
 
           m_spOleClientSite.Detach();
           m_wndBtn.m_bPopupFlash = FALSE;
@@ -642,7 +732,7 @@ public:
               ReleaseWebFlash();
 
               ::SetForegroundWindow(m_wndPopupFlash);
-              m_wndPopupFlash.m_wndAxFlash.AttachControl(m_p, NULL);
+              m_wndPopupFlash.m_wndAxFlash.AttachControl(m_p);
               m_wndPopupFlash.SetFocus();
               FixPlayingFlash();
           }
