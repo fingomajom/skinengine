@@ -25,6 +25,47 @@ int DWSvrReceiveRpcMsg(
     return 0;
 }
 
+#define WM_CREATE_FRM  (WM_USER+1002)
+
+class CDWFrameControlWnd : public CWindowImpl<CDWFrameControlWnd>
+{
+public:
+
+    BEGIN_MSG_MAP(CDWMainFrame)
+        MESSAGE_HANDLER( WM_COPYDATA  , OnCopyData  )
+        MESSAGE_HANDLER( WM_CREATE_FRM, OnCreateFrm )
+
+    END_MSG_MAP()
+
+    DECLARE_WND_CLASS(_T("DWExplorer_CDWFrameControlWnd"))
+
+    LRESULT OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        PCOPYDATASTRUCT pcds = (PCOPYDATASTRUCT)lParam;
+        SendMessage( pcds->dwData, (LPARAM)pcds->lpData, 0 );
+        return 0;
+    }
+    LRESULT OnCreateFrm(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        CDWFrameMgt& frmmgt = CDWFrameMgt::Instance();
+
+        ATL::CString strCmdLine = (LPCTSTR)wParam;
+        
+        frmmgt.CreateNewFrame( strCmdLine.AllocSysString() );
+
+        return 0;
+    }
+
+    static LRESULT CreateNewFrm( LPCTSTR pszCmdLine )
+    {
+        HWND hWnd = FindWindow(L"DWExplorer_CDWFrameControlWnd", L"wndFrmControl");
+        if ( !::IsWindow(hWnd) )
+            return 0L;
+
+        return SendCopyData(hWnd, WM_CREATE_FRM, pszCmdLine, (lstrlenW(pszCmdLine)+1)*sizeof(TCHAR));
+    }
+};
+
 
 CDWFrameMgt::CDWFrameMgt(void)
 {
@@ -53,6 +94,9 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     if ( g_hMutex != NULL )
     {
         ReleaseMutex (g_hMutex);
+
+        CDWFrameControlWnd::CreateNewFrm(lpstrCmdLine);
+
         return 0;
     }
     g_hMutex = CreateMutex(NULL, TRUE, g_pszMutexName );
@@ -63,9 +107,17 @@ int CDWFrameMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
         return 0;
 
     frmmgt.m_dwMainThreadId = GetCurrentThreadId();
-    frmmgt.CreateNewFrame( 0 );
+
+    ATL::CString strCmdLine = lpstrCmdLine;
+    frmmgt.CreateNewFrame( strCmdLine.AllocSysString() );
+
+    CDWFrameControlWnd wndFrmControl;
+    wndFrmControl.Create(NULL, wndFrmControl.rcDefault, L"wndFrmControl",
+        WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
     
     nRet = theLoop.Run();
+
+    wndFrmControl.DestroyWindow();
 
     frmmgt.m_rpcSvr.UninitRpcServer();
     ReleaseMutex ( g_hMutex );
@@ -135,6 +187,10 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
     CDWMessageLoop theLoop;
     CDWFrameMgt& mgt = CDWFrameMgt::Instance();
 
+    BSTR bstrCmdLine = (BSTR)p;
+    ATL::CString strCmdLine = bstrCmdLine;
+    ::SysFreeString(bstrCmdLine);
+
     HRESULT hRes = ::OleInitialize(NULL);
     ATLASSERT(SUCCEEDED(hRes));
 
@@ -149,6 +205,7 @@ DWORD WINAPI CDWFrameMgt::FrameMsgLoopThread( LPVOID p )
         return 0;
     }
     wndMain.ShowWindow(SW_SHOWNORMAL);
+    wndMain.OnNewURL(strCmdLine);
     
     mgt._AddFrame(&wndMain);
     

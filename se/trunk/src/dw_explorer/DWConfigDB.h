@@ -119,6 +119,26 @@ public:
         return SetConfig(L"DefaultSearch", nDef);
     }
 
+    BOOL get_Frm_Default_Rect( RECT& rect, BOOL& bMaxed )
+    {
+        GetConfig(L"frm_pos_max"    , (int&)bMaxed      , 0);
+        GetConfig(L"frm_pos_left"   , (int&)rect.left   , 0);
+        GetConfig(L"frm_pos_top"    , (int&)rect.top    , 0);
+        GetConfig(L"frm_pos_right"  , (int&)rect.right  , 0);
+        GetConfig(L"frm_pos_bottom" , (int&)rect.bottom , 0);
+        return TRUE;
+    }
+    
+    BOOL set_Frm_Default_Rect( RECT rect, BOOL bMaxed )
+    {
+        SetConfig(L"frm_pos_max"    , (int)bMaxed);
+        SetConfig(L"frm_pos_left"   , (int)rect.left);
+        SetConfig(L"frm_pos_top"    , (int)rect.top);
+        SetConfig(L"frm_pos_right"  , (int)rect.right);
+        SetConfig(L"frm_pos_bottom" , (int)rect.bottom);
+        return TRUE;
+    }
+
 };
 
 class CDWURLHistoryCfg : public CDWConfigDB

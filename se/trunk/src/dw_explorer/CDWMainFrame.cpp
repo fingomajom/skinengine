@@ -1,5 +1,9 @@
 #include "StdAfx.h"
 #include "CDWMainFrame.h"
+#include "DWConfigDB.h"
+
+
+#define IDS_FRM_TITLE L"%s - °×Éç»áä¯ÀÀÆ÷"
 
 
 CDWMainFrame::CDWMainFrame(void)
@@ -14,17 +18,46 @@ CDWMainFrame::~CDWMainFrame(void)
 
 HWND CDWMainFrame::CreateEx()
 {
-    RECT rcClient = { 0 };
-    SystemParametersInfo( SPI_GETWORKAREA, 0, &rcClient, 0 );
+    CDWBaseConfig cfg;
 
-    rcClient.left   = ( rcClient.right - rcClient.left ) / 8;
-    rcClient.right  = rcClient.left * 7;
-    rcClient.top    = ( rcClient.bottom - rcClient.top ) / 8;
-    rcClient.bottom = rcClient.top * 7;
+    RECT rcWindow   = { 0 };
+    BOOL bMaxed     = FALSE;
+    cfg.get_Frm_Default_Rect( rcWindow, bMaxed );
 
-    return Create( NULL, &rcClient, _T("¿Õ°×Ò³ - ¾«Áéä¯ÀÀÆ÷"), 
-         WS_POPUP | WS_SYSMENU | WS_SIZEBOX | 
+    RECT rcWorkArea = { 0 };
+    SystemParametersInfo( SPI_GETWORKAREA, 0, &rcWorkArea, 0 );
+
+    if ( bMaxed || ( rcWindow.right - rcWindow.left ) < 400 || ( rcWindow.bottom - rcWindow.top ) < 300)
+    {
+        rcWindow = rcWorkArea;
+
+        rcWindow.left   = ( rcWindow.right - rcWindow.left ) / 8;
+        rcWindow.right  = rcWindow.left * 7;
+        rcWindow.top    = ( rcWindow.bottom - rcWindow.top ) / 8;
+        rcWindow.bottom = rcWindow.top * 7;
+    }
+    else
+    {
+        if ( rcWindow.left < rcWorkArea.left )
+            rcWindow.left = rcWorkArea.left;
+        if ( rcWindow.top < rcWorkArea.top )
+            rcWindow.top = rcWorkArea.top;
+        if ( rcWindow.right > rcWorkArea.right )
+            rcWindow.right = rcWorkArea.right;
+        if ( rcWindow.bottom > rcWorkArea.bottom )
+            rcWindow.bottom = rcWorkArea.bottom;
+    }
+
+    ATL::CString strTitle;
+    strTitle.Format(IDS_FRM_TITLE, L"¿Õ°×Ò³");
+    HWND hRet = Create( NULL, &rcWindow, strTitle, 
+        WS_POPUP | WS_SYSMENU | WS_SIZEBOX | 
          WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
+
+    if ( bMaxed )
+        PostMessage( WM_SYSCOMMAND, SC_MAXIMIZE );
+
+    return hRet;
 }
 
 BOOL CDWMainFrame::PreTranslateMessage(MSG* pMsg)
@@ -89,7 +122,7 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndClient.Create( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPCHILDREN );
     m_wndClient.OpenURL(L"http://www.sogou.com");
 #else
-    OnNewURL(NULL);
+    //OnNewURL(NULL);
 #endif
 
     return 0L;
@@ -99,6 +132,15 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
     ::PostQuitMessage(1);
+
+    CDWBaseConfig cfg;
+
+    RECT rcWindow   = { 0 };
+    BOOL bMaxed     = IsZoomed();
+
+    GetWindowRect(&rcWindow);
+    cfg.set_Frm_Default_Rect( rcWindow, bMaxed );
+
 
     bHandled = FALSE;
 
@@ -329,9 +371,13 @@ void CDWMainFrame::OnSelectURL( int nIndex )
     RECT rcChildFrm;
     GetChildFrmRect(rcChildFrm);
 
+    LPARAM lParam = 0;
+    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->m_wndClient.IsWindow() )
+        lParam = (LPARAM)m_pNowChildFrm->m_wndClient.m_hWnd;
+
     pNextFrm->MoveWindow(&rcChildFrm, FALSE);
     pNextFrm->SetFocus();
-    pNextFrm->ShowClient();
+    pNextFrm->ShowClient(lParam);
 
     if ( m_pNowChildFrm != NULL )
     {
@@ -373,7 +419,7 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
         if ( lstrlenW(pszTitle) > 0 && StrCmp(pszTitle, L"¿Õ°×Ò³") )
         {
             ATL::CString strNewTitle;
-            strNewTitle.Format(L"%s - ¾«Áéä¯ÀÀÆ÷", pszTitle);
+            strNewTitle.Format(IDS_FRM_TITLE, pszTitle);
             SetWindowText(strNewTitle);
         }
 
@@ -383,6 +429,10 @@ LRESULT CDWMainFrame::OnEventMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
     {
         //SetIcon( (HICON) wParam, FALSE );
         //m_sys_title.Invalidate();
+    }
+    else if ( uMsg == edi_skin_changed )
+    {
+        RedrawWindow(NULL, NULL, RDW_FRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
     }
 
     return 0;

@@ -23,12 +23,15 @@
 #include "DWWebView.h"
 #endif
 
+class CDWFrameMgt;
+
 class CDWMainFrame : 
     public CWindowImpl<CDWMainFrame, CWindow, CFrameWinTraits>,
     public CDWFrameUIImpl<CDWMainFrame>,
     public CMessageFilter,
     public CDWEventCallback
 {
+    friend class CDWFrameMgt;
     friend class CDWFrameUIImpl<CDWMainFrame>;
 public:
     CDWMainFrame(void);

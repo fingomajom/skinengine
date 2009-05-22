@@ -354,7 +354,7 @@ public:
     }
 
 
-    void ShowClient()
+    void ShowClient( LPARAM lParam = 0 )
     {
         ResizeClient();
         ShowWindow( SW_SHOWDEFAULT ); 
@@ -377,7 +377,7 @@ public:
             evt.OnMessage( edi_spr_icon_changed, 
                 (WPARAM)icon.m_hIcon, 0 );
 
-            m_wndClient.PostMessage(WM_WEBVIEW_SHOW, TRUE);
+            SendMessageToWebWnd(WM_WEBVIEW_SHOW, TRUE, lParam);
 
             if ( !StrCmpI(m_strURL, BLANK_URL) )
             {

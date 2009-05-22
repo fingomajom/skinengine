@@ -112,8 +112,7 @@ public:
         {
             pskin->clrFrameWindow = clrNew;
 
-            CDWEventSvr::Instance().OnMessage( edi_skin_changed );
-            ::RedrawWindow(GetParent(), NULL, NULL, RDW_FRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
+            CDWEventSvr::Instance().OnMessage( edi_skin_changed, 0, 0, TRUE, TRUE );
         }
 
         return TRUE;

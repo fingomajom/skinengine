@@ -202,6 +202,7 @@ public:
 
     LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
+        m_wndAxFlash.m_hWnd = NULL;
         m_wndAxFlash.Create( m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
         return DefWindowProc();
@@ -287,6 +288,14 @@ public:
           HWND hwndParent, LPCRECT lprcPosRect)
       {
           m_hWndParent = hwndParent;
+
+          //CComQIPtr<ShockwaveFlashObjects::IShockwaveFlash> spShockwaveFlash(m_p);
+          //if ( spShockwaveFlash.p != NULL )
+          //{
+          //    _bstr_t bstr(L"always");
+          //    spShockwaveFlash->PutAllowScriptAccess(bstr);
+          //    spShockwaveFlash->DisableLocalSecurity();
+          //}
 
           CComQIPtr<IOleObject> spIOleObject(m_p);
           return spIOleObject->DoVerb(iVerb, pMsg, pActiveSite,lindex,hwndParent,lprcPosRect);
@@ -542,6 +551,7 @@ public:
           if (spViewObject != NULL)
               spViewObject->SetAdvise(DVASPECT_CONTENT, 0, NULL);
 
+          //CAxHostWindow
           if (spOleObject)
           {
               spOleObject->GetClientSite(&m_spOleClientSite);

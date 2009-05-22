@@ -167,10 +167,11 @@ public:
 
             HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
 
+            SetWindowRgn(NULL, TRUE);
             SetWindowPos(hRoot, 
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_NOACTIVATE);
+                SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_DEFERERASE | SWP_ASYNCWINDOWPOS);
             m_wndBk.SetWindowPos(m_hWnd , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
             ::SetFocus( GetWebIeWnd() );
@@ -186,21 +187,25 @@ public:
     LRESULT OnMoveSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         CWindow wndClient = m_hNotifyWnd;
+        if ( !wndClient.IsWindow() || !wndClient.IsWindowVisible() )
+            return 1L;
 
         RECT rcOldWindow = { 0 };
         RECT rcWindow = { 0 };
-        wndClient.GetWindowRect(&rcWindow);
-        GetWindowRect(&rcOldWindow);
+        if ( !wndClient.GetWindowRect(&rcWindow) )
+            return 1L;
+        if ( !GetWindowRect(&rcOldWindow) )
+            return 1L;
 
         BOOL bSize = HIWORD(wParam);
         BOOL bMove = LOWORD(wParam);
 
-        UINT nFlags = SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_NOZORDER;
+        UINT nFlags = SWP_NOSENDCHANGING | SWP_NOZORDER;
         
         if ( !bSize )
             nFlags |= SWP_NOSIZE;
         else
-            nFlags |= (SWP_NOREDRAW | SWP_DEFERERASE);
+            nFlags |= (SWP_NOREDRAW);
         if ( !bMove )
             nFlags |= SWP_NOMOVE;
 
@@ -208,7 +213,7 @@ public:
              rcOldWindow.top == rcWindow.top &&
              rcOldWindow.right == rcWindow.right &&
              rcOldWindow.bottom == rcWindow.bottom )
-             return Invalidate();
+             return 0L;
 
         if ( bSize )
         {
@@ -253,7 +258,7 @@ public:
             m_wndBk.SetWindowPos(m_hWnd ,
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                SWP_NOSIZE | SWP_NOSENDCHANGING | SWP_NOACTIVATE);
+                SWP_NOSENDCHANGING | SWP_NOACTIVATE);
 
         }
 

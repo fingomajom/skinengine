@@ -667,7 +667,9 @@ public:
     {
         CDWFavoriteBar* pthis = (CDWFavoriteBar*)p;
 
-        CDWIEFavoritesMgt::Instance().BuildIEFavorites();
+        CDWIEFavoritesMgt& favMgt = CDWIEFavoritesMgt::Instance();
+        if ( favMgt.GetFavoriteList().GetCount() <= 0 )
+            CDWIEFavoritesMgt::Instance().BuildIEFavorites();
         
         if ( pthis->IsWindow() )
             pthis->PostMessage( WM_LOADFAVORITE_OK );

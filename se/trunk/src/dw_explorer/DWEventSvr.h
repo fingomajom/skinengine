@@ -42,21 +42,35 @@ protected:
     {
     }
 
+    struct CallbackInfo 
+    {
+        DWORD dwThreadId;
+        CDWEventCallback* pCallback;
+    };
+
 public:
 
     void AddCallback( CDWEventCallback* cb )
     {
-        m_listCallback.AddTail( cb );
+        CallbackInfo info;
+        info.dwThreadId = GetCurrentThreadId();
+        info.pCallback  = cb;
+        m_listCallback.AddTail( info );
     }
 
-    LRESULT OnMessage( UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0, BOOL bAll = TRUE )
+    LRESULT OnMessage( UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0, BOOL bAll = TRUE, BOOL bAllThread = FALSE )
     {
         LRESULT lResult = 0;
 
+        DWORD dwThreadId = GetCurrentThreadId();
+
         for (POSITION pos = m_listCallback.GetHeadPosition(); pos != NULL; )
         {
-            CDWEventCallback* cb = m_listCallback.GetNext(pos);
-            lResult = cb->OnEventMessage( uMsg, wParam, lParam );
+            CallbackInfo& info = m_listCallback.GetNext(pos);
+            if ( info.dwThreadId != dwThreadId && !bAllThread )
+                continue;
+
+            lResult = info.pCallback->OnEventMessage( uMsg, wParam, lParam );
             if ( !bAll && lResult )
                 return lResult;
         }
@@ -65,5 +79,5 @@ public:
     }
     
 private:
-    ATL::CAtlList<CDWEventCallback*> m_listCallback;
+    ATL::CAtlList<CallbackInfo> m_listCallback;
 };

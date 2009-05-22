@@ -244,7 +244,7 @@ public:
                 m_address_edit.AddDropdownList( item.strURL, item.strTitle, hIcon );
             }
 
-            if ( m_address_edit.m_vtDropList.GetCount() > 0 || 1 )
+            if ( m_address_edit.m_vtDropList.GetCount() > 0 )
                 m_address_edit.ShowDropdownList();
 
         }
