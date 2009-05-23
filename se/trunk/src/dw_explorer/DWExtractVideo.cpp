@@ -665,9 +665,9 @@ public:
               //CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
               //spOleInPlaceObject->InPlaceDeactivate();
               //spOleInPlaceObject->UIDeactivate();
+              //spOleObject->DoVerb(OLEIVERB_DISCARDUNDOSTATE, NULL, NULL, 0, NULL, NULL);
 
               spOleObject->Close(OLECLOSE_NOSAVE);
-              //spOleObject->DoVerb(OLEIVERB_DISCARDUNDOSTATE, NULL, NULL, 0, NULL, NULL);
               spOleObject->SetClientSite(NULL);
           }
 
