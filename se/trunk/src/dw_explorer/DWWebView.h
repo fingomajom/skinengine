@@ -243,22 +243,16 @@ public:
 
     LRESULT OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
+        bHandled = FALSE;
         if ( (GetStyle() & WS_CHILD) == 0 && ::IsWindowVisible(m_hNotifyWnd) )
-        {
-            HWND hRoot = ::GetAncestor(m_hNotifyWnd, GA_ROOT);
-            
-            CWindow wndClient = m_hNotifyWnd;
-
+        {           
             RECT rcClient = { 0 };
-            wndClient.GetWindowRect(&rcClient);
+            GetWindowRect(&rcClient);
 
-            //::SetWindowPos(hRoot, HWND_TOP , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
-
-            SetWindowPos(hRoot , 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOSENDCHANGING);
-            m_wndBk.SetWindowPos(m_hWnd ,
+            m_wndBk.SetWindowPos(NULL ,
                 rcClient.left, rcClient.top, 
                 rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                SWP_NOSENDCHANGING | SWP_NOACTIVATE);
+                SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
 
         }
 
@@ -283,10 +277,15 @@ public:
                 RECT rcClient = { 0 };
                 wndClient.GetWindowRect(&rcClient);
 
+                m_wndBk.SetWindowPos(hRoot ,
+                    rcClient.left, rcClient.top, 
+                    rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
+                    SWP_NOSENDCHANGING | SWP_NOACTIVATE);
+
                 SetWindowPos(hRoot, 
                     rcClient.left, rcClient.top, 
                     rcClient.right-rcClient.left, rcClient.bottom-rcClient.top, 
-                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW );
+                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_NOZORDER | SWP_NOACTIVATE);
             }
         }
         return 0;

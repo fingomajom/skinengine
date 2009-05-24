@@ -168,26 +168,57 @@ public:
         pUnkControl->QueryInterface(__uuidof(IOleObject), (void**)&m_spOleObject);
         if (m_spOleObject)
         {
-            CComQIPtr<IOleClientSite> spClientSite(GetControllingUnknown());
-            m_spOleObject->SetClientSite(spClientSite);
+            m_spOleObject->GetMiscStatus(DVASPECT_CONTENT, &m_dwMiscStatus);
+            if (m_dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST)
+            {
+                CComQIPtr<IOleClientSite> spClientSite(GetControllingUnknown());
+                m_spOleObject->SetClientSite(spClientSite);
+            }
 
-            GetClientRect(&m_rcPos);
-            m_pxSize.cx = m_rcPos.right - m_rcPos.left;
-            m_pxSize.cy = m_rcPos.bottom - m_rcPos.top;
-            AtlPixelToHiMetric(&m_pxSize, &m_hmSize);
-            m_spOleObject->SetExtent(DVASPECT_CONTENT, &m_hmSize);
-            m_spOleObject->GetExtent(DVASPECT_CONTENT, &m_hmSize);
-            AtlHiMetricToPixel(&m_hmSize, &m_pxSize);
-            m_rcPos.right = m_rcPos.left + m_pxSize.cx;
-            m_rcPos.bottom = m_rcPos.top + m_pxSize.cy;
+            if (0 == (m_dwMiscStatus & OLEMISC_SETCLIENTSITEFIRST))
+            {
+                CComQIPtr<IOleClientSite> spClientSite(GetControllingUnknown());
+                m_spOleObject->SetClientSite(spClientSite);
+            }
 
+            m_dwViewObjectType = 0;
+            hr = m_spOleObject->QueryInterface(__uuidof(IViewObjectEx), (void**) &m_spViewObject);
+            if (FAILED(hr))
+            {
+                hr = m_spOleObject->QueryInterface(__uuidof(IViewObject2), (void**) &m_spViewObject);
+                if (SUCCEEDED(hr))
+                    m_dwViewObjectType = 3;
+            } else
+                m_dwViewObjectType = 7;
+
+            if (FAILED(hr))
+            {
+                hr = m_spOleObject->QueryInterface(__uuidof(IViewObject), (void**) &m_spViewObject);
+                if (SUCCEEDED(hr))
+                    m_dwViewObjectType = 1;
+            }
             CComQIPtr<IAdviseSink> spAdviseSink(GetControllingUnknown());
             m_spOleObject->Advise(spAdviseSink, &m_dwOleObject);
+            if (m_spViewObject)
+                m_spViewObject->SetAdvise(DVASPECT_CONTENT, 0, spAdviseSink);
 
-            hr = m_spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, spClientSite, 0, m_hWnd, &m_rcPos);
-            RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_INTERNALPAINT | RDW_FRAME);
+            if ((m_dwMiscStatus & OLEMISC_INVISIBLEATRUNTIME) == 0)
+            {
+                GetClientRect(&m_rcPos);
+                m_pxSize.cx = m_rcPos.right - m_rcPos.left;
+                m_pxSize.cy = m_rcPos.bottom - m_rcPos.top;
+                AtlPixelToHiMetric(&m_pxSize, &m_hmSize);
+                m_spOleObject->SetExtent(DVASPECT_CONTENT, &m_hmSize);
+                m_spOleObject->GetExtent(DVASPECT_CONTENT, &m_hmSize);
+                AtlHiMetricToPixel(&m_hmSize, &m_pxSize);
+                m_rcPos.right = m_rcPos.left + m_pxSize.cx;
+                m_rcPos.bottom = m_rcPos.top + m_pxSize.cy;
+
+                CComQIPtr<IOleClientSite> spClientSite(GetControllingUnknown());
+                hr = m_spOleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, spClientSite, 0, m_hWnd, &m_rcPos);
+                RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_INTERNALPAINT | RDW_FRAME);
+            }
         }
-
 
         return hr;
     }
@@ -657,23 +688,24 @@ public:
           CComQIPtr<IViewObject>      spViewObject(m_p);
           CComQIPtr<IOleObject>       spOleObject(m_p);
 
+          if (spViewObject != NULL)
+          {
+              DWORD aspects = 0;
+              DWORD advf = 0;
+              spViewObject->GetAdvise( &aspects, &advf, &m_spAdviseSink);
+              spViewObject->SetAdvise(DVASPECT_CONTENT, 0, NULL);
+          }
+
           if (spOleObject)
           {
               spOleObject->GetClientSite(&m_spOleClientSite);
-
-              //m_spOleClientSite->OnShowWindow(FALSE);
-              //CComQIPtr<IOleInPlaceObject> spOleInPlaceObject(m_p);
-              //spOleInPlaceObject->InPlaceDeactivate();
-              //spOleInPlaceObject->UIDeactivate();
-              //spOleObject->DoVerb(OLEIVERB_DISCARDUNDOSTATE, NULL, NULL, 0, NULL, NULL);
 
               spOleObject->Close(OLECLOSE_NOSAVE);
               spOleObject->SetClientSite(NULL);
           }
 
           m_wndBtn.m_bPopupFlash = TRUE;
-      }
-        
+      }        
 
       HRESULT ActivateAxToWeb()
       {
@@ -684,6 +716,9 @@ public:
 
           CComQIPtr<IViewObject>      spViewObject(m_p);
           CComQIPtr<IOleObject>       spOleObject(m_p);
+
+          if (spViewObject)
+              spViewObject->SetAdvise(DVASPECT_CONTENT, 0, m_spAdviseSink);
 
           if (spOleObject)
           {
@@ -704,6 +739,7 @@ public:
           }
 
           m_spOleClientSite.Detach();
+          m_spAdviseSink.Detach();
           m_wndBtn.m_bPopupFlash = FALSE;
           FixPlayingFlash();
           return hr;
