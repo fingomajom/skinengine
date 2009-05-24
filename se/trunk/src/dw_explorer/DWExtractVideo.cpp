@@ -603,10 +603,9 @@ public:
               VARIANT_BOOL bPlaying = VARIANT_FALSE;
               CComBSTR bstrMovie;
               spShockwaveFlash->get_Movie(&bstrMovie);
-              spShockwaveFlash->raw_IsPlaying(&bPlaying);
+              //spShockwaveFlash->raw_IsPlaying(&bPlaying);
 
-              if ( bPlaying == VARIANT_FALSE && 
-                  StrStrI(bstrMovie, L"s2.bai.itc.cn") != NULL)
+              if ( (StrStrI(bstrMovie, L"s2.bai.itc.cn") != NULL && StrStrI(bstrMovie, L"gameOver.swf")) )
               {
                   return TRUE;
               }
