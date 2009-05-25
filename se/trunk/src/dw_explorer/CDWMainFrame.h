@@ -49,9 +49,13 @@ public:
         MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus )
         MESSAGE_HANDLER(WM_ACTIVATE, OnActivate )
 
-        MESSAGE_HANDLER(WM_TABLE_BAR_MSG      , OnTableBarMsg)
-        MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate)
-        MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch)
+        MESSAGE_HANDLER(WM_TABLE_BAR_MSG      , OnTableBarMsg       )
+        MESSAGE_HANDLER(WM_WEBVIEW_CREATE     , OnWebViewCreate     )
+        MESSAGE_HANDLER(WM_WEBVIEW_OPENSEARCH , OnWebViewOpenSearch )
+        MESSAGE_HANDLER(WM_REFLASH_URL        , OnReflashURL        )
+        MESSAGE_HANDLER(WM_KEYDOWN            , OnKeydown           )
+
+
         MESSAGE_HANDLER(WM_WINDOWPOSCHANGED   , OnWndPosChanged )
 
         COMMAND_ID_HANDLER( ID_APP_EXIT          , OnFileExit      )
@@ -84,11 +88,14 @@ protected:
     LRESULT OnSize      (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnSetFocus  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnActivate  (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnKeydown   (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
+    
     LRESULT OnWndPosChanged     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnTableBarMsg       (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewCreate     (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnWebViewOpenSearch (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnReflashURL        (UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnFileNew (WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

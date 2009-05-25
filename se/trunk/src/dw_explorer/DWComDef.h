@@ -22,6 +22,7 @@
 
 
 #define WM_CREATE_WEB_WND       (WM_USER + 1100)
+#define WM_REFLASH_URL          (WM_USER + 1101)
 #define WM_FAV_ICON_REFLASH     (WM_USER + 1110)
 
 //#define WM_WEBWND_INFO_CHANGED  (WM_USER + 1200)

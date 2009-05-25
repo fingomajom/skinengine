@@ -135,9 +135,37 @@ HWND CDWProcessMgt::_CreateWebWnd(HWND hParent, LPARAM lParam)
     m_cs.Lock();
     for ( POSITION pos = m_listProcess.GetHeadPosition(); pos != NULL; )
     {
+        POSITION posNow = pos;
         pPInfo = m_listProcess.GetNext(pos);
         if ( pPInfo != NULL && pPInfo->dwWndCreated < m_dwMaxWndCreate )
+        {
+            BOOL bCrashed = FALSE;
+
+            HANDLE hProcess = OpenProcess( PROCESS_QUERY_INFORMATION | SYNCHRONIZE, 
+                FALSE, pPInfo->dwPID );
+            if ( hProcess != NULL ) // 看看是不是崩溃了。。
+            {
+                if ( WaitForSingleObject( hProcess, 1 ) != WAIT_TIMEOUT )
+                    bCrashed = TRUE;
+
+                CloseHandle(hProcess);
+            }
+            else 
+                bCrashed = TRUE;
+
+            if ( bCrashed )
+            {
+                m_listProcess.RemoveAt(posNow);
+
+                delete pPInfo;
+
+                pPInfo = NULL;
+                continue;
+            }
+
             break;
+        }
+
         pPInfo = NULL;
     }
     m_cs.Unlock();

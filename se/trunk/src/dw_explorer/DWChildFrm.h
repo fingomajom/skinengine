@@ -21,13 +21,16 @@
 #include "DWURLHistoryMgt.h"
 
 
+
+
 class CDWChildFrmBkgnd : public CWindowImpl<CDWChildFrmBkgnd>
 {
 public:
 
     CHyperLink m_link;
 
-    CBrush m_bkBrush;
+    CBrush  m_bkBrush;
+    CWindow m_wndParent;
 
 
     BEGIN_MSG_MAP(CDWChildFrm)
@@ -36,9 +39,12 @@ public:
         MESSAGE_HANDLER( WM_DESTROY    , OnDestroy    )
         MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
         MESSAGE_HANDLER( WM_SIZE       , OnSize       )
+        MESSAGE_HANDLER( WM_KEYDOWN    , OnKeydown    )
 
         MESSAGE_HANDLER( WM_CTLCOLORBTN   , OnCtlColor )
         MESSAGE_HANDLER( WM_CTLCOLORSTATIC, OnCtlColor )
+
+        COMMAND_CODE_HANDLER( BN_CLICKED, OnReflash )
 
     END_MSG_MAP()
     DECLARE_WND_CLASS(_T("DWExplorer_DWChildFrmBkgnd"))
@@ -130,6 +136,23 @@ public:
         return (LRESULT)m_bkBrush.m_hBrush;
     }
 
+    LRESULT OnKeydown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( wParam == VK_F5 )
+        {
+            m_wndParent.SendMessage(WM_REFLASH_URL);
+        }
+
+        return DefWindowProc();
+    }
+
+    LRESULT OnReflash(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        m_wndParent.SendMessage(WM_REFLASH_URL);
+
+        return DefWindowProc();
+    }
+
    
 };
 
@@ -187,7 +210,7 @@ public:
         CDWProcessMgt& psmgt= CDWProcessMgt::Instance();
 
         int nIdx = m_wndTableBar.FindParam((LPARAM)this);
-        ATLASSERT( nIdx >= 0 && m_wndClient.IsWindow() );
+        ATLASSERT( nIdx >= 0 );
         if ( nIdx < 0 )
             return;
 
@@ -207,7 +230,11 @@ public:
 
         CDWEventSvr::Instance().OnMessage( eid_addr_changed, (WPARAM) pszURL, 0 );
 
-        psmgt.WebWndOpenURL( m_wndClient, pszURL );
+        if ( m_wndClient.IsWindow() )
+            psmgt.WebWndOpenURL( m_wndClient, pszURL );
+        else
+            psmgt.CreateWebWnd( m_hWnd, 0, m_strURL);
+
 
         ::SetForegroundWindow(m_wndClient);
     }
@@ -405,7 +432,7 @@ public:
         if ( hIcon != NULL )
             m_wndTableBar.SetItemIcon( nTabIndex, hIcon );
 
-        if ( m_wndTableBar. GetSelectIndex() == nTabIndex )
+        if ( m_wndTableBar.GetSelectIndex() == nTabIndex )
             SendMessage( GetParent(), WM_TABLE_BAR_MSG, TGM_SELECT_CHANGE, nTabIndex );
 
         if ( IsWindowVisible() )
@@ -438,7 +465,7 @@ public:
     {
         if ( wParam == 1001 )
         {
-            if ( !m_wndClient.IsWindow() )
+            if ( !m_wndClient.IsWindow() && !m_wndChildFrmBkgnd.IsWindowVisible() )
                 ShowClient();
         }
 
@@ -542,7 +569,7 @@ public:
                     GetParent(), rcWindow.left, rcWindow.top,
                     rcWindow.right-rcWindow.left, 
                     rcWindow.bottom-rcWindow.top,
-                    SWP_SHOWWINDOW | SWP_NOACTIVATE);
+                    SWP_SHOWWINDOW );
             }
         }
     }

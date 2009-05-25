@@ -116,7 +116,8 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndTableBar.Create   ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndStatusBar.Create  ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
-    m_wndChildFrmBkgnd.Create( NULL, &rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE );
+    m_wndChildFrmBkgnd.m_wndParent = m_hWnd;
+    m_wndChildFrmBkgnd.Create( NULL, &rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW );
 
     CDWEventSvr::Instance().AddCallback(this);
 
@@ -384,26 +385,28 @@ void CDWMainFrame::OnSelectURL( int nIndex )
 #ifndef __TEST_WEB_WND__
     
 
-    RECT rcChildFrm;
-    GetChildFrmRect(rcChildFrm);
-
-    LPARAM lParam = 0;
-    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->m_wndClient.IsWindow() )
-        lParam = (LPARAM)m_pNowChildFrm->m_wndClient.m_hWnd;
-
-    pNextFrm->MoveWindow(&rcChildFrm, FALSE);
-    pNextFrm->SetFocus();
-    pNextFrm->ShowClient(lParam);
-
-    if ( m_pNowChildFrm != NULL )
+    if ( pNextFrm != m_pNowChildFrm )
     {
-        ATLASSERT( m_listChildFrm.Find(m_pNowChildFrm) != NULL );
+        RECT rcChildFrm;
+        GetChildFrmRect(rcChildFrm);
 
-        m_pNowChildFrm->HideClient();
+        LPARAM lParam = 0;
+        if ( m_pNowChildFrm != NULL && m_pNowChildFrm->m_wndClient.IsWindow() )
+            lParam = (LPARAM)m_pNowChildFrm->m_wndClient.m_hWnd;
+
+        pNextFrm->MoveWindow(&rcChildFrm, FALSE);
+        pNextFrm->SetFocus();
+        pNextFrm->ShowClient(lParam);
+
+        if ( m_pNowChildFrm != NULL )
+        {
+            ATLASSERT( m_listChildFrm.Find(m_pNowChildFrm) != NULL );
+
+            m_pNowChildFrm->HideClient();
+        }
+
+        m_pNowChildFrm = pNextFrm;
     }
-
-    m_pNowChildFrm = pNextFrm;
-
 
 #endif
 }
@@ -504,6 +507,27 @@ LRESULT CDWMainFrame::OnWebViewOpenSearch(UINT /*uMsg*/, WPARAM wParam, LPARAM l
     m_wndSuperbar.OpenSerach((LPCTSTR)wParam);
     
     return 1L;
+}
+
+
+LRESULT CDWMainFrame::OnReflashURL(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
+    {
+        m_pNowChildFrm->OnOpenURL( m_pNowChildFrm->m_strURL );
+    }
+
+    return 1L;
+}
+
+LRESULT CDWMainFrame::OnKeydown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    if ( wParam == VK_F5 && m_wndChildFrmBkgnd.IsWindowVisible() )
+    {
+        PostMessage(WM_REFLASH_URL);
+    }
+
+    return DefWindowProc();
 }
 
 
