@@ -647,7 +647,11 @@ public:
 
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
     {
-        return 1L;
+        m_image_item.Destroy();
+        m_image_close.Destroy();
+        m_image_new.Destroy();
+
+        return DefWindowProc();
     }
 
     LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

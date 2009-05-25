@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <atlctrlx.h>
+
 #include "DWComDef.h"
 #include "DWTableBar.h"
 #include "DWProcessMgt.h"
@@ -19,16 +21,133 @@
 #include "DWURLHistoryMgt.h"
 
 
+class CDWChildFrmBkgnd : public CWindowImpl<CDWChildFrmBkgnd>
+{
+public:
+
+    CHyperLink m_link;
+
+    CBrush m_bkBrush;
+
+
+    BEGIN_MSG_MAP(CDWChildFrm)
+
+        MESSAGE_HANDLER( WM_CREATE     , OnCreate     )
+        MESSAGE_HANDLER( WM_DESTROY    , OnDestroy    )
+        MESSAGE_HANDLER( WM_ERASEBKGND , OnEraseBkGnd )
+        MESSAGE_HANDLER( WM_SIZE       , OnSize       )
+
+        MESSAGE_HANDLER( WM_CTLCOLORBTN   , OnCtlColor )
+        MESSAGE_HANDLER( WM_CTLCOLORSTATIC, OnCtlColor )
+
+    END_MSG_MAP()
+    DECLARE_WND_CLASS(_T("DWExplorer_DWChildFrmBkgnd"))
+
+    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        m_link.SetHyperLinkExtendedStyle(
+            HLINK_UNDERLINED | HLINK_COMMANDBUTTON);        
+        m_link.Create(m_hWnd, 
+            rcDefault,
+            L"立即刷新", 
+            WS_CHILD | WS_VISIBLE, 0,
+            10);
+
+        m_link.SetLinkFont(AtlGetDefaultGuiFont());
+
+        return DefWindowProc();
+    }
+
+    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( m_bkBrush.m_hBrush != NULL )
+            m_bkBrush.DeleteObject();
+
+        return DefWindowProc();
+    }
+
+    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        RECT rcClient;
+        GetClientRect(&rcClient);
+
+        if ( m_link.IsWindow() )
+        {
+            rcClient.left   = (rcClient.left + rcClient.right) / 2 - 25;
+            rcClient.right  = rcClient.left + 50;
+            rcClient.top    = (rcClient.top + rcClient.bottom) / 2;
+            rcClient.bottom = rcClient.top + 20;
+            
+            m_link.MoveWindow(&rcClient);
+            m_link.CalcLabelRect();
+
+        }
+
+        return DefWindowProc();
+    }
+
+    LRESULT OnEraseBkGnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        RECT rcClient;
+        GetClientRect(&rcClient);
+
+        CMemoryDC dc((HDC)wParam, rcClient);
+
+        LRESULT lRet = DefWindowProc(uMsg, (WPARAM)dc.m_hDC, lParam);
+
+        CFont font, font1;
+        font.CreatePointFont ( 198, L"Tahoma" );
+        font1.CreatePointFont( 120, L"Tahoma" );
+
+
+        HFONT hOldFont = dc.SelectFont(font);
+
+        rcClient.top = (rcClient.top + rcClient.bottom) / 2 - 100;
+        rcClient.bottom = rcClient.top + 50;
+        dc.SetTextColor(RGB(255, 100, 100));
+        dc.DrawText(L"非常报歉，当前页面出错并崩溃。", -1, &rcClient, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+        dc.SelectFont(font1);
+
+        rcClient.top = rcClient.bottom;
+        rcClient.bottom = rcClient.top + 30;
+        dc.SetTextColor(RGB(50, 50, 50));
+        dc.DrawText(L"你可以安全的关闭或刷新当前页面，并不会影响其它页面。", -1, &rcClient, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+        dc.SelectFont(hOldFont);
+
+        return lRet;
+    }  
+
+    LRESULT OnCtlColor(UINT /* uMsg */, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+    {
+        CDCHandle dc = (HDC)wParam;
+        dc.SetBkMode( TRANSPARENT );
+
+        if ( m_bkBrush.m_hBrush == NULL )
+            m_bkBrush.CreateSolidBrush( GetSysColor(COLOR_WINDOW) );
+
+        return (LRESULT)m_bkBrush.m_hBrush;
+    }
+
+   
+};
+
+
+
 class CDWChildFrm : public CWindowImpl<CDWChildFrm>
 {
 public:
 
-    CDWChildFrm( CDWTableBar& wndTableBar ) :
-        m_wndTableBar(wndTableBar)
+    CDWChildFrm( CDWTableBar& wndTableBar, CDWChildFrmBkgnd& wndChildFrmBkgnd ) :
+        m_wndTableBar(wndTableBar),
+        m_wndChildFrmBkgnd(wndChildFrmBkgnd)
     {
     }
 
-    CDWTableBar& m_wndTableBar;
+    CDWTableBar&      m_wndTableBar;
+    CDWChildFrmBkgnd& m_wndChildFrmBkgnd;
+
     CWindow      m_wndClient;
 
     ATL::CString m_strURL;
@@ -40,10 +159,11 @@ public:
         HWND hParent,
         RECT rcClient,
         CDWTableBar& wndTableBar, 
+        CDWChildFrmBkgnd& wndChildFrmBkgnd,
         LPCTSTR pszTitle,
         LPCTSTR pszURL )
     {
-        CDWChildFrm* pNewFrm = new CDWChildFrm(wndTableBar);
+        CDWChildFrm* pNewFrm = new CDWChildFrm(wndTableBar, wndChildFrmBkgnd);
         ATLASSERT( pNewFrm != NULL );
         if ( pNewFrm == NULL )
             return NULL;
@@ -100,6 +220,7 @@ public:
         MESSAGE_HANDLER(WM_CREATE , OnCreate   )
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy  )
         MESSAGE_HANDLER(WM_SIZE   , OnSize     )
+        MESSAGE_HANDLER(WM_TIMER  , OnTimer    )
 
         MESSAGE_HANDLER(WM_SETFOCUS   , OnSetFocus )
         MESSAGE_HANDLER(WM_ERASEBKGND , OnEraseBkGnd )
@@ -312,6 +433,18 @@ public:
 
         return 0L;
     }
+
+    LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if ( wParam == 1001 )
+        {
+            if ( !m_wndClient.IsWindow() )
+                ShowClient();
+        }
+
+        return DefWindowProc();
+    }
+
  
     LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
@@ -325,22 +458,28 @@ public:
         RECT rcClient  = { 0 };
 
         if ( !::IsWindow(m_wndClient) )
+        {
+            if ( m_wndChildFrmBkgnd.IsWindow() && m_wndChildFrmBkgnd.IsWindowVisible() )
+            {
+                RECT rcWindow;
+                GetWindowRect(&rcWindow);
+
+                m_wndChildFrmBkgnd.SetWindowPos(
+                    GetParent(), rcWindow.left, rcWindow.top,
+                    rcWindow.right-rcWindow.left, 
+                    rcWindow.bottom-rcWindow.top,
+                    SWP_NOMOVE | SWP_NOACTIVATE);
+            }
+
             return;
+        }
 
         if ( !GetClientRect(&rcClient) )
         {
             return;
         }
 
-        //m_wndClient.PostMessage( WM_WEBVIEW_MOVESIZE, wParam, lParam);
-
         SendMessageToWebWnd(WM_WEBVIEW_MOVESIZE, wParam, lParam);
-
-        //::SendMessageTimeout( m_wndClient, 
-        //    WM_WEBVIEW_MOVESIZE, 
-        //    wParam, lParam, 
-        //    SMTO_ABORTIFHUNG, 1, 0);
-
     }
 
     void HideClient()
@@ -351,8 +490,9 @@ public:
         {
             SendMessageToWebWnd(WM_WEBVIEW_SHOW);
         }
-    }
 
+        KillTimer(1001);
+    }
 
     void ShowClient( LPARAM lParam = 0 )
     {
@@ -361,6 +501,9 @@ public:
 
         if ( ::IsWindow(m_wndClient) )
         {
+            if ( m_wndChildFrmBkgnd.IsWindow() )
+                m_wndChildFrmBkgnd.ShowWindow(SW_HIDE);
+
             CDWSkinUIMgt* pskin = CDWSkinUIMgt::InstancePtr();
             if ( pskin == NULL )
                 return;
@@ -386,6 +529,21 @@ public:
             }
             else
                 ::SetForegroundWindow(m_wndClient);
+
+            SetTimer(1001, 500);
+        }
+        else
+        {
+            if ( m_wndChildFrmBkgnd.IsWindow() )
+            {
+                RECT rcWindow;
+                GetWindowRect(&rcWindow);
+                m_wndChildFrmBkgnd.SetWindowPos(
+                    GetParent(), rcWindow.left, rcWindow.top,
+                    rcWindow.right-rcWindow.left, 
+                    rcWindow.bottom-rcWindow.top,
+                    SWP_SHOWWINDOW | SWP_NOACTIVATE);
+            }
         }
     }
 

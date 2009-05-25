@@ -116,6 +116,8 @@ LRESULT CDWMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
     m_wndTableBar.Create   ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
     m_wndStatusBar.Create  ( m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE );
 
+    m_wndChildFrmBkgnd.Create( NULL, &rcDefault, NULL, WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE );
+
     CDWEventSvr::Instance().AddCallback(this);
 
 #ifdef __TEST_WEB_WND__
@@ -141,6 +143,7 @@ LRESULT CDWMainFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
     GetWindowRect(&rcWindow);
     cfg.set_Frm_Default_Rect( rcWindow, bMaxed );
 
+    m_wndChildFrmBkgnd.DestroyWindow();
 
     bHandled = FALSE;
 
@@ -152,6 +155,18 @@ LRESULT CDWMainFrame::OnWndPosChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, B
     if ( m_pNowChildFrm != NULL && m_pNowChildFrm->IsWindow() )
     {
         m_pNowChildFrm->ResizeClient(MAKEWPARAM(1,0),TRUE);
+
+        if ( m_wndChildFrmBkgnd.IsWindow() && m_wndChildFrmBkgnd.IsWindowVisible() )
+        {
+            RECT rcWindow;
+            m_pNowChildFrm->GetWindowRect(&rcWindow);
+
+            m_wndChildFrmBkgnd.SetWindowPos(
+                NULL, rcWindow.left, rcWindow.top,
+                rcWindow.right-rcWindow.left, 
+                rcWindow.bottom-rcWindow.top,
+                SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
     }
 
     return DefWindowProc();
@@ -205,7 +220,6 @@ LRESULT CDWMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
     {
         m_wndStatusBar.MoveWindow( &rcStatusBar );
     }
-
 
     rcToolBar.top    = rcToolBar.bottom;
     rcToolBar.bottom = rcStatusBar.top;
@@ -284,7 +298,9 @@ CDWChildFrm* CDWMainFrame::OnNewURL( LPCTSTR pszURL, BOOL bActive  )
         m_hWnd, 
         rcChildFrm,
         m_wndTableBar,
-        strTitle, pszURL);
+        m_wndChildFrmBkgnd,
+        strTitle, 
+        pszURL);
     if ( pNewFrm == NULL )
         return NULL;
 

@@ -110,4 +110,5 @@ protected:
     ATL::CAtlList<CDWChildFrm*> m_listChildFrm;
     CDWChildFrm* m_pNowChildFrm;
 
+    CDWChildFrmBkgnd m_wndChildFrmBkgnd;
 };

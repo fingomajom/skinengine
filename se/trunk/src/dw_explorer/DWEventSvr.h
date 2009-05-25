@@ -58,6 +58,25 @@ public:
         m_listCallback.AddTail( info );
     }
 
+    void RemoveCallback( CDWEventCallback* cb )
+    {
+        DWORD dwThreadId = GetCurrentThreadId();
+
+        for (POSITION pos = m_listCallback.GetHeadPosition(); pos != NULL; )
+        {
+            CallbackInfo& info = m_listCallback.GetNext(pos);
+            if ( info.dwThreadId != dwThreadId )
+                continue;
+
+            if ( info.pCallback == cb )
+            {
+                m_listCallback.RemoveAt(pos);
+                break;
+            }
+        }
+    }
+
+
     LRESULT OnMessage( UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0, BOOL bAll = TRUE, BOOL bAllThread = FALSE )
     {
         LRESULT lResult = 0;
