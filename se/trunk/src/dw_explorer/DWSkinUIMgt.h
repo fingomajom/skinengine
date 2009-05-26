@@ -13,7 +13,7 @@ protected:
     CDWSkinUIMgt()
     {
         clrFrameNcBorder = RGB( 90 , 90 , 90  );
-        clrFrameWindow   = RGB( 127, 127, 255 );
+        clrFrameWindow   = RGB( 220, 220, 220 );
 
         CDWBaseConfig cfg;
         clrFrameWindow = cfg.get_Window_Color( clrFrameWindow );

@@ -161,7 +161,9 @@ public:
                     RGB(0,255,255),
                     RGB(0,128,255),
                     RGB(128,0,128),
-                    RGB(255,0,255)
+                    RGB(255,0,255),
+                    RGB(0,0,0),
+                    RGB(255,255,255)
                 };
 
                 int nCount = sizeof(clrs) / sizeof(clrs[0]);
