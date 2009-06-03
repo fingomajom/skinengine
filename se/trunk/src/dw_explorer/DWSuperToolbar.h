@@ -227,8 +227,9 @@ public:
             delete []pszIText;
 
             if ( m_strIText == BLANK_URL )
+            {
                 return 0;
-
+            }
 
             CDWSmartAddrMgt& sa = CDWSmartAddrMgt::Instance();
             
@@ -246,6 +247,8 @@ public:
 
             if ( m_address_edit.m_vtDropList.GetCount() > 0 )
                 m_address_edit.ShowDropdownList();
+            else if ( m_address_edit.IsDropdownList() )
+                m_address_edit.ClearDropdownList(TRUE);
 
         }
         
@@ -267,7 +270,7 @@ public:
             }
 
             if ( m_address_edit.m_vtDropList.GetCount() > 0 || 1 )
-                m_address_edit.ShowDropdownList();
+                m_address_edit.ShowDropdownList(-2);
 
         }
 

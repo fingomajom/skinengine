@@ -230,15 +230,13 @@ public:
         if ( pskin == NULL )
             return;
 
-        //COLORREF clrLine = HLS_TRANSFORM(pskin->clrFrameWindow, 30, 0);
-
         RECT rcBox = lpDrawItemStruct->rcItem;
 
         RECT rcText = rcBox;
 
         if ( (lpDrawItemStruct->itemState & ODS_SELECTED) )
         {
-            dc.FillSolidRect(&rcText, HLS_TRANSFORM(pskin->clrFrameWindow, 60, 20));
+            dc.FillSolidRect(&rcText, HLS_TRANSFORM(pskin->clrFrameWindow, 60, -20));
         }
         else
         {
@@ -252,7 +250,7 @@ public:
                 brush.GetLogBrush( &logBrush );
 
                 CBrush brushNew;
-                brushNew.CreateSolidBrush( HLS_TRANSFORM(logBrush.lbColor, -10, 0) );
+                brushNew.CreateSolidBrush( HLS_TRANSFORM(logBrush.lbColor, -5, 0) );
                 dc.FillRect(&rcText, brushNew);
             }
             else

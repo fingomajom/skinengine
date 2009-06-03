@@ -166,11 +166,13 @@ public:
         m_wndDropList.MoveWindow( &rcWindow );
     }
     
-    LRESULT ShowDropdownList()
+    LRESULT ShowDropdownList( int nSel = -1 )
     {
         ResizeDropdownList();
         SetFocus();
-        m_wndDropList.m_wndListBox.SetCurSel(-1);
+
+        if ( nSel >= -1)
+            m_wndDropList.m_wndListBox.SetCurSel(nSel);
 
         if ( !m_wndDropList.IsWindowVisible() )
         {

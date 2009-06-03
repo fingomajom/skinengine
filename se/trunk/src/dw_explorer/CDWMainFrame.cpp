@@ -55,7 +55,11 @@ HWND CDWMainFrame::CreateEx()
          WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN );
 
     if ( bMaxed )
+    {
+        ::SetForegroundWindow(m_hWnd);
+        BringWindowToTop();
         PostMessage( WM_SYSCOMMAND, SC_MAXIMIZE );
+    }
 
     return hRet;
 }

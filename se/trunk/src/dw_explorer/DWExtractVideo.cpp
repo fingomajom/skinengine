@@ -88,6 +88,9 @@ public:
         RECT  rcWindow = { 0 };
         RECT  rcBtnWindow = { 0 };
 
+        if ( !::IsWindowVisible(m_hWndParent) )
+            return DefWindowProc();
+
         ::GetWindowRect(m_hWndParent, &rcWindow);
         GetWindowRect(&rcBtnWindow);
         ::GetCursorPos(&pt);
