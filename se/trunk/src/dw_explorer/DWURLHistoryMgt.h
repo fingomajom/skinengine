@@ -24,7 +24,8 @@ struct URLHistoryInfo
     int nOrder;
 };
 
-typedef ATL::CAtlList<URLHistoryInfo> URLHistoryInfoList;
+typedef ATL::CRBMap<ATL::CString, URLHistoryInfo*> URLHistoryInfoUrlMap;
+typedef ATL::CRBMultiMap<unsigned int, URLHistoryInfo*> URLHistoryInfoOrderMap;
 
 class CDWURLHistoryMgt : 
     public CDWSingleton<CDWURLHistoryMgt>,
@@ -53,54 +54,44 @@ public:
 
         m_bmodify = TRUE;
 
-        for ( POSITION pos = m_listURLHistory.GetHeadPosition(); pos != NULL; )
-        {
-            URLHistoryInfo& info = m_listURLHistory.GetNext( pos );
-            
-            if ( !StrCmpI(info.strURL, pszURL ) )
+        URLHistoryInfoUrlMap::CPair* pFind = m_mapURL.Lookup( pszURL );
+        if ( pFind )
+        {            
+            POSITION pos = m_mapOrder.FindFirstWithKey( pFind->m_value->nOrder );
+            while ( pos != NULL )
             {
-                info.strTitle = pszTitle;
-                info.nOrder++;
-                
-                int nPrevOrder = -1;
-
-                if ( pos == NULL )
-                    pos = m_listURLHistory.GetTailPosition();
-                else
-                    m_listURLHistory.GetPrev(pos);
-                
-                POSITION posMe = pos; 
-
-                m_listURLHistory.GetPrev( pos );
-
-                while ( pos != NULL && info.nOrder > nPrevOrder )
+                if ( m_mapOrder.GetValueAt(pos) == pFind->m_value )
                 {
-                    POSITION posTo = pos;
-                    nPrevOrder = m_listURLHistory.GetAt(pos).nOrder;
+                    break;
+                }
+                m_mapOrder.GetNextWithKey(pos, pFind->m_value->nOrder);
+            }        
+            
+            pFind->m_value->nOrder++;
+            m_mapOrder.RemoveAt( pos );
+            m_mapOrder.Insert(pFind->m_value->nOrder, pFind->m_value);
 
-                    if ( info.nOrder > nPrevOrder )
-                    {
-                        m_listURLHistory.SwapElements(posTo, posMe);
-                    }    
-
-                    m_listURLHistory.GetPrev( pos );
-                }                
-                return;
-            }
         }
 
-        if ( m_listURLHistory.GetCount() >= 1000 )
-            m_listURLHistory.RemoveTail();
+        if ( m_mapOrder.GetCount() >= 1000 )
+        {
+            POSITION pos = m_mapOrder.GetHeadPosition();
+            URLHistoryInfo* info = m_mapOrder.GetValueAt(pos);
+            m_mapURL.RemoveKey( info->strURL );
+            m_mapOrder.RemoveAt(pos);
+            delete info;
+        }
         
-        URLHistoryInfo info;
-        info.strTitle = pszTitle;
-        info.strURL   = pszURL;
-        m_listURLHistory.AddTail(info);
+        URLHistoryInfo* info = new URLHistoryInfo;
+        info->strTitle = pszTitle;
+        info->strURL   = pszURL;
+        m_mapURL.SetAt(info->strTitle, info);
+        m_mapOrder.Insert(info->nOrder, info);
     }
 
-    const URLHistoryInfoList& GetList() 
+    const URLHistoryInfoOrderMap& GetList() 
     {
-        return m_listURLHistory;
+        return m_mapOrder;
     }
  
 
@@ -112,15 +103,19 @@ protected:
         int nCount = cfg.GetCount();
         for ( int i = 0; i < nCount; i++ )
         {
-            URLHistoryInfo info;
+            URLHistoryInfo* info = new URLHistoryInfo;
+
             cfg.GetURLHistory(i,
-                info.strTitle,
-                info.strURL,
-                info.nOrder);
-            if ( info.strTitle.GetLength() <= 0 ||
-                 info.strURL.GetLength() <= 0 )
+                info->strTitle,
+                info->strURL,
+                info->nOrder);
+            if ( info->strTitle.GetLength() <= 0 ||
+                 info->strURL.GetLength() <= 0 )
                  continue;
-            m_listURLHistory.AddTail( info );
+
+            m_mapURL.SetAt(info->strTitle, info);
+            m_mapOrder.Insert(info->nOrder, info);
+            Sleep(2);
         }
     }
 
@@ -130,12 +125,12 @@ protected:
             return;
 
         CDWURLHistoryCfg cfg;
-        cfg.SetCount((int)m_listURLHistory.GetCount());
+        cfg.SetCount((int)m_mapOrder.GetCount());
         int idx = 0;
 
-        for ( POSITION pos = m_listURLHistory.GetHeadPosition(); pos != NULL; )
+        for ( POSITION pos = m_mapOrder.GetTailPosition(); pos != NULL; )
         {
-            URLHistoryInfo& info = m_listURLHistory.GetNext( pos );
+            URLHistoryInfo& info = *m_mapOrder.GetPrev( pos )->m_value;
             cfg.SetURLHistory( idx++,
                 info.strTitle,
                 info.strURL,
@@ -151,5 +146,7 @@ protected:
     }
 
     BOOL m_bmodify;
-    URLHistoryInfoList m_listURLHistory;
+
+    URLHistoryInfoUrlMap m_mapURL;
+    URLHistoryInfoOrderMap  m_mapOrder;
 };

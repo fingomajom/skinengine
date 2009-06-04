@@ -86,10 +86,6 @@ public:
         BSTR bstrHref = NULL;
         CDWHtmlHelper::GetMouseClicked(m_pHtmlView, ptClient, bstrHref);
 
-        //std::string szT = Util::URLMisc::UrlDecode(std::string(W2A(cstrText.GetBuffer())));
-        //wchar_t wszUrl[1024] = { 0 };
-        //::MultiByteToWideChar(CP_ACP, 0, szT.c_str(), -1, wszUrl, 1024);
-
         if (cstrText.GetLength() < 1 && bstrHref != NULL)
             return DDTYPE_IMAGE;
         if (cstrText.GetLength() > 1 && bstrHref != NULL && StrCmpNI(bstrHref, cstrText, 512) == 0)

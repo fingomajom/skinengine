@@ -44,7 +44,7 @@ public:
 
         ATL::CString strURL = psrhMgt->GetSearchURL( pszKeyWord );
 
-        CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)(LPCTSTR)strURL, FALSE);
+        CDWEventSvr::Instance().OnMessage( edi_open_url, (WPARAM)(LPCTSTR)strURL, TRUE);
     }
 
     void GoOpenURL()

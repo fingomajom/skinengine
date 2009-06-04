@@ -35,11 +35,11 @@ public:
 
         CDWURLHistoryMgt& history = CDWURLHistoryMgt::Instance();
 
-        const URLHistoryInfoList& hList = history.GetList();
+        const URLHistoryInfoOrderMap& hList = history.GetList();
 
-        for ( POSITION pos = hList.GetHeadPosition(); pos != NULL && nCount < nMaxCount; )
+        for ( POSITION pos = hList.GetTailPosition() ; pos != NULL && nCount < nMaxCount; )
         {
-            const URLHistoryInfo& info = hList.GetNext(pos);
+            const URLHistoryInfo& info = *hList.GetPrev(pos)->m_value;
 
             if ( StrStrI(info.strURL, pszIText) != NULL ||
                  StrStrI(info.strTitle, pszIText) != NULL )
