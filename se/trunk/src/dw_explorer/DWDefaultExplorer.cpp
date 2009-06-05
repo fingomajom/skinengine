@@ -579,7 +579,7 @@ BOOL CDWDefaultExplorer::CompareValueAtClassesRoot(const CString& cstrRoute, con
 
     if ( ERROR_SUCCESS == oRegFolder.QueryStringValue(NULL , wszBuffer , &dwBufferLen) )
     {
-        if ( wcsicmp(wszBuffer,L"SogouExplorer")==0 )
+        if ( StrCmpI(wszBuffer,L"SogouExplorer")==0 )
             nCount++;
     }
 
@@ -588,8 +588,9 @@ BOOL CDWDefaultExplorer::CompareValueAtClassesRoot(const CString& cstrRoute, con
         dwBufferLen = _countof(wszBuffer) ;
         if (ERROR_SUCCESS == oRegCommand.QueryStringValue(NULL,  wszBuffer, &dwBufferLen))
         {
-            _wcslwr(wszBuffer) ;
-            if (wcsstr(wszBuffer, csModulePath))
+            ATL::CString strBuf = wszBuffer;
+            strBuf.MakeLower();
+            if (StrStr(strBuf, csModulePath))
                 nCount++;
         }
         oRegCommand.Close() ;
@@ -600,8 +601,9 @@ BOOL CDWDefaultExplorer::CompareValueAtClassesRoot(const CString& cstrRoute, con
         dwBufferLen = _countof(wszBuffer) ;
         if (ERROR_SUCCESS == oRegCommand.QueryStringValue(NULL, wszBuffer, &dwBufferLen))
         {
-            _wcslwr(wszBuffer) ;
-            if (wcsstr(wszBuffer, csModulePath))
+            ATL::CString strBuf = wszBuffer;
+            strBuf.MakeLower();
+            if (StrStr(strBuf, csModulePath))
                 nCount++;
         }
 
@@ -629,7 +631,7 @@ bool CDWDefaultExplorer::IsSogouDefault()
         if ( ERROR_SUCCESS == RegKey.Open(HKEY_CURRENT_USER , _T("Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice") , KEY_QUERY_VALUE) )
         {
             if ( ERROR_SUCCESS == RegKey.QueryStringValue(_T("Progid") , wszBuffer , &dwBufferLen) 
-                && _wcsicmp(wszBuffer , _T("SogouExplorer.HTTP"))!=0)
+                && StrCmpI(wszBuffer , _T("SogouExplorer.HTTP"))!=0)
             {
                 return false;
             }
@@ -638,7 +640,7 @@ bool CDWDefaultExplorer::IsSogouDefault()
         if ( ERROR_SUCCESS == RegKey.Open(HKEY_CURRENT_USER , _T("Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoice") , KEY_QUERY_VALUE) )
         {
             if ( ERROR_SUCCESS == RegKey.QueryStringValue(_T("Progid" ) , wszBuffer , &dwBufferLen) 
-                && _wcsicmp(wszBuffer , _T("SogouExplorer.HTTP"))!=0 )
+                && StrCmpI(wszBuffer , _T("SogouExplorer.HTTP"))!=0 )
             {
                 return false;
             }
@@ -686,15 +688,15 @@ long GetOSVersion()
         }
         if (5 == os.dwMajorVersion && 1 == os.dwMinorVersion)
         {
-            if (!_wcsnicmp(L"Service Pack 1", os.szCSDVersion, 127))
+            if (!StrCmpNI(L"Service Pack 1", os.szCSDVersion, 127))
             {
                 return WINDOWS_XP_SP_1 ;
             }
-            if (!_wcsnicmp(L"Service Pack 2", os.szCSDVersion, 127))
+            if (!StrCmpNI(L"Service Pack 2", os.szCSDVersion, 127))
             {
                 return WINDOWS_XP_SP_2 ;
             }
-            if (!_wcsnicmp(L"Service Pack 3", os.szCSDVersion, 127))
+            if (!StrCmpNI(L"Service Pack 3", os.szCSDVersion, 127))
             {
                 return WINDOWS_XP_SP_3 ;
             }
@@ -706,7 +708,7 @@ long GetOSVersion()
         }
         if (6 == os.dwMajorVersion)
         {
-            if (!_wcsnicmp(L"Service Pack 1", os.szCSDVersion, 127))
+            if (!StrCmpNI(L"Service Pack 1", os.szCSDVersion, 127))
             {
                 return WINDOWS_VISTA_SP_1 ;
             }
