@@ -44,12 +44,18 @@ public:
     ~CDWURLHistoryMgt()
     {
         Save();
+        for ( POSITION pos = m_mapOrder.GetHeadPosition(); pos != NULL; )
+        {
+            delete m_mapOrder.GetNext( pos )->m_value;
+        }
+        m_mapURL.RemoveAll();
+        m_mapOrder.RemoveAll();
     }
 
     void AddURLHistory( LPCTSTR pszTitle, LPCTSTR pszURL )
     {
 
-        if ( !StrCmpI(pszURL, BLANK_URL) )
+        if ( pszTitle == NULL || lstrlenW(pszTitle) <= 0 || !StrCmpI(pszURL, BLANK_URL) )
             return;
 
         m_bmodify = TRUE;
@@ -94,6 +100,14 @@ public:
         return m_mapOrder;
     }
  
+    void Lock()
+    {
+        m_cs.Lock();
+    }
+    void Unlock()
+    {
+        m_cs.Unlock();
+    }
 
 protected:
 
@@ -112,10 +126,12 @@ protected:
             if ( info->strTitle.GetLength() <= 0 ||
                  info->strURL.GetLength() <= 0 )
                  continue;
-
+            
             m_mapURL.SetAt(info->strTitle, info);
+            m_cs.Lock();
             m_mapOrder.Insert(info->nOrder, info);
-            Sleep(2);
+            m_cs.Unlock();
+            Sleep(5);
         }
     }
 
@@ -147,6 +163,7 @@ protected:
 
     BOOL m_bmodify;
 
-    URLHistoryInfoUrlMap m_mapURL;
+    URLHistoryInfoUrlMap    m_mapURL;
     URLHistoryInfoOrderMap  m_mapOrder;
+    CComAutoCriticalSection m_cs;
 };

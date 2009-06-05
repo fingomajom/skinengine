@@ -4,8 +4,6 @@
 #include <exdispid.h>
 
 
-CDWHtmlView m_wnd;
-
 CDWHtmlView::CDWHtmlView() : 
     m_dwRef(0),
     m_dwCookie(0)
@@ -28,7 +26,7 @@ LRESULT CDWHtmlView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
     SetRegisterAsBrowser(TRUE);
     SetRegisterAsDropTarget(TRUE);
-    SetSilent(TRUE);
+    //SetSilent(TRUE);
 
     hr = AtlAdvise(m_spWebBrowser, (IUnknown*)this, DIID_DWebBrowserEvents2, &m_dwCookie) ;
     ATLASSERT( SUCCEEDED(hr) );

@@ -321,6 +321,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\DWDefaultExplorer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\DWDefaultExplorer.h"
+						>
+					</File>
+					<File
 						RelativePath=".\DWEventSvr.h"
 						>
 					</File>
@@ -554,6 +562,14 @@
 				Name="Common"
 				>
 				<File
+					RelativePath=".\DWAPIHooks.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\DWAPIHooks.h"
+					>
+				</File>
+				<File
 					RelativePath=".\DWCrashMgt.cpp"
 					>
 				</File>
@@ -561,6 +577,18 @@
 					RelativePath=".\DWCrashMgt.h"
 					>
 				</File>
+				<Filter
+					Name="ADBlock"
+					>
+					<File
+						RelativePath=".\DWInternetFeature.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\DWInternetFeature.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

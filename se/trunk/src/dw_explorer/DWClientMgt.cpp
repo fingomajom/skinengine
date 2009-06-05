@@ -2,7 +2,10 @@
 #include "DWClientMgt.h"
 #include "DWWebView.h"
 #include "CookieMgt.h"
+#include "DWAPIHooks.h"
 #include "DWExtractVideo.h"
+#include "DWInternetFeature.h"
+
 
 DWORD CDWClientMgt::m_dwMainThreadId = NULL;
 
@@ -208,7 +211,12 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
 
     InitExtractVideo();
 
+    CDWAPIHooks    dwAPIHooks;
     CDWMessageLoop theLoop;
+    CDWInternetFeature ieFeature;
+    ieFeature.RestrictActivexInstall(TRUE);
+    ieFeature.WebOcPopupManagement(TRUE);
+
     _Module.AddMessageLoop(&theLoop);
     CDWClientMgt& cltmgt   = CDWClientMgt::Instance();
 
@@ -229,7 +237,6 @@ int CDWClientMgt::RunMainMsgLoop( LPTSTR lpstrCmdLine )
     _Module.RemoveMessageLoop();
 
     CDWClientMgt::DeleteInstance();
-    CCookieMgt::DeleteInstance();
 
     UninitExtractVideo();
 
