@@ -32,6 +32,7 @@ public:
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkGnd)
 
         MESSAGE_HANDLER(WM_NCPAINT   , OnNcPaint   )
+        MESSAGE_HANDLER(WM_NCACTIVATE, OnNcActivate)
        
         MESSAGE_HANDLER(WM_NCCALCSIZE, OnNcCalcSize  )
         MESSAGE_HANDLER(WM_SIZE      , OnSize        )
@@ -55,6 +56,18 @@ public:
 
         m_sys_bar  .Create( *(T*)this, &m_sys_bar.rcDefault);
         m_sys_title.Create( *(T*)this, &m_sys_title.rcDefault);
+
+
+        m_bVista = FALSE;
+        OSVERSIONINFO os = { sizeof(OSVERSIONINFO) };
+        if (::GetVersionEx(&os))
+        {
+            if (os.dwMajorVersion >= 6)
+            {
+                m_bVista = TRUE;
+            }
+        }
+
 
         return 0L;
     }
@@ -354,13 +367,20 @@ public:
 
     LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return DefWindowProc();
+        return ((T*)this)->DefWindowProc();
     }
+
+    LRESULT OnNcActivate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        return m_bVista ? TRUE : ((T*)this)->DefWindowProc();
+    }
+
 
 protected:
     
     RECT m_rcLastWindowPos;
     BOOL m_bMaximize;
+    BOOL m_bVista;
 
     BOOL m_bActivete;
     CRgn m_rgnWindow;
