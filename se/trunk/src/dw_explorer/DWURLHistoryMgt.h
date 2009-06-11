@@ -36,13 +36,13 @@ public:
     CDWURLHistoryMgt()
     {
         m_bmodify = FALSE;
-        CloseHandle(CreateThread());
-        m_hThread = NULL;
+        CreateThread();
         m_dwThreadId = 0;
     }
 
     ~CDWURLHistoryMgt()
     {
+        SuspendThread();
         Save();
         for ( POSITION pos = m_mapOrder.GetHeadPosition(); pos != NULL; )
         {
@@ -115,7 +115,7 @@ protected:
     {
         CDWURLHistoryCfg cfg;
         int nCount = cfg.GetCount();
-        for ( int i = 0; i < nCount; i++ )
+        for ( int i = 0; i < nCount && i < 1000; i++ )
         {
             URLHistoryInfo* info = new URLHistoryInfo;
 

@@ -26,13 +26,14 @@
 #define IDI_ICON_FAV_DIRECTORY          228
 #define IDD_COLOR_DIALOG                229
 #define IDR_PNG_DROPDOWN                230
+#define IDI_ICON7                       231
 #define IDC_COLOR_SLIDER                1000
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        231
+#define _APS_NEXT_RESOURCE_VALUE        232
 #define _APS_NEXT_COMMAND_VALUE         32772
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

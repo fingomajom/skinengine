@@ -579,7 +579,7 @@ public:
         return ::SendMessageTimeout( m_wndClient, 
             uMsg, 
             wParam, lParam, 
-            SMTO_ABORTIFHUNG, 100, 0);
+            SMTO_ABORTIFHUNG, 50, 0);
     }
 
     DECLARE_WND_CLASS(_T("DWExplorer_DWChildFrm"));

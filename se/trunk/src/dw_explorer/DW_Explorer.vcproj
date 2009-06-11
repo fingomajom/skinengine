@@ -321,22 +321,6 @@
 						>
 					</File>
 					<File
-						RelativePath=".\DWDefaultExplorer.cpp"
-						>
-						<FileConfiguration
-							Name="Release|Win32"
-							ExcludedFromBuild="true"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath=".\DWDefaultExplorer.h"
-						>
-					</File>
-					<File
 						RelativePath=".\DWEventSvr.h"
 						>
 					</File>
@@ -765,6 +749,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\res\DW_Explorer2.ico"
+					>
+				</File>
+				<File
 					RelativePath=".\res\fav_directory.ico"
 					>
 				</File>
@@ -811,6 +799,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\res\dropdown.png"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

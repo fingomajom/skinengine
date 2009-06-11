@@ -3,7 +3,7 @@
 #include "DWConfigDB.h"
 
 
-#define IDS_FRM_TITLE L"%s - 白社会浏览器"
+#define IDS_FRM_TITLE L"%s - 视频提取测试工具"
 
 
 CDWMainFrame::CDWMainFrame(void)

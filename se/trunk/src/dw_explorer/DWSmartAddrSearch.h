@@ -102,8 +102,7 @@ public:
 
                 if ( CDWHtmlHelper::HttpGetRes( szHost, szUrlPath, strBuffer, 500 ) )
                 {
-                    ATL::CString strHtml;
-                    strHtml = strBuffer;
+                    ATL::CString strHtml(CA2WEX<>(strBuffer).m_psz);
 
                     RepairHtml(strHtml);
 
