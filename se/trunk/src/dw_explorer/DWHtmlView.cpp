@@ -1018,6 +1018,22 @@ HRESULT CDWHtmlView::_OnNewWindow2(REFIID riid, LCID lcid, WORD wFlags, DISPPARA
 }
 HRESULT CDWHtmlView::_OnNewWindow3(REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr)
 {
+    BOOL bCancel = FALSE;
+
+    ATL::CString strUrlContext(pDispParams->rgvarg[1]);
+    ATL::CString strUrl(pDispParams->rgvarg[0]);
+
+    OnNewWindow3(pDispParams->rgvarg[4].ppdispVal , 
+        &bCancel, 
+        pDispParams->rgvarg[2].lVal,
+        strUrlContext,
+        strUrl);
+
+    if (bCancel)
+        *pDispParams->rgvarg[3].pboolVal = VARIANT_TRUE;
+    else
+        *pDispParams->rgvarg[3].pboolVal = VARIANT_FALSE;
+
     return S_OK;
 }
 
@@ -1197,6 +1213,11 @@ void CDWHtmlView::OnPropertyChange(LPCTSTR lpszProperty)
 }
 
 void CDWHtmlView::OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel)
+{
+    *bCancel = FALSE;
+}
+
+void CDWHtmlView::OnNewWindow3(LPDISPATCH *ppDisp, BOOL *bCancel, DWORD dwFlags, LPCTSTR lpszUrlContext, LPCTSTR lpszUrl)
 {
     *bCancel = FALSE;
 }

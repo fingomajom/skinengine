@@ -174,7 +174,8 @@ protected:
     virtual void OnDownloadComplete();
     virtual void OnTitleChange(LPCTSTR lpszText);
     virtual void OnPropertyChange(LPCTSTR lpszProperty);
-    virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* Cancel);
+    virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel);
+    virtual void OnNewWindow3(LPDISPATCH *ppDisp, BOOL* bCancel, DWORD dwFlags, LPCTSTR lpszUrlContext, LPCTSTR lpszUrl);
     virtual void OnDocumentComplete(LPCTSTR lpszURL);
     virtual void OnQuit();
     virtual void OnVisible(BOOL bVisible);
