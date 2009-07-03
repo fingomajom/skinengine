@@ -12,7 +12,8 @@ class CDWHtmlEventMgt : public CDWHtmlView
 {
 public:
 
-    CDWHtmlEventMgt() {}
+    CDWHtmlEventMgt() : m_bUseNewWindow3(FALSE)
+    {}
 
     ~CDWHtmlEventMgt()
     {
@@ -149,7 +150,7 @@ public:
     virtual void OnPropertyChange(LPCTSTR lpszProperty)
     {
     }
-    virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel)
+    virtual void OnNewWindow(LPDISPATCH* ppDisp, BOOL* bCancel)
     {
         HWND hWndChildFrm = (HWND)::SendMessage( m_hNotifyWnd, WM_WEBVIEW_CREATE, 0, TRUE ); 
         if ( hWndChildFrm == NULL || !::IsWindow(hWndChildFrm) )
@@ -184,6 +185,19 @@ public:
                 spWebBrowser2->get_Application(ppDisp);
             }
         }
+    }
+
+    virtual void OnNewWindow2(LPDISPATCH* ppDisp, BOOL* bCancel)
+    {
+        if ( m_bUseNewWindow3 )
+            return;
+        OnNewWindow(ppDisp, bCancel);
+    }
+
+    virtual void OnNewWindow3(LPDISPATCH *ppDisp, BOOL* bCancel, DWORD dwFlags, LPCTSTR lpszUrlContext, LPCTSTR lpszUrl)
+    {
+        m_bUseNewWindow3 = TRUE;
+        OnNewWindow(ppDisp, bCancel);
     }
 
     BOOL IsToppestWindowOfBrowser2(IDispatch* pDispatch)
@@ -315,5 +329,7 @@ public:
 
     ATL::CString m_strURL;
     ATL::CString m_strTitle;
+
+    BOOL m_bUseNewWindow3;
 
 };
