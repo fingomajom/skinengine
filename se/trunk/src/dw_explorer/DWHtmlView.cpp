@@ -18,15 +18,14 @@ LRESULT CDWHtmlView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
     if ( pAxHost == NULL )
         return -1;
 
+    pAxHost->m_pHtmlView = this;
     HRESULT hr = pAxHost->CreateControl(m_hWnd);
     ATLASSERT( SUCCEEDED(hr) );
-    pAxHost->m_pHtmlView = this;
 
     pAxHost->QueryControl( IID_IWebBrowser2, (void**)&m_spWebBrowser );
 
     SetRegisterAsBrowser(TRUE);
     SetRegisterAsDropTarget(TRUE);
-    //SetSilent(TRUE);
 
     hr = AtlAdvise(m_spWebBrowser, (IUnknown*)this, DIID_DWebBrowserEvents2, &m_dwCookie) ;
     ATLASSERT( SUCCEEDED(hr) );
@@ -1097,9 +1096,42 @@ HRESULT CDWHtmlView::_OnNavigateError(REFIID riid, LCID lcid, WORD wFlags, DISPP
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 
+HRESULT CDWHtmlView::OnQueryService( REFGUID rsid, REFIID riid, void** ppvObj)
+{
+    return E_NOINTERFACE;
+}
+
+HRESULT CDWHtmlView::OnExec(const GUID *pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt, VARIANT *pvaIn, VARIANT *pvaOut)
+{
+    HRESULT hr = OLECMDERR_E_UNKNOWNGROUP ;
+
+    if (pguidCmdGroup && IsEqualGUID(*pguidCmdGroup, CGID_DocHostCommandHandler))
+    {
+        switch (nCmdID) 
+        {
+            //屏蔽脚本错误的对话框
+        case OLECMDID_SHOWSCRIPTERROR:
+            {
+                (*pvaOut).vt = VT_BOOL ;
+                (*pvaOut).boolVal = VARIANT_TRUE ;
+                return S_OK ;
+            }
+            break ;
+        default:
+            hr = OLECMDERR_E_NOTSUPPORTED;
+            break;
+        }
+    }
+
+    return hr ;
+}
+
+HRESULT CDWHtmlView::OnQueryStatus(const GUID *pguidCmdGroup, ULONG cCmds, OLECMD* prgCmds, OLECMDTEXT *pCmdText)
+{
+    return S_FALSE;
+}
 
 HRESULT CDWHtmlView::OnGetExternal(LPDISPATCH*)
 {
@@ -1111,14 +1143,17 @@ HRESULT CDWHtmlView::OnShowContextMenu(DWORD, LPPOINT, LPUNKNOWN, LPDISPATCH)
     return S_FALSE;
 }
 
-HRESULT CDWHtmlView::OnGetHostInfo(DOCHOSTUIINFO*)
+HRESULT CDWHtmlView::OnGetHostInfo(DOCHOSTUIINFO* pInfo)
 {
-    return S_OK;
+    pInfo->cbSize = sizeof(DOCHOSTUIINFO) ;
+    pInfo->dwDoubleClick = DOCHOSTUIDBLCLK_DEFAULT ;
+    pInfo->dwFlags |= DOCHOSTUIFLAG_NO3DBORDER | DOCHOSTUIFLAG_THEME | DOCHOSTUIFLAG_ENABLE_FORMS_AUTOCOMPLETE;
+    return S_OK ;
 }
 
 
 HRESULT CDWHtmlView::OnShowUI(DWORD, LPOLEINPLACEACTIVEOBJECT,
-                            LPOLECOMMANDTARGET, LPOLEINPLACEFRAME, LPOLEINPLACEUIWINDOW)
+    LPOLECOMMANDTARGET, LPOLEINPLACEFRAME, LPOLEINPLACEUIWINDOW)
 {
     return S_FALSE;
 }
@@ -1179,6 +1214,11 @@ HRESULT CDWHtmlView::OnGetDropTarget(LPDROPTARGET, LPDROPTARGET*)
 HRESULT CDWHtmlView::OnTranslateUrl(DWORD, OLECHAR*, OLECHAR**)
 {
     return S_FALSE;
+}
+
+HRESULT CDWHtmlView::OnAmbientProperty( IOleControlSite* pSite, DISPID dispid, VARIANT* pvar)
+{
+    return DISP_E_MEMBERNOTFOUND;
 }
 
 

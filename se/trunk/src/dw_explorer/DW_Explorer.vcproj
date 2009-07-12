@@ -425,6 +425,10 @@
 					Name="Base"
 					>
 					<File
+						RelativePath=".\DWAxHost.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\DWAxHost.h"
 						>
 					</File>

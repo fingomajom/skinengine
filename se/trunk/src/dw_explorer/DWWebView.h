@@ -418,6 +418,18 @@ public:
         return hIEServer;
     }
 
+    HRESULT OnAmbientProperty( IOleControlSite* pSite, DISPID dispid, VARIANT* pvar)
+    {
+        if (dispid==DISPID_AMBIENT_DLCONTROL)
+        {
+            V_VT(pvar) = VT_I4;
+            V_I4(pvar) = DLCTL_NO_RUNACTIVEXCTLS | DLCTL_NO_JAVA | DLCTL_SILENT; // 还可以加上其它的限制标志
+
+            return S_OK;
+        }
+
+        return DISP_E_MEMBERNOTFOUND;
+    }
 
 };
 

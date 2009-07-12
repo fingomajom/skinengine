@@ -137,6 +137,9 @@ protected:
 
     //////////////////////////////////////////////////////////////////////////
 
+    virtual HRESULT OnQueryService( REFGUID rsid, REFIID riid, void** ppvObj);
+    virtual HRESULT OnExec(const GUID *pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt, VARIANT *pvaIn, VARIANT *pvaOut);
+    virtual HRESULT OnQueryStatus(const GUID *pguidCmdGroup, ULONG cCmds, OLECMD* prgCmds, OLECMDTEXT *pCmdText);
     virtual HRESULT OnShowContextMenu(DWORD dwID, LPPOINT ppt,
         LPUNKNOWN pcmdtReserved, LPDISPATCH pdispReserved);
     virtual HRESULT OnGetExternal(LPDISPATCH *lppDispatch);
@@ -161,6 +164,8 @@ protected:
         OLECHAR* pchURLIn, OLECHAR** ppchURLOut);
     virtual HRESULT OnGetDropTarget(LPDROPTARGET pDropTarget,
         LPDROPTARGET* ppDropTarget);
+
+    virtual HRESULT OnAmbientProperty( IOleControlSite* pSite, DISPID dispid, VARIANT* pvar);
 
     // Events
     virtual void OnNavigateComplete2(LPCTSTR strURL);
