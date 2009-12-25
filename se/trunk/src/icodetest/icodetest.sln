@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icodetest", "icodetest.vcproj", "{FAE0E8E8-693F-450E-B1FF-33F570F53B84}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAE0E8E8-693F-450E-B1FF-33F570F53B84}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FAE0E8E8-693F-450E-B1FF-33F570F53B84}.Debug|Win32.Build.0 = Debug|Win32
+		{FAE0E8E8-693F-450E-B1FF-33F570F53B84}.Release|Win32.ActiveCfg = Release|Win32
+		{FAE0E8E8-693F-450E-B1FF-33F570F53B84}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
