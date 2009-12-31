@@ -20,7 +20,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -60,10 +60,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="shlwapi.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
-				EntryPointSymbol="WinMainCRTStartup"
+				EntryPointSymbol=""
 				ResourceOnlyDLL="false"
 				BaseAddress=""
 				TargetMachine="1"
@@ -173,7 +174,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\icodetest.c"
+			RelativePath=".\icodetest.cpp"
 			>
 		</File>
 		<File
